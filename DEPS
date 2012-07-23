@@ -18,6 +18,9 @@ deps = {
   "trunk/testing":
     Var("chromium_trunk") + "/src/testing@" + Var("chromium_revision"),
   
+  "trunk/base":
+    Var("chromium_trunk") + "/src/base@" + Var("chromium_revision"),
+  
   "trunk/testing/gmock":
     (Var("googlecode_url") % "googlemock") + "/trunk@405",
 
@@ -32,6 +35,9 @@ deps = {
 
   "trunk/third_party/libjpeg":
     Var("chromium_trunk") + "/src/third_party/libjpeg@" + Var("chromium_revision"),
+  
+  "trunk/third_party/mach_override":
+    Var("chromium_trunk") + "/src/third_party/mach_override@" + Var("chromium_revision"),
   
   "trunk/third_party/libjpeg_turbo":
     Var("chromium_trunk") + "/deps/third_party/libjpeg_turbo@147428",
@@ -76,25 +82,35 @@ deps = {
   "trunk/third_party/libsrtp":
     Var("chromium_trunk") + "/deps/third_party/libsrtp@123853",
 
-  "trunk/third_party/libjingle/":
-    Var("chromium_trunk") + "/src/third_party/libjingle@" + Var("chromium_revision"),
-  
-  "trunk/third_party/libjingle/source":
+  "trunk/third_party/libjingle":
     "https://github.com/lukeweber/libjingle-override.git",
   
   "trunk/build":
     "https://github.com/lukeweber/chromium-trunk-build-override.git",
+  
+  "trunk/base":
+    "https://github.com/lukeweber/chromium-trunk-base-override.git",
   
   "trunk/third_party/webrtc":
     "https://github.com/lukeweber/webrtc-src-override.git",
   
   "trunk/tools/gyp":
     "https://github.com/lukeweber/gyp-override.git",
+  
+  "trunk/third_party/modp_b64":
+    Var("chromium_trunk") + "/src/third_party/modp_b64@" + Var("chromium_revision"),
+
+  "trunk/third_party/ashmem":
+    Var("chromium_trunk") + "/src/third_party/ashmem@" + Var("chromium_revision"),
+
+  "trunk/third_party/libevent":
+    Var("chromium_trunk") + "/src/third_party/libevent@" + Var("chromium_revision"),
+  
+  "trunk/third_party/icu":
+    Var("chromium_trunk") + "/deps/third_party/icu46@146527",
 }
 
-
 hooks = [
-
   {
     # Create a supplement.gypi file under trunk/src.  This file will be picked
     # up by gyp and used to enable the standalone build.
@@ -107,9 +123,3 @@ hooks = [
     "action": ["python", "trunk/build/gyp_chromium", "--depth=trunk", "trunk/webrtcjingle.gyp"],
   },
 ]
-#  "trunk/third_party/yasm/source/patched-yasm":
-#    From("trunk/chromium_deps", "src/third_party/yasm/source/patched-yasm"),
-# libjingle deps.
-#  "trunk/third_party/libjpeg_turbo":
-#    From("trunk/chromium_deps", "src/third_party/libjpeg_turbo"),
-
