@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2011 The WebRTC project authors. All Rights Reserved. -->
+<!--                                                                     -->
+<!-- Use of this source code is governed by a BSD-style license          -->
+<!-- that can be found in the LICENSE file in the root of the source     -->
+<!-- tree. An additional intellectual property rights grant can be found -->
+<!-- in the file PATENTS.  All contributing project authors may          -->
+<!-- be found in the AUTHORS file in the root of the source tree.        -->
+
+<resources>
+
+    <string name="app_name">Tuenti Voice</string>
+
+    <string name="init_btn">Initialize Client</string>
+    <string name="release_btn">Release Client</string>
+    <string name="login_btn">Login</string>
+    <string name="logout_btn">Logout</string>
+    <string name="place_call_btn">Place call</string>
+    <string name="hang_up_btn">Hang up</string>
+    <string name="accept_call_btn">Accept call</string>
+    <string name="decline_call_btn">Decline call</string>
+
+</resources>

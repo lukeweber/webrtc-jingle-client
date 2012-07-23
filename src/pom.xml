@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.tuenti.voice</groupId>
+    <artifactId>voice-client</artifactId>
+    <version>1.0</version>
+    <packaging>apk</packaging>
+
+    <properties>
+        <android.version>2.3.1</android.version>
+        <android.plugin.version>3.2.0</android.plugin.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.google.android</groupId>
+            <artifactId>android</artifactId>
+            <version>${android.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+
+        <sourceDirectory>${basedir}/src</sourceDirectory>
+
+        <plugins>
+
+            <!-- compiler settings -->
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.jayway.maven.plugins.android.generation2</groupId>
+                <artifactId>android-maven-plugin</artifactId>
+                <version>${android.plugin.version}</version>
+                <extensions>true</extensions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>native-maven-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <javahOutputDirectory>${basedir}/jni</javahOutputDirectory>
+                    <javahClassNames>
+                        <javahClassName>com.tuenti.voice.VoiceClient</javahClassName>
+                    </javahClassNames>
+                    <javahVerbose>true</javahVerbose>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>
