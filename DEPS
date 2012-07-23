@@ -14,8 +14,6 @@ vars = {
 # NOTE: Prefer revision numbers to tags for svn deps. Use http rather than
 # https; the latter can cause problems for users behind proxies.
 deps = {
-  "trunk/build":
-    Var("chromium_trunk") + "/src/build@" + Var("chromium_revision"),
 
   "trunk/testing":
     Var("chromium_trunk") + "/src/testing@" + Var("chromium_revision"),
@@ -51,7 +49,7 @@ deps = {
     Var("chromium_trunk") + "/src/third_party/yasm@" + Var("chromium_revision"),
 
   "trunk/third_party/yasm/source/patched-yasm":
-    Var("chromium_trunk") + "/src/third_party/yasm/source/patched-yasm@134927",
+    Var("chromium_trunk") + "/deps/third_party/yasm/patched-yasm@134927",
 
   "trunk/tools/clang":
     Var("chromium_trunk") + "/src/tools/clang@" + Var("chromium_revision"),
@@ -78,14 +76,17 @@ deps = {
   "trunk/third_party/libsrtp":
     Var("chromium_trunk") + "/deps/third_party/libsrtp@123853",
 
-  "trunk/tools/deps2git":
-    Var("chromium_trunk") + "/tools/deps2git@" + Var("chromium_revision"),
-
   "trunk/tools/gyp":
     "https://github.com/lukeweber/gyp-mac-android-xcompile.git@2b02678d",
   
+  "trunk/third_party/libjingle/":
+    Var("chromium_trunk") + "/src/third_party/libjingle@" + Var("chromium_revision"),
+  
   "trunk/third_party/libjingle/source":
     "https://github.com/lukeweber/libjingle.git@a90425e6",
+  
+  "trunk/build":
+    "https://github.com/lukeweber/chromium-trunk-build.git@9c0e5437",
 }
 
 #  "trunk/third_party/yasm/source/patched-yasm":
