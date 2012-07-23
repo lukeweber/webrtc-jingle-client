@@ -92,6 +92,21 @@ deps = {
     "https://github.com/lukeweber/gyp-override.git@2b02678d",
 }
 
+
+hooks = [
+
+  {
+    # Create a supplement.gypi file under trunk/src.  This file will be picked
+    # up by gyp and used to enable the standalone build.
+    "pattern": ".",
+    "action": ["python", "trunk/tools/create_supplement_gypi.py", "trunk/src/supplement.gypi"],
+  },
+  {
+    # A change to a .gyp, .gypi, or to GYP itself should run the generator.
+    "pattern": ".",
+    "action": ["python", "trunk/build/gyp_chromium", "--depth=trunk", "trunk/webrtcjingle.gyp"],
+  },
+]
 #  "trunk/third_party/yasm/source/patched-yasm":
 #    From("trunk/chromium_deps", "src/third_party/yasm/source/patched-yasm"),
 # libjingle deps.
