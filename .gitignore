@@ -1,8 +1,8 @@
-app/obj
-app/libs
-app/bin
-app/gen
-app/jni/config.mk
+src/obj
+src/libs
+src/bin
+src/gen
+src/jni/config.mk
 
 .DS_Store
 .project
