@@ -76,20 +76,20 @@ deps = {
   "trunk/third_party/libsrtp":
     Var("chromium_trunk") + "/deps/third_party/libsrtp@123853",
 
-  "trunk/tools/gyp":
-    "https://github.com/lukeweber/gyp-mac-android-xcompile.git@2b02678d",
-  
   "trunk/third_party/libjingle/":
     Var("chromium_trunk") + "/src/third_party/libjingle@" + Var("chromium_revision"),
   
   "trunk/third_party/libjingle/source":
-    "https://github.com/lukeweber/libjingle.git@a90425e6",
+    "https://github.com/lukeweber/libjingle-override.git@a90425e6",
   
   "trunk/build":
-    "https://github.com/lukeweber/chromium-trunk-build.git@9c0e5437",
+    "https://github.com/lukeweber/chromium-trunk-build-override.git@9c0e5437",
   
   "trunk/third_party/webrtc":
     "https://github.com/lukeweber/webrtc-src-override.git@9eeeed5a",
+  
+  "trunk/tools/gyp":
+    "https://github.com/lukeweber/gyp-override.git@2b02678d",
 }
 
 #  "trunk/third_party/yasm/source/patched-yasm":
