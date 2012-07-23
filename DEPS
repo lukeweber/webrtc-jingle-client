@@ -87,6 +87,9 @@ deps = {
   
   "trunk/build":
     "https://github.com/lukeweber/chromium-trunk-build.git@9c0e5437",
+  
+  "trunk/third_party/webrtc":
+    "https://github.com/lukeweber/webrtc-src-override.git@9eeeed5a",
 }
 
 #  "trunk/third_party/yasm/source/patched-yasm":
