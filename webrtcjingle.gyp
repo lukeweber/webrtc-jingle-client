@@ -9,25 +9,35 @@
 {
   'includes': [ 'third_party/webrtc/build/common.gypi', ],
   'variables': {
-    'peerconnection_sample': 'third_party/libjingle/source/talk/examples/peerconnection',
+    'webrtc_jingle': 'src/jni',
   },  
 
   'targets': [
     {
-      'target_name': 'peerconnection_server',
+      'target_name': 'webrtc_jingle_debug',
       'type': 'executable',
       'sources': [
-        '<(peerconnection_sample)/server/data_socket.cc',
-        '<(peerconnection_sample)/server/data_socket.h',
-        '<(peerconnection_sample)/server/main.cc',
-        '<(peerconnection_sample)/server/peer_channel.cc',
-        '<(peerconnection_sample)/server/peer_channel.h',
-        '<(peerconnection_sample)/server/utils.cc',
-        '<(peerconnection_sample)/server/utils.h',
+        '<(webrtc_jingle)/voiceclient_main.cc',
+        '<(webrtc_jingle)/tuenti/logging.h',
+        '<(webrtc_jingle)/tuenti/presenceouttask.cc',
+        '<(webrtc_jingle)/tuenti/presenceouttask.h',
+        '<(webrtc_jingle)/tuenti/presencepushtask.cc',
+        '<(webrtc_jingle)/tuenti/presencepushtask.h',
+        '<(webrtc_jingle)/tuenti/status.h',
+        '<(webrtc_jingle)/tuenti/threadpriorityhandler.cc',
+        '<(webrtc_jingle)/tuenti/threadpriorityhandler.h',
+        '<(webrtc_jingle)/tuenti/voiceclient.cc',
+        '<(webrtc_jingle)/tuenti/voiceclient.h',
       ],
       'include_dirs': [
         'third_party/libjingle/source',
       ],
+      'dependencies': [
+        #'third_party/libjingle/libjingle.gyp:libjingle_peerconnection',
+      ],
+      'defines': [
+        'EXPAT_RELATIVE_PATH',
+      ]
     },
   ],
   'conditions': [
