@@ -33,7 +33,7 @@
         'third_party/libjingle/source',
       ],
       'dependencies': [
-        #'third_party/libjingle/libjingle.gyp:libjingle_peerconnection',
+        'third_party/libjingle/libjingle.gyp:libjingle_audio_only',
       ],
       'defines': [
         'EXPAT_RELATIVE_PATH',
