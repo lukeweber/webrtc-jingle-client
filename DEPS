@@ -73,7 +73,7 @@ deps = {
   "trunk/third_party/expat":
     Var("chromium_trunk") + "/src/third_party/expat@" + Var("chromium_revision"),
 
-  "trunk/third_party/libsrtp":
+  "trunk/third_party/libsrtp/source":
     Var("chromium_trunk") + "/deps/third_party/libsrtp@123853",
 
   "trunk/third_party/libjingle":
