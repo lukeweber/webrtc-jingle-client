@@ -70,12 +70,6 @@ deps = {
   "trunk/tools/win/supalink":
     Var("chromium_trunk") + "/src/tools/win/supalink@" + Var("chromium_revision"),
 
-  "trunk/third_party/jsoncpp/":
-    Var("chromium_trunk") + "/src/third_party/jsoncpp@" + Var("chromium_revision"),
-
-  "trunk/third_party/jsoncpp/source":
-    "http://jsoncpp.svn.sourceforge.net/svnroot/jsoncpp/trunk/jsoncpp@248",
-
   "trunk/third_party/expat":
     Var("chromium_trunk") + "/src/third_party/expat@" + Var("chromium_revision"),
 

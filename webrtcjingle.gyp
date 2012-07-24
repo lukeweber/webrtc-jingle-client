@@ -14,7 +14,7 @@
 
   'targets': [
     {
-      'target_name': 'webrtc_jingle_debug',
+      'target_name': 'webrtc_jingle',
       'type': 'executable',
       'sources': [
         '<(webrtc_jingle)/voiceclient_main.cc',
@@ -30,7 +30,7 @@
         '<(webrtc_jingle)/tuenti/voiceclient.h',
       ],
       'include_dirs': [
-        'third_party/libjingle/source',
+        '<(webrtc_jingle)',
       ],
       'dependencies': [
         'third_party/libjingle/libjingle.gyp:libjingle_audio_only',
@@ -40,84 +40,4 @@
       ]
     },
   ],
-  'conditions': [
-    ['OS=="win"', {
-      'targets': [
-        {
-          'target_name': 'peerconnection_client',
-          'type': 'executable',
-          'sources': [
-            '<(peerconnection_sample)/client/conductor.cc',
-            '<(peerconnection_sample)/client/conductor.h',
-            '<(peerconnection_sample)/client/defaults.cc',
-            '<(peerconnection_sample)/client/defaults.h',
-            '<(peerconnection_sample)/client/main.cc',
-            '<(peerconnection_sample)/client/main_wnd.cc',
-            '<(peerconnection_sample)/client/main_wnd.h',
-            '<(peerconnection_sample)/client/peer_connection_client.cc',
-            '<(peerconnection_sample)/client/peer_connection_client.h',
-            'third_party/libjingle/source/talk/base/win32socketinit.cc',
-            'third_party/libjingle/source/talk/base/win32socketserver.cc',
-          ],
-          'msvs_settings': {
-            'VCLinkerTool': {
-             'SubSystem': '2',  # Windows
-            },
-          },
-          'dependencies': [
-            'third_party/libjingle/libjingle.gyp:libjingle_peerconnection',
-          ],
-          'include_dirs': [
-            'src',
-            'src/modules/interface',
-            'third_party/libjingle/source',
-          ],
-        },
-      ],  # targets
-    }, ],  # OS="win"
-    ['OS=="linux"', {
-      'targets': [
-        {
-          'target_name': 'peerconnection_client',
-          'type': 'executable',
-          'sources': [
-            '<(peerconnection_sample)/client/conductor.cc',
-            '<(peerconnection_sample)/client/conductor.h',
-            '<(peerconnection_sample)/client/defaults.cc',
-            '<(peerconnection_sample)/client/defaults.h',
-            '<(peerconnection_sample)/client/linux/main.cc',
-            '<(peerconnection_sample)/client/linux/main_wnd.cc',
-            '<(peerconnection_sample)/client/linux/main_wnd.h',
-            '<(peerconnection_sample)/client/peer_connection_client.cc',
-            '<(peerconnection_sample)/client/peer_connection_client.h',
-          ],
-          'dependencies': [
-            'third_party/libjingle/libjingle.gyp:libjingle_peerconnection',
-            # TODO(tommi): Switch to this and remove specific gtk dependency
-            # sections below for cflags and link_settings.
-            # '<(DEPTH)/build/linux/system.gyp:gtk',
-          ],
-          'include_dirs': [
-            'src',
-            'src/modules/interface',
-            'third_party/libjingle/source',
-          ],
-          'cflags': [
-            '<!@(pkg-config --cflags gtk+-2.0)',
-          ],
-          'link_settings': {
-            'ldflags': [
-              '<!@(pkg-config --libs-only-L --libs-only-other gtk+-2.0 gthread-2.0)',
-            ],
-            'libraries': [
-              '<!@(pkg-config --libs-only-l gtk+-2.0 gthread-2.0)',
-              '-lX11',
-              '-lXext',
-            ],
-          },
-        },
-      ],  # targets
-    }, ],  # OS="linux"
-  ],
-
 }
