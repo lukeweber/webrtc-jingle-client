@@ -26,6 +26,8 @@
         '<(webrtc_jingle)/tuenti/status.h',
         '<(webrtc_jingle)/tuenti/threadpriorityhandler.cc',
         '<(webrtc_jingle)/tuenti/threadpriorityhandler.h',
+        '<(webrtc_jingle)/tuenti/clientsignalingthread.cc',
+        '<(webrtc_jingle)/tuenti/clientsignalingthread.h',
         '<(webrtc_jingle)/tuenti/voiceclient.cc',
         '<(webrtc_jingle)/tuenti/voiceclient.h',
       ],
