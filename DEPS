@@ -108,6 +108,9 @@ deps = {
   
   "trunk/third_party/icu":
     Var("chromium_trunk") + "/deps/third_party/icu46@146527",
+  
+  "trunk/third_party/openssl":
+    Var("chromium_trunk") + "/deps/third_party/openssl@130472",
 }
 
 hooks = [
