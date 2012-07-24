@@ -1,7 +1,12 @@
-Hot mess of code at the moment. Idea is to get everything that is overridden under separate repos to facilitate syncing. As well, using gyp will hopefully allow us to use apk unit testing of chromium. Pending first steps are to create a new libjingle.gyp based on respective Android.mk file for libjilngle. Next is to then build our app(.so), based in webtcjingle.gyp. Lastly we should be able to autogenerate .h jni files from java files, and apk files for our app directly through make. After all this is working, unit tests.
+Work in progress:
+* Dependencies in place for build
+* webrtcjingle.gyp needs to actually gather all dependencies into a single large static voiceclient.a(not yet working)
+* Build voiceclient.a into apk via build scripts.
+* Build tests automatically using chromium style apk test runner. (native_test.gyp)
+
 
 ```
-# mkdir webrtcjinleproject
+# mkdir webrtcjingleproject
 # cd webrtcjingleproject
 # gclient config https://github.com/lukeweber/webrtc-jingle-client.git --name trunk
 # gclient sync
