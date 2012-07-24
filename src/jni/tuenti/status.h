@@ -174,11 +174,13 @@ public:
   }
 
   static std::string TrimStatus(const std::string& st) {
-    std::string s(st);
+    //NFHACK need to fix this for long statuses
+    return st;
+    /*std::string s(st);
     int j = 0;
     bool collapsing = true;
     for (unsigned int i = 0; i < s.length(); i+= 1) {
-      if (s[i] <= ' ' && s[i] >= 0) {
+      if (s[i] <= ' ' && s[i] >= '\0') {
         if (collapsing) {
           continue;
         }
@@ -198,7 +200,7 @@ public:
       j -= 1;
     }
     s.erase(j, s.length());
-    return s;
+    return s;*/
   }
 
 private:

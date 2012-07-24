@@ -7,12 +7,12 @@
 
 namespace tuenti{
 
-static JavaVM* jvm_;
 
 class ThreadPriorityHandler {
 public:
     static void Init(JavaVM* jvm);
     static void SetPriority(int tid, int priority);
+    static JavaVM* jvm_;
 };
 
 };

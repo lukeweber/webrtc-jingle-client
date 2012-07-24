@@ -35,15 +35,13 @@
 #include "talk/base/sigslot.h"
 
 #include "tuenti/status.h"
-#include "tuenti/voiceclient.h"
 
 namespace buzz {
 
 class PresencePushTask : public XmppTask {
  public:
-  PresencePushTask(XmppTaskParentInterface* parent, VoiceClient* client)
-    : XmppTask(parent, XmppEngine::HL_TYPE),
-      client_(client) {}
+  PresencePushTask(XmppTaskParentInterface* parent)
+    : XmppTask(parent, XmppEngine::HL_TYPE) {}
   virtual int ProcessStart();
 
   sigslot::signal1<const Status&> SignalStatusUpdate;
@@ -53,9 +51,6 @@ class PresencePushTask : public XmppTask {
   void HandlePresence(const Jid& from, const XmlElement * stanza);
   static void FillStatus(const Jid& from, const XmlElement * stanza,
                          Status* status);
-
- private:
-  VoiceClient* client_;
 };
 
 

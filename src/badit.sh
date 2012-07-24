@@ -22,14 +22,13 @@ function check_environment_vars(){
 	fi
 }
 check_environment_vars
-rm -rf bin/*
+rm -rf $BASEDIR/bin/*
 
 adb uninstall com.tuenti.voice;
 check_return_code "$?"
 
 ./build.sh dd;
 check_return_code "$?"
-
 
 ant debug
 check_return_code "$?"

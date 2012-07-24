@@ -100,9 +100,13 @@ LOCAL_PATH := $(MY_WEBRTC_ROOT_PATH)
 include $(CLEAR_VARS)
 include $(LOCAL_PATH)/config.mk
 
+LOCAL_MODULE_TAGS := tests
+LOCAL_WHOLE_STATIC_LIBRARIES := gtest_static
+
 LOCAL_MODULE := libwebrtc-voice-demo-jni
 LOCAL_CPP_EXTENSION := .cc
 LOCAL_SRC_FILES := tuenti/voiceclient.cc \
+                   tuenti/clientsignalingthread.cc \
                    tuenti/presenceouttask.cc \
                    tuenti/presencepushtask.cc \
                    voiceclient_main.cc
@@ -142,33 +146,6 @@ LOCAL_SHARED_LIBRARIES := libutils \
                           libstlport_shared \
                           libwebrtc_voice
 LOCAL_LDLIBS := -llog
-include $(BUILD_SHARED_LIBRARY)
-
-
-LOCAL_PATH := $(MY_WEBRTC_ROOT_PATH)
-include $(CLEAR_VARS)
-
-LOCAL_MODULE_TAGS := tests
-LOCAL_WHOLE_STATIC_LIBRARIES := gtest_static \
-
-LOCAL_MODULE := voice_client_test
-LOCAL_CPP_EXTENSION := .cc
-LOCAL_SRC_FILES := tuenti/voiceclienttest.cc \
-
-LOCAL_LDLIBS := -llog -ldl -lrt
-
-LOCAL_CFLAGS := \
-  -DGTEST_USE_OWN_TR1_TUPLE \
-
-LOCAL_SHARED_LIBRARIES := \
-                          libandroid \
-                          libGLESv2 \
-                          libjingle \
-                          libstlport_shared \
-
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../trunk/testing/gtest/include \
-	$(LOCAL_PATH)/../../trunk/testing/ \
-	$(LOCAL_PATH)/../../trunk/
 include $(BUILD_SHARED_LIBRARY)
 
 endif

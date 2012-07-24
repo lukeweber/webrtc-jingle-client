@@ -5,9 +5,10 @@
 #include "tuenti/logging.h"
 
 namespace tuenti{
+JavaVM *ThreadPriorityHandler::jvm_ = NULL;
 
 void ThreadPriorityHandler::Init(JavaVM* jvm) {
-	jvm_ = jvm;
+  jvm_ = jvm;
 }
 
 void ThreadPriorityHandler::SetPriority(int tid, int priority) {

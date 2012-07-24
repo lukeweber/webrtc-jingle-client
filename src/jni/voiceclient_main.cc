@@ -10,8 +10,7 @@
 
 JavaVM* jvm_;
 jobject reference_object_;
-
-class CallbackHelper: public VoiceClientNotify {
+class CallbackHelper: public tuenti::VoiceClientNotify {
 
 public:
 
@@ -62,6 +61,8 @@ public:
             CallNativeDispatchEvent(com_tuenti_voice_VoiceClient_XMPP_ENGINE_EVENT,
                     com_tuenti_voice_VoiceClient_XMPP_ENGINE_CLOSED, "logged out...");
             break;
+        default:
+            break;
         }
     }
 
@@ -70,6 +71,8 @@ public:
         std::string remoteJid = jid.Str();
 
         switch (state) {
+        default:
+            break;
         case cricket::Session::STATE_SENTINITIATE:
             CallNativeDispatchEvent(com_tuenti_voice_VoiceClient_CALL_STATE_EVENT,
                     com_tuenti_voice_VoiceClient_CALL_CALLING, remoteJid);
@@ -103,7 +106,7 @@ public:
 };
 
 static CallbackHelper callback_;
-VoiceClient *client_;
+tuenti::VoiceClient *client_;
 
 jint JNI_OnLoad(JavaVM* vm, void* /*reserved*/) {
     if (!vm) {
@@ -161,7 +164,7 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeInit(JNIEnv *env,
     if (!client_) {
         LOGI("creating the client");
         reference_object_ = env->NewGlobalRef(object);
-        client_ = new VoiceClient(&callback_);
+        client_ = new tuenti::VoiceClient(&callback_);
     }
 }
 
@@ -200,8 +203,7 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeLogout(JNIEnv *en
 JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeRelease(JNIEnv *env,
         jobject object) {
     if (client_) {
-        //the delete is done internally in the destruct method
-        client_->Destruct();
+        client_->Destroy();//Does an internal delete when all threads have stopped but a callback to do the delete here would be better
         client_ = NULL;
         env->DeleteGlobalRef(reference_object_);
     }

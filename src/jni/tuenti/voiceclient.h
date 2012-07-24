@@ -13,6 +13,7 @@
 
 
 #include "tuenti/status.h"
+//#include "tuenti/clientsignalingthread.h"
 
 namespace buzz {
 class PresencePushTask;
@@ -27,6 +28,7 @@ namespace talk_base {
 class Thread;
 class SignalThread;
 class NetworkManager;
+//class ClientSignalingThread;
 }
 
 namespace cricket {
@@ -40,11 +42,15 @@ struct MediaStreams;
 struct StreamParams;
 }
 
-struct RosterItem {
+namespace tuenti {
+  class ClientSignalingThread;
+
+/*struct RosterItem {
     buzz::Jid jid;
     buzz::Status::Show show;
     std::string status;
-};
+};*/
+
 
 class VoiceClientNotify {
 
@@ -60,93 +66,39 @@ public:
     virtual void OnCallStateChange(cricket::Session* session, cricket::Session::State state) = 0;
 };
 
-class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler, XmppPumpNotify {
+class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
 public:
 
 // initialization
     VoiceClient(VoiceClientNotify *notify);
     ~VoiceClient();
+    void Destroy();//Deletes self after deleting threads
 
-// state functions
+// passthru functions
     void Login(std::string &username, std::string &password, std::string &server, bool use_ssl);
     void Disconnect();
     void Call(std::string &remoteJid);
     void EndCall();
     void AcceptCall();
     void DeclineCall();
-    void Destruct();
 
 private:
 
 
-
-
-// callback functions
-    void OnRequestSignaling();
-    void OnSessionCreate(cricket::Session* session, bool initiate);
-    void OnCallCreate(cricket::Call* call);
-    void OnCallDestroy(cricket::Call* call);
-    void OnMediaEngineTerminate();
-    void OnSessionState(cricket::Call* call, cricket::Session* session,
-            cricket::Session::State state);
-    void OnStatusUpdate(const buzz::Status& status);
-    void OnDataReceived(cricket::Call*, const cricket::ReceiveDataParams& params,
-            const std::string& data);
-    void OnMessage(talk_base::Message *msg);
-    void OnStateChange(buzz::XmppEngine::State state);
-
-
-// main thread functions - These should probably be ui thread functions only
-    void OnMessageM(talk_base::Message *msg);
-    void OnStateChangeM(buzz::XmppEngine::State state);
-
 // signaling thread functions initialization
     void InitializeS();
     void DestroyS();
-    void InitMediaS();
-    void InitPresenceS();
 // signaling thread functions other
-    void LoginS();
-    void DisconnectS();
-    void CallS(const std::string &remoteJid);
-    void EndCallS();
-    void AcceptCallS();
-    void DeclineCallS();
-    void OnStateChangeS(buzz::XmppEngine::State state);
-    void OnMessageS(talk_base::Message *msg);
+    void OnMessage(talk_base::Message *msg);
 
-    typedef std::map<std::string, RosterItem> RosterMap;
+    //typedef std::map<std::string, RosterItem> RosterMap;
 
     VoiceClientNotify *notify_;
-    talk_base::scoped_ptr<talk_base::Thread> main_thread_;
-    talk_base::scoped_ptr<XmppPump> pump_;
-    buzz::XmppClientSettings xcs_;
-    talk_base::Thread* worker_thread_;
-    //talk_base::SignalThread* signaling_thread_;
-    talk_base::Thread* signaling_thread_;
-    talk_base::NetworkManager* network_manager_;
-    cricket::PortAllocator* port_allocator_;
-    cricket::SessionManager* session_manager_;
-    cricket::SessionManagerTask* session_manager_task_;
-    talk_base::scoped_ptr<cricket::MediaEngineInterface> media_engine_;
-    cricket::DataEngineInterface* data_engine_;
-    cricket::MediaSessionClient* media_client_;
-
-    cricket::Call* call_;
-    cricket::Session *session_;
-    bool incoming_call_;
-    bool auto_accept_;
-    bool use_ssl_;
-    bool releasing_;
+    talk_base::Thread *signal_thread_;
+    tuenti::ClientSignalingThread *client_signaling_thread_;
 
     buzz::Status my_status_;
-    buzz::PresencePushTask* presence_push_;
-    buzz::PresenceOutTask* presence_out_;
-    RosterMap* roster_;
-    uint32 portallocator_flags_;
-
-    cricket::SignalingProtocol initial_protocol_;
-    cricket::SecureMediaPolicy secure_policy_;
 };
 
+}// namespace tuenti
 #endif

@@ -112,7 +112,7 @@ void PresencePushTask::FillStatus(const Jid& from, const XmlElement* stanza,
 
     const XmlElement * priority = stanza->FirstNamed(QN_PRIORITY);
     if (priority != NULL) {
-      int pri;
+      int pri = 0;
       if (talk_base::FromString(priority->BodyText(), &pri)) {
         s->set_priority(pri);
       }
