@@ -56,7 +56,7 @@
     ],
     'direct_dependent_settings': {
       'include_dirs': [
-        './config',
+        'source/config',
         'source/srtp/include',
         'source/srtp/crypto/include',
       ],
