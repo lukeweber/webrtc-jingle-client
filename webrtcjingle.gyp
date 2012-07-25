@@ -25,7 +25,7 @@
             {
               'action_name': 'webrtc_jingle',
               'inputs': [
-                '<(DEPTH)/src/build.xml',
+                '<(DEPTH)/src/AndroidManifest.xml',
                 '<!@(find <(DEPTH)/src/src/ -name "*.java")',
                 'src/jni/voiceclient_main.cc'
               ],
