@@ -78,14 +78,14 @@ void VoiceClient::InitializeS() {
     LOGI("VoiceClient::InitializeS");
     if(client_signaling_thread_ == NULL){
         client_signaling_thread_ = new tuenti::ClientSignalingThread(notify_, signal_thread_);
-        LOGI("VoiceClient::VoiceClient - new ClientSignalingThread client_signaling_thread_@(0x%x)", client_signaling_thread_);
+        LOGI("VoiceClient::VoiceClient - new ClientSignalingThread client_signaling_thread_@(0x%x)", (int) client_signaling_thread_);
         client_signaling_thread_->Start();
     }
 }
 void VoiceClient::DestroyS() {
     LOGI("VoiceClient::DestroyS");
     if(client_signaling_thread_ != NULL){
-        LOGI("VoiceClient::VoiceClient - destroy ClientSignalingThread client_signaling_thread_@(0x%x)", client_signaling_thread_);
+        LOGI("VoiceClient::VoiceClient - destroy ClientSignalingThread client_signaling_thread_@(0x%x)", (int) client_signaling_thread_);
         client_signaling_thread_->Destroy();
         delete this; //NFHACK Pretty ugly should probably call a all good to delete callback in voiceclient_main
     }
