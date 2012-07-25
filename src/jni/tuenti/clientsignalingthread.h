@@ -11,27 +11,27 @@
 #include "talk/examples/login/xmpppump.h"//Needed for XmppPumpNotify
 #include "talk/p2p/base/session.h"//Needed for enum cricket::Session::State
 #include "talk/session/phone/mediachannel.h"//Needed for enum cricket::ReceiveDataParams
-
 #include "tuenti/status.h"
+
 namespace talk_base {
-  class BasicNetworkManager;
+class BasicNetworkManager;
 }
 namespace cricket {
-  class DataEngine;
-  class BasicPortAllocator;
-  class Session;
-  class SessionManager;
-  class SessionManagerTask;
-  class Call;
-  class MediaSessionClient;
-  class MediaEngineInterface;
+class DataEngine;
+class BasicPortAllocator;
+class Session;
+class SessionManager;
+class SessionManagerTask;
+class Call;
+class MediaSessionClient;
+class MediaEngineInterface;
 }
 namespace buzz {
-  class Status;
-  class Jid;
-  class XmppClient;
-  class PresencePushTask;
-  class PresenceOutTask;
+class Status;
+class Jid;
+class XmppClient;
+class PresencePushTask;
+class PresenceOutTask;
 }
 class XmppPump;
 
@@ -41,6 +41,7 @@ struct RosterItem {
     std::string status;
 };
 namespace tuenti {
+
 class VoiceClientNotify;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -60,78 +61,83 @@ class VoiceClientNotify;
 //   tasks in the context of the main thread.
 ///////////////////////////////////////////////////////////////////////////////
 
-class ClientSignalingThread : public talk_base::SignalThread, public XmppPumpNotify {
+class ClientSignalingThread: public talk_base::SignalThread, public XmppPumpNotify {
+
 public:
-  ClientSignalingThread(VoiceClientNotify *notifier, talk_base::Thread *signal_thread);
-  //Public Library Callbacks
-  void OnSessionState(cricket::Call* call, cricket::Session* session, cricket::Session::State state);
-  void OnStatusUpdate(const buzz::Status& status);
-  void OnStateChange(buzz::XmppEngine::State state);//Needed by XmppPumpNotify maybe better in another class
-  void OnDataReceived(cricket::Call*, const cricket::ReceiveDataParams& params, const std::string& data);
-  void OnRequestSignaling();
-  void OnSessionCreate(cricket::Session* session, bool initiate);
-  void OnCallCreate(cricket::Call* call);
-  void OnCallDestroy(cricket::Call* call);
-  void OnMediaEngineTerminate();
-  //These are signal thread entry points that will be farmed out to the worker equivilent functions
-  void Login(bool use_ssl, buzz::XmppClientSettings settings);
-  void Disconnect();
-  void Call(std::string &remoteJid);
-  void AcceptCall();
-  void DeclineCall();
-  void EndCall();
-  void Destroy();
+
+    ClientSignalingThread(VoiceClientNotify *notifier, talk_base::Thread *signal_thread);
+    //Public Library Callbacks
+    void OnSessionState(cricket::Call* call, cricket::Session* session, cricket::Session::State state);
+    void OnStatusUpdate(const buzz::Status& status);
+    void OnStateChange(buzz::XmppEngine::State state); //Needed by XmppPumpNotify maybe better in another class
+    void OnDataReceived(cricket::Call*, const cricket::ReceiveDataParams& params, const std::string& data);
+    void OnRequestSignaling();
+    void OnSessionCreate(cricket::Session* session, bool initiate);
+    void OnCallCreate(cricket::Call* call);
+    void OnCallDestroy(cricket::Call* call);
+    void OnMediaEngineTerminate();
+    void OnPingTimeout();
+    //These are signal thread entry points that will be farmed out to the worker equivilent functions
+    void Login(const std::string &username, const std::string &password, const std::string &xmpp_host, int xmpp_port,
+            bool use_ssl, const std::string &stun_host, int stun_port);
+    void Disconnect();
+    void Call(std::string &remoteJid);
+    void AcceptCall();
+    void DeclineCall();
+    void EndCall();
+    void Destroy();
 
 protected:
-  virtual ~ClientSignalingThread();
-  virtual void OnMessage(talk_base::Message* message);
-  // Context: Worker Thread.
-  virtual void DoWork();
+
+    virtual ~ClientSignalingThread();
+    virtual void OnMessage(talk_base::Message* message);
+    // Context: Worker Thread.
+    virtual void DoWork();
 
 private:
-  //Worker methods
-  void LoginW();
-  void DisconnectW();
-  void CallW(const std::string &remoteJid);
-  void AcceptCallW();
-  void DeclineCallW();
-  void EndCallW();
 
-  //These should live inside of the XmppPump
-  void InitMedia();
-  void InitPresence();
-  void SetMediaCaps(int media_caps, buzz::Status* status);
-  void SetCaps(int media_caps, buzz::Status* status);
-  void SetAvailable(const buzz::Jid& jid, buzz::Status* status);
+    //Worker methods
+    void LoginW();
+    void DisconnectW();
+    void CallW(const std::string &remoteJid);
+    void AcceptCallW();
+    void DeclineCallW();
+    void EndCallW();
 
-  //data
-  typedef std::map<std::string, RosterItem> RosterMap;
-  VoiceClientNotify *notify_;
-  talk_base::Thread *signal_thread_;
-  RosterMap *roster_;
-  XmppPump *pump_;
-  buzz::PresencePushTask* presence_push_;
-  buzz::PresenceOutTask* presence_out_;
-  talk_base::BasicNetworkManager *network_manager_;
-  cricket::DataEngine *data_engine_;
-  cricket::BasicPortAllocator *port_allocator_;
-  cricket::Session *session_;
-  cricket::SessionManager *session_manager_;
-  cricket::SessionManagerTask* session_manager_task_;
-  cricket::Call* call_;
-  cricket::MediaSessionClient* media_client_;
-  cricket::MediaEngineInterface* media_engine_;
-  uint32 port_allocator_flags_;
-  bool use_ssl_;
-  bool incoming_call_;
-  bool auto_accept_;
-  buzz::XmppClientSettings xcs_;
-  buzz::Status my_status_;
-  DISALLOW_COPY_AND_ASSIGN(ClientSignalingThread);
+    //These should live inside of the XmppPump
+    void InitMedia();
+    void InitPresence();
+    void InitPing();
+
+    //data
+    typedef std::map<std::string, RosterItem> RosterMap;
+
+    VoiceClientNotify *notify_;
+    talk_base::Thread *signal_thread_;
+    XmppPump *pump_;
+    talk_base::BasicNetworkManager *network_manager_;
+    cricket::DataEngine *data_engine_;
+    cricket::BasicPortAllocator *port_allocator_;
+    cricket::SessionManager *session_manager_;
+    cricket::SessionManagerTask* session_manager_task_;
+    cricket::MediaSessionClient* media_client_;
+    cricket::MediaEngineInterface* media_engine_;
+    buzz::XmppClientSettings xcs_;
+
+    cricket::Session *session_;
+    cricket::Call* call_;
+    bool incoming_call_;
+    bool auto_accept_;
+
+    buzz::Status my_status_;DISALLOW_COPY_AND_ASSIGN(ClientSignalingThread);
+    buzz::PresencePushTask* presence_push_;
+    buzz::PresenceOutTask* presence_out_;
+    buzz::PingTask* ping_;
+    RosterMap *roster_;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 
-}  // namespace tuenti
+}// namespace tuenti
 
 #endif  // TUENTI_CLIENTSIGNALINGTHREAD_H_

@@ -67,7 +67,7 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeInit
  * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;IZ)V
  */
 JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeLogin
-  (JNIEnv *, jobject, jstring, jstring, jstring, jint, jstring, jint, jboolean);
+  (JNIEnv *, jobject, jstring, jstring, jstring, jint, jboolean, jstring, jint);
 
 /*
  * Class:     com_tuenti_voice_VoiceClient

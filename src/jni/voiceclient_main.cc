@@ -7,7 +7,6 @@
 #include "tuenti/voiceclient.h"
 #include "tuenti/threadpriorityhandler.h"
 
-
 JavaVM* jvm_;
 jobject reference_object_;
 tuenti::VoiceClient *client_;
@@ -32,8 +31,7 @@ public:
             jvm_->DetachCurrentThread();
             return;
         }
-        jmethodID method = env->GetStaticMethodID(cls, "dispatchNativeEvent",
-                "(IILjava/lang/String;)V");
+        jmethodID method = env->GetStaticMethodID(cls, "dispatchNativeEvent", "(IILjava/lang/String;)V");
         if (!method) {
             LOGE("Failed to get method ID");
             jvm_->DetachCurrentThread();
@@ -90,35 +88,30 @@ jint JNI_OnLoad(JavaVM* vm, void* /*reserved*/) {
     return JNI_VERSION_1_6;
 }
 
-JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeAcceptCall(JNIEnv *env,
-        jobject object) {
+JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeAcceptCall(JNIEnv *env, jobject object) {
     if (client_) {
         client_->AcceptCall();
     }
 }
 
-JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeCall(JNIEnv *env, jobject object,
-        jstring remoteJid) {
+JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeCall(JNIEnv *env, jobject object, jstring remoteJid) {
     if (client_) {
         std::string nativeRemoteJid = env->GetStringUTFChars(remoteJid, NULL);
         client_->Call(nativeRemoteJid);
     }
 }
 
-JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeDeclineCall(JNIEnv *env,
-        jobject object) {
+JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeDeclineCall(JNIEnv *env, jobject object) {
     if (client_) {
         client_->DeclineCall();
     }
 }
 
-JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeDestroy(JNIEnv *env,
-        jobject object) {
+JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeDestroy(JNIEnv *env, jobject object) {
     Java_com_tuenti_voice_VoiceClient_nativeRelease(env, object);
 }
 
-JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeEndCall(JNIEnv *env,
-        jobject object) {
+JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeEndCall(JNIEnv *env, jobject object) {
     if (client_) {
         client_->EndCall();
     }
@@ -132,9 +125,8 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeInit(JNIEnv *env,
     }
 }
 
-JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeLogin(JNIEnv *env, jobject object,
-        jstring username, jstring password, jstring xmppServer, jint xmppPort, jstring stunServer,
-        jint stunPort, jboolean useSSL) {
+JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeLogin(JNIEnv *env, jobject object, jstring username,
+        jstring password, jstring xmppHost, jint xmppPort, jboolean useSSL, jstring stunHost, jint stunPort) {
     if (!client_) {
         LOGE("client not initialized");
         return;
@@ -143,22 +135,19 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeLogin(JNIEnv *env
     //Although we're assigning this to std::string,
     //env->GetStringUTFChars is a malloc type operation.
     //I think this is a memory leak.
-    std::string nativeUsername = env->GetStringUTFChars(username, NULL);
-    std::string nativePassword = env->GetStringUTFChars(password, NULL);
-    std::string nativeXmppServer = env->GetStringUTFChars(xmppServer, NULL);
-    std::string nativeStunServer = env->GetStringUTFChars(stunServer, NULL);
-
-    if (nativeUsername.empty() || nativePassword.empty()) {
-        LOGE("Username/Password or Domain not set");
-        return;
-    }
-    if (nativeUsername.find('@') == std::string::npos) {
-        nativeUsername.append("@localhost");
-    }
+    const char* nativeUsername = env->GetStringUTFChars(username, NULL);
+    const char* nativePassword = env->GetStringUTFChars(password, NULL);
+    const char* nativeXmppHost = env->GetStringUTFChars(xmppHost, NULL);
+    const char* nativeStunHost = env->GetStringUTFChars(stunHost, NULL);
 
     // login
-    client_->Login(nativeUsername, nativePassword, nativeXmppServer, xmppPort, nativeStunServer,
-            stunPort, useSSL);
+    client_->Login(nativeUsername, nativePassword, nativeXmppHost, xmppPort, useSSL, nativeStunHost, stunPort);
+
+    // release
+    env->ReleaseStringUTFChars(username, nativeUsername);
+    env->ReleaseStringUTFChars(password, nativePassword);
+    env->ReleaseStringUTFChars(xmppHost, nativeXmppHost);
+    env->ReleaseStringUTFChars(stunHost, nativeStunHost);
 }
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeLogout(JNIEnv *env, jobject object) {
@@ -167,10 +156,9 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeLogout(JNIEnv *en
     }
 }
 
-JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeRelease(JNIEnv *env,
-        jobject object) {
+JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeRelease(JNIEnv *env, jobject object) {
     if (client_) {
-        client_->Destroy();//Does an internal delete when all threads have stopped but a callback to do the delete here would be better
+        client_->Destroy(); //Does an internal delete when all threads have stopped but a callback to do the delete here would be better
         client_ = NULL;
     }
 }
