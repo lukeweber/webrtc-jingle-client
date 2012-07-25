@@ -35,14 +35,14 @@
                 # probably happy to not codesign) but naming should be
                 # fixed.  The -debug name is an aspect of the android
                 # SDK antfiles (e.g. ${sdk.dir}/tools/ant/build.xml)
-                '<(PRODUCT_DIR)/VoiceClientActivity-release.apk',
+                '<(PRODUCT_DIR)/VoiceClientActivity-debug.apk',
               ],
               'action': [
                 'ant',
                 '-DPRODUCT_DIR=<(ant_build_out)',
                 '-buildfile',
                 '<(DEPTH)/src/build.xml',
-                'release',
+                'debug',
               ]
             }
           ],
@@ -50,7 +50,7 @@
         {
           'target_name': 'voiceclient',
           'message': 'building native pieces of the voiceclient',
-          'type': 'static_library',
+          'type': 'shared_library',
           'sources': [
             '<(webrtc_jingle)/voiceclient_main.cc',
             '<(webrtc_jingle)/tuenti/logging.h',
@@ -59,8 +59,6 @@
             '<(webrtc_jingle)/tuenti/presencepushtask.cc',
             '<(webrtc_jingle)/tuenti/presencepushtask.h',
             '<(webrtc_jingle)/tuenti/status.h',
-            '<(webrtc_jingle)/tuenti/threadpriorityhandler.cc',
-            '<(webrtc_jingle)/tuenti/threadpriorityhandler.h',
             '<(webrtc_jingle)/tuenti/clientsignalingthread.cc',
             '<(webrtc_jingle)/tuenti/clientsignalingthread.h',
             '<(webrtc_jingle)/tuenti/voiceclient.cc',
@@ -75,19 +73,21 @@
             #'../../base/base.gyp:base',
             #'../../base/base.gyp:test_support_base',
             #'../gtest.gyp:gtest',
-            #'native_test_jni_headers',
+            #'voice_client_jni_headers',
           ],
-          'libraries': [
-            '-llibjingle_audio_only',
-            '-llibjingle',
-            '-llibjingle_p2p',
+          #'link_settings': {
+          #  'libraries': [
+             # '-ljingle_audio_only',
+             # '-llibjingle',
+             # '-llibjingle_p2p',
             # Manually link the libgcc.a that the cross compiler uses.
             #'<!($CC -print-libgcc-file-name)',
             #'-lc',
             #'-ldl',
             #'-lstdc++',
             #'-lm',
-          ],
+          #  ],
+          #},
           'direct_dependent_settings': {
             'ldflags!': [
               # JNI_OnLoad is implemented in a .a and we need to
@@ -98,26 +98,25 @@
           },
         },
         {
-          'target_name': 'native_test_jni_headers',
+          'target_name': 'voice_client_jni_headers',
           'type': 'none',
           'actions': [
             {
               'action_name': 'generate_jni_headers',
               'inputs': [
-                '<(DEPTH)/base/android/jni_generator/jni_generator.py',
+                #'<(DEPTH)/base/android/jni_generator/jni_generator.py',
                 'src/src/com/tuenti/voice/VoiceClientActivity.java',
               ],
               'outputs': [
                 '<(DEPTH)/src/jni/',
-                'com_tuenti_voice_VoiceClient.h',
+                #'com_tuenti_voice_VoiceClient.h',
               ],
               'action': [
                 'python',
                 '<(DEPTH)/base/android/jni_generator/jni_generator.py',
-                '-o',
-                #'--input_file',
+                '--input_file',
                 '<@(_inputs)',
-                #'--output_dir',
+                '--output_dir',
                 '<@(_outputs)',
               ],
             }
