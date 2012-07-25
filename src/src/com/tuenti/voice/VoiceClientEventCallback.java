@@ -6,7 +6,7 @@ public interface VoiceClientEventCallback
 
     void handleCallStateChanged( int state, String remoteJid );
 
-    void handleXmppEngineStateChanged( int state, String message );
-
     void handleXmppError( int error );
+
+    void handleXmppStateChanged( int state );
 }

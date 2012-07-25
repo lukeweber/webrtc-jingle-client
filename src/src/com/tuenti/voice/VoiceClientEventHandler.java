@@ -34,9 +34,8 @@ public class VoiceClientEventHandler
                 String remoteJid = bundle.getString( "str1" );
                 mCallback.handleCallStateChanged( code, remoteJid );
                 break;
-            case VoiceClient.XMPP_ENGINE_EVENT:
-                String message = bundle.getString( "str1" );
-                mCallback.handleXmppEngineStateChanged( code, message );
+            case VoiceClient.XMPP_STATE_EVENT:
+                mCallback.handleXmppStateChanged( code );
                 break;
             case VoiceClient.XMPP_ERROR_EVENT:
                 mCallback.handleXmppError( code );

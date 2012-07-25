@@ -10,6 +10,8 @@
 
 JavaVM* jvm_;
 jobject reference_object_;
+tuenti::VoiceClient *client_;
+
 class CallbackHelper: public tuenti::VoiceClientNotify {
 
 public:
@@ -43,25 +45,17 @@ public:
         return;
     }
 
-    void OnStateChange(buzz::XmppEngine::State state) {
+    void OnXmppStateChange(buzz::XmppEngine::State state) {
+        CallNativeDispatchEvent(com_tuenti_voice_VoiceClient_XMPP_STATE_EVENT, state, "");
         switch (state) {
-        case buzz::XmppEngine::STATE_START:
-            CallNativeDispatchEvent(com_tuenti_voice_VoiceClient_XMPP_ENGINE_EVENT,
-                    com_tuenti_voice_VoiceClient_XMPP_ENGINE_START, "connecting...");
-            break;
-        case buzz::XmppEngine::STATE_OPENING:
-            CallNativeDispatchEvent(com_tuenti_voice_VoiceClient_XMPP_ENGINE_EVENT,
-                    com_tuenti_voice_VoiceClient_XMPP_ENGINE_OPENING, "logging in...");
-            break;
-        case buzz::XmppEngine::STATE_OPEN:
-            CallNativeDispatchEvent(com_tuenti_voice_VoiceClient_XMPP_ENGINE_EVENT,
-                    com_tuenti_voice_VoiceClient_XMPP_ENGINE_OPEN, "logged in...");
-            break;
         case buzz::XmppEngine::STATE_CLOSED:
-            CallNativeDispatchEvent(com_tuenti_voice_VoiceClient_XMPP_ENGINE_EVENT,
-                    com_tuenti_voice_VoiceClient_XMPP_ENGINE_CLOSED, "logged out...");
-            break;
-        default:
+            if (!client_ && !reference_object_) {
+                JNIEnv *env;
+                jvm_->AttachCurrentThread(&env, NULL);
+                env->DeleteGlobalRef(reference_object_);
+                reference_object_ = NULL;
+                jvm_->DetachCurrentThread();
+            }
             break;
         }
     }
@@ -69,44 +63,14 @@ public:
     void OnCallStateChange(cricket::Session* session, cricket::Session::State state) {
         buzz::Jid jid(session->remote_name());
         std::string remoteJid = jid.Str();
+        CallNativeDispatchEvent(com_tuenti_voice_VoiceClient_CALL_STATE_EVENT, state, remoteJid);
+    }
 
-        switch (state) {
-        default:
-            break;
-        case cricket::Session::STATE_SENTINITIATE:
-            CallNativeDispatchEvent(com_tuenti_voice_VoiceClient_CALL_STATE_EVENT,
-                    com_tuenti_voice_VoiceClient_CALL_CALLING, remoteJid);
-            break;
-        case cricket::Session::STATE_RECEIVEDINITIATE:
-            CallNativeDispatchEvent(com_tuenti_voice_VoiceClient_CALL_STATE_EVENT,
-                    com_tuenti_voice_VoiceClient_CALL_INCOMING, remoteJid);
-            break;
-        case cricket::Session::STATE_SENTACCEPT:
-            CallNativeDispatchEvent(com_tuenti_voice_VoiceClient_CALL_STATE_EVENT,
-                    com_tuenti_voice_VoiceClient_CALL_ANSWERED, remoteJid);
-            break;
-        case cricket::Session::STATE_RECEIVEDACCEPT:
-            CallNativeDispatchEvent(com_tuenti_voice_VoiceClient_CALL_STATE_EVENT,
-                    com_tuenti_voice_VoiceClient_CALL_ANSWERED, remoteJid);
-            break;
-        case cricket::Session::STATE_RECEIVEDREJECT:
-            CallNativeDispatchEvent(com_tuenti_voice_VoiceClient_CALL_STATE_EVENT,
-                    com_tuenti_voice_VoiceClient_CALL_REJECTED, remoteJid);
-            break;
-        case cricket::Session::STATE_RECEIVEDTERMINATE:
-            CallNativeDispatchEvent(com_tuenti_voice_VoiceClient_CALL_STATE_EVENT,
-                    com_tuenti_voice_VoiceClient_CALL_RECIVEDTERMINATE, remoteJid);
-            break;
-        case cricket::Session::STATE_INPROGRESS:
-            CallNativeDispatchEvent(com_tuenti_voice_VoiceClient_CALL_STATE_EVENT,
-                    com_tuenti_voice_VoiceClient_CALL_INPROGRESS, remoteJid);
-            break;
-        }
+    void OnXmppError(buzz::XmppEngine::Error error) {
+        CallNativeDispatchEvent(com_tuenti_voice_VoiceClient_XMPP_ERROR_EVENT, error, "");
     }
 };
-
 static CallbackHelper callback_;
-tuenti::VoiceClient *client_;
 
 jint JNI_OnLoad(JavaVM* vm, void* /*reserved*/) {
     if (!vm) {
@@ -169,7 +133,8 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeInit(JNIEnv *env,
 }
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeLogin(JNIEnv *env, jobject object,
-        jstring username, jstring password, jstring server, jboolean useSSL) {
+        jstring username, jstring password, jstring xmppServer, jint xmppPort, jstring stunServer,
+        jint stunPort, jboolean useSSL) {
     if (!client_) {
         LOGE("client not initialized");
         return;
@@ -180,7 +145,8 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeLogin(JNIEnv *env
     //I think this is a memory leak.
     std::string nativeUsername = env->GetStringUTFChars(username, NULL);
     std::string nativePassword = env->GetStringUTFChars(password, NULL);
-    std::string nativeServer = env->GetStringUTFChars(server, NULL);
+    std::string nativeXmppServer = env->GetStringUTFChars(xmppServer, NULL);
+    std::string nativeStunServer = env->GetStringUTFChars(stunServer, NULL);
 
     if (nativeUsername.empty() || nativePassword.empty()) {
         LOGE("Username/Password or Domain not set");
@@ -191,7 +157,8 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeLogin(JNIEnv *env
     }
 
     // login
-    client_->Login(nativeUsername, nativePassword, nativeServer, useSSL);
+    client_->Login(nativeUsername, nativePassword, nativeXmppServer, xmppPort, nativeStunServer,
+            stunPort, useSSL);
 }
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeLogout(JNIEnv *env, jobject object) {
@@ -205,6 +172,5 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeRelease(JNIEnv *e
     if (client_) {
         client_->Destroy();//Does an internal delete when all threads have stopped but a callback to do the delete here would be better
         client_ = NULL;
-        env->DeleteGlobalRef(reference_object_);
     }
 }

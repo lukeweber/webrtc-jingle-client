@@ -75,7 +75,8 @@ public:
     void Destroy();//Deletes self after deleting threads
 
 // passthru functions
-    void Login(std::string &username, std::string &password, std::string &server, bool use_ssl);
+    void Login(std::string &username, std::string &password, std::string &xmppServer, int xmppPort,
+            std::string &stunServer, int stunPort, bool use_ssl);
     void Disconnect();
     void Call(std::string &remoteJid);
     void EndCall();

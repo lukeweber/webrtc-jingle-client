@@ -109,18 +109,26 @@ void VoiceClient::OnMessage(talk_base::Message *msg) {
     }
 }
 
-void VoiceClient::Login(std::string &username, std::string &password, std::string &server, bool use_ssl) {
+void Login(std::string &username, std::string &password, std::string &xmppServer, int xmppPort,
+        std::string &stunServer, int stunPort, bool use_ssl) {
     LOGI("VoiceClient::Login");
-    buzz::XmppClientSettings xcs;
+
     buzz::Jid jid = buzz::Jid(username);
+
     talk_base::InsecureCryptStringImpl pass;
     pass.password() = password;
-    xcs.set_user(jid.node());
-    xcs.set_resource("Tuenti Voice");
-    xcs.set_host(jid.domain());
-    xcs.set_use_tls(buzz::TLS_REQUIRED);
-    xcs.set_pass(talk_base::CryptString(pass));
-    xcs.set_server(talk_base::SocketAddress(server, 5222));
+
+    xcs_.set_user(jid.node());
+    xcs_.set_resource("TuentiVoice");
+    xcs_.set_host(jid.domain());
+    xcs_.set_use_tls(use_ssl ? buzz::TLS_REQUIRED : buzz::TLS_DISABLED);
+    xcs_.set_pass(talk_base::CryptString(pass));
+    xcs_.set_server(talk_base::SocketAddress(xmppServer, xmppPort));
+
+    // stun server socket address
+    talk_base::SocketAddress stun_addr(stunServer, stunPort);
+    port_allocator_ = new cricket::BasicPortAllocator(network_manager_, stun_addr,
+            talk_base::SocketAddress(), talk_base::SocketAddress(), talk_base::SocketAddress());
 
     client_signaling_thread_->Login(use_ssl, xcs);
 }

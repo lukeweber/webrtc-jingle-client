@@ -11,13 +11,34 @@
 
     <string name="app_name">Tuenti Voice</string>
 
-    <string name="init_btn">Initialize Client</string>
-    <string name="release_btn">Release Client</string>
-    <string name="login_btn">Login</string>
-    <string name="logout_btn">Logout</string>
-    <string name="place_call_btn">Place call</string>
-    <string name="hang_up_btn">Hang up</string>
-    <string name="accept_call_btn">Accept call</string>
-    <string name="decline_call_btn">Decline call</string>
+    <string name="init_client">Initialize Client</string>
+    <string name="release_client">Release Client</string>
+    <string name="login">Login</string>
+    <string name="logout">Logout</string>
+    <string name="place_call">Place call</string>
+    <string name="hang_up">Hang up</string>
+
+    <string name="voice_chat_invite">Voice Chat Invite</string>
+    <string name="accept_call">Accept</string>
+    <string name="decline_call">Decline</string>
+
+    <string name="xmpp_server_properties">Xmpp Server Properties</string>
+    <string name="xmpp_host">Xmpp Host</string>
+    <string name="xmpp_host_key">xmpp_host_key</string>
+    <string name="xmpp_host_value">talk.google.com</string>
+    <string name="xmpp_port">Xmpp Port</string>
+    <string name="xmpp_port_key">xmpp_port_key</string>
+    <string name="xmpp_port_value">5222</string>
+    <string name="xmpp_use_ssl">Xmpp Use SSL</string>
+    <string name="xmpp_use_ssl_key">xmpp_use_ssl_key</string>
+    <string name="xmpp_use_ssl_value">true</string>
+
+    <string name="stun_server_properties">Stun Server Properties</string>
+    <string name="stun_host">Stun Host</string>
+    <string name="stun_host_key">stun_host_key</string>
+    <string name="stun_host_value">stun.l.google.com</string>
+    <string name="stun_port">Stun Port</string>
+    <string name="stun_port_key">stun_port_key</string>
+    <string name="stun_port_value">19302</string>
 
 </resources>
