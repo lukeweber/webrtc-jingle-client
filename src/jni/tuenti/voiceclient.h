@@ -11,46 +11,12 @@
 #include "talk/xmpp/xmppclient.h"
 #include "talk/examples/login/xmpppump.h"
 
-
 #include "tuenti/status.h"
 //#include "tuenti/clientsignalingthread.h"
 
-namespace buzz {
-class PresencePushTask;
-class PresenceOutTask;
-class DiscoInfoQueryTask;
-class Status;
-class IqTask;
-class XmlElement;
-}
-
-namespace talk_base {
-class Thread;
-class SignalThread;
-class NetworkManager;
-//class ClientSignalingThread;
-}
-
-namespace cricket {
-class PortAllocator;
-class MediaEngineInterface;
-class MediaSessionClient;
-class Call;
-class SessionManagerTask;
-struct CallOptions;
-struct MediaStreams;
-struct StreamParams;
-}
-
 namespace tuenti {
-  class ClientSignalingThread;
 
-/*struct RosterItem {
-    buzz::Jid jid;
-    buzz::Status::Show show;
-    std::string status;
-};*/
-
+class ClientSignalingThread;
 
 class VoiceClientNotify {
 
@@ -60,10 +26,13 @@ public:
     }
 
     /* Called when the connection state changes */
-    virtual void OnStateChange(buzz::XmppEngine::State) = 0;
+    virtual void OnXmppStateChange(buzz::XmppEngine::State) = 0;
 
     /* Called when the call state changes */
     virtual void OnCallStateChange(cricket::Session* session, cricket::Session::State state) = 0;
+
+    /* Called when there is a xmpp error */
+    virtual void OnXmppError(buzz::XmppEngine::Error) = 0;
 };
 
 class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
@@ -72,10 +41,11 @@ public:
 // initialization
     VoiceClient(VoiceClientNotify *notify);
     ~VoiceClient();
-    void Destroy();//Deletes self after deleting threads
+    void Destroy(); //Deletes self after deleting threads
 
 // passthru functions
-    void Login(std::string &username, std::string &password, std::string &server, bool use_ssl);
+    void Login(const std::string &username, const std::string &password, const std::string &xmpp_host, int xmpp_port,
+            bool use_ssl, const std::string &stun_host, int stun_port);
     void Disconnect();
     void Call(std::string &remoteJid);
     void EndCall();
@@ -84,21 +54,16 @@ public:
 
 private:
 
-
 // signaling thread functions initialization
     void InitializeS();
     void DestroyS();
 // signaling thread functions other
     void OnMessage(talk_base::Message *msg);
 
-    //typedef std::map<std::string, RosterItem> RosterMap;
-
     VoiceClientNotify *notify_;
     talk_base::Thread *signal_thread_;
     tuenti::ClientSignalingThread *client_signaling_thread_;
-
-    buzz::Status my_status_;
 };
 
-}// namespace tuenti
+} // namespace tuenti
 #endif
