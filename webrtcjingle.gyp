@@ -64,6 +64,12 @@
             '<(webrtc_jingle)/tuenti/clientsignalingthread.h',
             '<(webrtc_jingle)/tuenti/voiceclient.cc',
             '<(webrtc_jingle)/tuenti/voiceclient.h',
+            '<(webrtc_jingle)/tuenti/txmppauth.cc',
+            '<(webrtc_jingle)/tuenti/txmppauth.h',
+            '<(webrtc_jingle)/tuenti/txmpppump.cc',
+            '<(webrtc_jingle)/tuenti/txmpppump.h',
+            '<(webrtc_jingle)/tuenti/txmppsocket.cc',
+            '<(webrtc_jingle)/tuenti/txmppsocket.h',
           ],
           'include_dirs': [
             '<(webrtc_jingle)',
