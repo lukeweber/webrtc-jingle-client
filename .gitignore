@@ -18,3 +18,14 @@ out
 classes
 *.iml
 .svn
+
+*.mk
+*.Makefile
+Makefile
+tools/*
+third_party/*
+testing/*
+base/*
+build/*
+gyp-mac-tool
+src/supplement.gypi
