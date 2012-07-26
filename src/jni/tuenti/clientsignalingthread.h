@@ -13,7 +13,6 @@
 #include "talk/session/phone/mediachannel.h"//Needed for enum cricket::ReceiveDataParams
 
 #include "tuenti/status.h"
-#define SIMPLIFY_MEDIA_CLIENT
 namespace talk_base {
   class BasicNetworkManager;
 }

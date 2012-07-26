@@ -45,6 +45,7 @@ void TXmppPump::DoLogin(const buzz::XmppClientSettings & xcs,
   LOGI("TXmppPump::DoLogin");
   OnStateChange(buzz::XmppEngine::STATE_START);
   if (!AllChildrenDone()){
+    LOGI("TXmppPump::DoLogin - logging on");
     client_->SignalStateChange.connect(this, &TXmppPump::OnStateChange);
     client_->Connect(xcs, "", socket, auth);
     client_->Start();
@@ -52,7 +53,9 @@ void TXmppPump::DoLogin(const buzz::XmppClientSettings & xcs,
 }
 
 void TXmppPump::DoDisconnect() {
+  LOGI("TXmppPump::DoDisconnect");
   if (!AllChildrenDone()){
+    LOGI("TXmppPump::DoDisconnect - disconnecting");
     client_->Disconnect();
   }
   OnStateChange(buzz::XmppEngine::STATE_CLOSED);

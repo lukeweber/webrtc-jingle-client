@@ -4,12 +4,10 @@
 #include "tuenti/presenceouttask.h"
 #include "tuenti/presencepushtask.h"
 #include "tuenti/voiceclient.h"//Needed for notify_ would be nice to remove
-
 #include "tuenti/txmppauth.h"
 #include "tuenti/txmppsocket.h"
 #include "talk/base/signalthread.h"
 #include "talk/base/ssladapter.h"
-#include "talk/session/phone/dataengine.h"
 #include "talk/session/phone/call.h"
 #include "talk/session/phone/mediasessionclient.h"
 #include "talk/p2p/base/sessionmanager.h"
@@ -53,10 +51,6 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientNotify *notifier, talk_b
 , session_manager_task_(NULL)
 , call_(NULL)
 , media_client_(NULL)
-#ifndef SIMPLIFY_MEDIA_CLIENT
-, media_engine_(NULL)
-, data_engine_(NULL)
-#endif
 , port_allocator_flags_(0)
 , use_ssl_(false)
 , incoming_call_(false)
@@ -75,12 +69,6 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientNotify *notifier, talk_b
     network_manager_ = new talk_base::BasicNetworkManager();
     LOGI("ClientSignalingThread::ClientSignalingThread - new BasicNetworkManager network_manager_@(0x%x)", reinterpret_cast<int>(network_manager_));
   }
-#ifndef SIMPLIFY_MEDIA_CLIENT
-  if(data_engine_ == NULL){
-    data_engine_ = new cricket::DataEngine();
-    LOGI("ClientSignalingThread::ClientSignalingThread - new DataEngine data_engine_@(0x%x)", reinterpret_cast<int>(data_engine_));
-  }
-#endif
   if(port_allocator_ == NULL){
     talk_base::SocketAddress stun_addr("stun.l.google.com", 19302);
     port_allocator_ = new cricket::BasicPortAllocator(network_manager_, stun_addr,
@@ -115,13 +103,6 @@ ClientSignalingThread::~ClientSignalingThread() {
     delete network_manager_;
     network_manager_ = NULL;
   }
-#ifndef SIMPLIFY_MEDIA_CLIENT
-  if (data_engine_ != NULL) {
-    LOGI("ClientSignalingThread::~ClientSignalingThread - deleting data_engine_@(0x%x)", reinterpret_cast<int>(data_engine_));
-    delete data_engine_;
-    data_engine_ = NULL;
-  }
-#endif
   if (port_allocator_ != NULL){
     LOGI("ClientSignalingThread::~ClientSignalingThread - deleting port_allocator_@(0x%x)", reinterpret_cast<int>(port_allocator_));
     delete port_allocator_;
@@ -234,11 +215,6 @@ void ClientSignalingThread::OnStateChange(buzz::XmppEngine::State state) {
         LOGI("ClientSignalingThread::OnStateChange - State (STATE_CLOSED) cleaning up ssl, deleting media client & clearing roster...");
         if (use_ssl_)
             talk_base::CleanupSSL();
-#ifndef SIMPLIFY_MEDIA_CLIENT
-        if (media_engine_) {
-          media_engine_->Terminate();
-        }
-#endif
         //Remove everyone from your roster
         if(roster_) {
           roster_->clear();
@@ -294,12 +270,6 @@ void ClientSignalingThread::OnCallDestroy(cricket::Call* call) {
 void ClientSignalingThread::OnMediaEngineTerminate() {
     LOGI("ClientSignalingThread::OnMediaEngineTerminate");
     assert(talk_base::Thread::Current() == signal_thread_);
-#ifndef SIMPLIFY_MEDIA_CLIENT
-    if (media_engine_) {
-        delete media_engine_;
-        media_engine_ = NULL;
-    }
-#endif
 }
 // ================================================================
 // THESE ARE THE ONLY FUNCTIONS THAT CAN BE CALLED USING ANY THREAD
@@ -406,26 +376,28 @@ void ClientSignalingThread::DoWork() {
 void ClientSignalingThread::LoginS() {
     LOGI("ClientSignalingThread::LoginS");
     assert(talk_base::Thread::Current() == signal_thread_);
-    if (use_ssl_) {
-        talk_base::InitializeSSL();
-    }
-    buzz::TlsOptions auth_type;
-    if (use_ssl_) {
-        auth_type = buzz::TLS_REQUIRED;
-    } else {
-        auth_type = buzz::TLS_DISABLED;
-    }
+    if(media_client_ == NULL) {
+      if (use_ssl_) {
+          talk_base::InitializeSSL();
+      }
+      buzz::TlsOptions auth_type;
+      if (use_ssl_) {
+          auth_type = buzz::TLS_REQUIRED;
+      } else {
+          auth_type = buzz::TLS_DISABLED;
+      }
 
-    if (pump_->AllChildrenDone()) {
-      LOGE("AllChildrenDone doing required {delete pump_;pump_ = new TXmppPump(this);} yet...");
-    }
+      if (pump_->AllChildrenDone()) {
+        LOGE("AllChildrenDone doing required {delete pump_;pump_ = new TXmppPump(this);} yet...");
+      }
 
-    //I don't like this where does it get deleted? feels like a memory leak.
-    TXmppSocket *sock = new TXmppSocket(auth_type);
-    TXmppAuth *auth = new TXmppAuth();
-    //I don't like this where does it get deleted? feels like a memory leak.
-    LOGE("Where do we delete sock@(0x%x) and auth@(0x%x)", reinterpret_cast<int>(sock), reinterpret_cast<int>(auth));
-    pump_->DoLogin(xcs_, sock, auth);
+      //I don't like this where does it get deleted? feels like a memory leak.
+      TXmppSocket *sock = new TXmppSocket(auth_type);
+      TXmppAuth *auth = new TXmppAuth();
+      //I don't like this where does it get deleted? feels like a memory leak.
+      LOGE("Where do we delete sock@(0x%x) and auth@(0x%x)", reinterpret_cast<int>(sock), reinterpret_cast<int>(auth));
+      pump_->DoLogin(xcs_, sock, auth);
+    }
 }
 
 void ClientSignalingThread::DisconnectS() {
@@ -434,11 +406,14 @@ void ClientSignalingThread::DisconnectS() {
     if(call_){
       signal_thread_->Post(this, MSG_END_CALL);
       signal_thread_->PostDelayed(100, this, MSG_DISCONNECT);
-    }else{
-        if (pump_->AllChildrenDone()) {
-          LOGE("AllChildrenDone NOT doing required {delete pump_;pump_ = new TXmppPump(this);} yet...");
-        }
-        pump_->DoDisconnect();
+    } else if(media_client_) {
+      if (pump_->AllChildrenDone()) {
+        LOGE("AllChildrenDone NOT doing required {delete pump_;pump_ = new TXmppPump(this);} yet...");
+      }
+      pump_->DoDisconnect();
+      signal_thread_->PostDelayed(100, this, MSG_DISCONNECT);
+    } else {
+      LOGI("Already disconnected nothing to do");
     }
 }
 
@@ -523,17 +498,7 @@ void ClientSignalingThread::InitMedia() {
     session_manager_task_->Start();
 
     
-#ifdef SIMPLIFY_MEDIA_CLIENT
     media_client_ = new cricket::MediaSessionClient(pump_->client()->jid(), session_manager_);
-#else
-    if(media_engine_ != NULL){
-      delete media_engine_;
-      media_engine_ = NULL;
-    }
-    media_engine_ = cricket::MediaEngineFactory::Create();
-    media_engine_->SignalTerminate.connect(this, &ClientSignalingThread::OnMediaEngineTerminate);
-    media_client_ = new cricket::MediaSessionClient(pump_->client()->jid(), session_manager_, media_engine_, data_engine_, cricket::DeviceManagerFactory::Create());
-#endif
     media_client_->SignalCallCreate.connect(this, &ClientSignalingThread::OnCallCreate);
     media_client_->SignalCallDestroy.connect(this, &ClientSignalingThread::OnCallDestroy);
     media_client_->set_secure(cricket::SEC_DISABLED);
