@@ -40,6 +40,7 @@
               'action': [
                 'ant',
                 '-DPRODUCT_DIR=<(ant_build_out)',
+                '-DAPP_ABI=<(android_app_abi)',
                 '-buildfile',
                 '<(DEPTH)/src/build.xml',
                 'debug',
@@ -74,6 +75,9 @@
             #'../../base/base.gyp:test_support_base',
             #'../gtest.gyp:gtest',
             #'voice_client_jni_headers',
+          ],
+          'outputs': [
+            '<(PRODUCT_DIR)/<(android_app_abi)/libvoiceclient.so',
           ],
           #'link_settings': {
           #  'libraries': [

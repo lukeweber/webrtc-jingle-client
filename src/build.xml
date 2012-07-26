@@ -41,9 +41,16 @@
       <condition>
         <isset property="PRODUCT_DIR" />
       </condition>
+      <then>
+        <echo message="Copying voiceclient.so to libs directory"/>
+        <copy todir="${out.dir}/libs/${target.abi}">
+            <fileset file="${PRODUCT_DIR}/lib.target/libvoiceclient.so"/>
+        </copy>
+      </then>
       <else>
         <fail message="PRODUCT_DIR env var not set?" />
       </else>
+
     </if>
   </target>
 
