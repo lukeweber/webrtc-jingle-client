@@ -106,6 +106,9 @@ LOCAL_WHOLE_STATIC_LIBRARIES := gtest_static
 LOCAL_MODULE := libwebrtc-voice-demo-jni
 LOCAL_CPP_EXTENSION := .cc
 LOCAL_SRC_FILES := tuenti/voiceclient.cc \
+                   tuenti/txmppauth.cc \
+                   tuenti/txmpppump.cc \
+                   tuenti/txmppsocket.cc \
                    tuenti/clientsignalingthread.cc \
                    tuenti/presenceouttask.cc \
                    tuenti/presencepushtask.cc \

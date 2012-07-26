@@ -62,7 +62,7 @@ public:
                     com_tuenti_voice_VoiceClient_XMPP_ENGINE_CLOSED, "logged out...");
             break;
         default:
-            break;
+            LOGE("voiceclient_main::OnStateChange unknown state");
         }
     }
 
@@ -71,8 +71,6 @@ public:
         std::string remoteJid = jid.Str();
 
         switch (state) {
-        default:
-            break;
         case cricket::Session::STATE_SENTINITIATE:
             CallNativeDispatchEvent(com_tuenti_voice_VoiceClient_CALL_STATE_EVENT,
                     com_tuenti_voice_VoiceClient_CALL_CALLING, remoteJid);
@@ -101,6 +99,8 @@ public:
             CallNativeDispatchEvent(com_tuenti_voice_VoiceClient_CALL_STATE_EVENT,
                     com_tuenti_voice_VoiceClient_CALL_INPROGRESS, remoteJid);
             break;
+        default:
+            LOGE("voiceclient_main::OnCallStateChange unknown state");
         }
     }
 };
@@ -162,7 +162,7 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeEndCall(JNIEnv *e
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeInit(JNIEnv *env, jobject object) {
     if (!client_) {
-        LOGI("creating the client");
+        LOGI("Java_com_tuenti_voice_VoiceClient_nativeInit - initializing client");
         reference_object_ = env->NewGlobalRef(object);
         client_ = new tuenti::VoiceClient(&callback_);
     }
@@ -171,7 +171,7 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeInit(JNIEnv *env,
 JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeLogin(JNIEnv *env, jobject object,
         jstring username, jstring password, jstring server, jboolean useSSL) {
     if (!client_) {
-        LOGE("client not initialized");
+        LOGE("Java_com_tuenti_voice_VoiceClient_nativeLogin - client not initialized");
         return;
     }
 
@@ -203,7 +203,7 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeLogout(JNIEnv *en
 JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeRelease(JNIEnv *env,
         jobject object) {
     if (client_) {
-        client_->Destroy();//Does an internal delete when all threads have stopped but a callback to do the delete here would be better
+        client_->Destroy(0);//Does an internal delete when all threads have stopped but a callback to do the delete here would be better
         client_ = NULL;
         env->DeleteGlobalRef(reference_object_);
     }

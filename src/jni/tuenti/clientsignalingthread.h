@@ -8,11 +8,12 @@
 #include "talk/base/constructormagic.h"
 #include "talk/base/thread.h"
 #include "talk/base/sigslot.h"
-#include "talk/examples/login/xmpppump.h"//Needed for XmppPumpNotify
+#include "tuenti/txmpppump.h"//Needed for TXmppPumpNotify
 #include "talk/p2p/base/session.h"//Needed for enum cricket::Session::State
 #include "talk/session/phone/mediachannel.h"//Needed for enum cricket::ReceiveDataParams
 
 #include "tuenti/status.h"
+#define SIMPLIFY_MEDIA_CLIENT
 namespace talk_base {
   class BasicNetworkManager;
 }
@@ -33,7 +34,6 @@ namespace buzz {
   class PresencePushTask;
   class PresenceOutTask;
 }
-class XmppPump;
 
 struct RosterItem {
     buzz::Jid jid;
@@ -41,6 +41,7 @@ struct RosterItem {
     std::string status;
 };
 namespace tuenti {
+class TXmppPump;
 class VoiceClientNotify;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -60,13 +61,13 @@ class VoiceClientNotify;
 //   tasks in the context of the main thread.
 ///////////////////////////////////////////////////////////////////////////////
 
-class ClientSignalingThread : public talk_base::SignalThread, public XmppPumpNotify {
+class ClientSignalingThread : public talk_base::SignalThread, public TXmppPumpNotify {
 public:
   ClientSignalingThread(VoiceClientNotify *notifier, talk_base::Thread *signal_thread);
   //Public Library Callbacks
   void OnSessionState(cricket::Call* call, cricket::Session* session, cricket::Session::State state);
   void OnStatusUpdate(const buzz::Status& status);
-  void OnStateChange(buzz::XmppEngine::State state);//Needed by XmppPumpNotify maybe better in another class
+  void OnStateChange(buzz::XmppEngine::State state);//Needed by TXmppPumpNotify maybe better in another class
   void OnDataReceived(cricket::Call*, const cricket::ReceiveDataParams& params, const std::string& data);
   void OnRequestSignaling();
   void OnSessionCreate(cricket::Session* session, bool initiate);
@@ -80,7 +81,7 @@ public:
   void AcceptCall();
   void DeclineCall();
   void EndCall();
-  void Destroy();
+  bool Destroy();
 
 protected:
   virtual ~ClientSignalingThread();
@@ -90,14 +91,14 @@ protected:
 
 private:
   //Worker methods
-  void LoginW();
-  void DisconnectW();
-  void CallW(const std::string &remoteJid);
-  void AcceptCallW();
-  void DeclineCallW();
-  void EndCallW();
+  void LoginS();
+  void DisconnectS();
+  void CallS(const std::string &remoteJid);
+  void AcceptCallS();
+  void DeclineCallS();
+  void EndCallS();
 
-  //These should live inside of the XmppPump
+  //These should live inside of the TXmppPump
   void InitMedia();
   void InitPresence();
   void SetMediaCaps(int media_caps, buzz::Status* status);
@@ -109,11 +110,10 @@ private:
   VoiceClientNotify *notify_;
   talk_base::Thread *signal_thread_;
   RosterMap *roster_;
-  XmppPump *pump_;
+  TXmppPump *pump_;
   buzz::PresencePushTask* presence_push_;
   buzz::PresenceOutTask* presence_out_;
   talk_base::BasicNetworkManager *network_manager_;
-  cricket::DataEngine *data_engine_;
   cricket::BasicPortAllocator *port_allocator_;
   cricket::Session *session_;
   cricket::SessionManager *session_manager_;
@@ -121,12 +121,14 @@ private:
   cricket::Call* call_;
   cricket::MediaSessionClient* media_client_;
   cricket::MediaEngineInterface* media_engine_;
+  cricket::DataEngine *data_engine_;
   uint32 port_allocator_flags_;
   bool use_ssl_;
   bool incoming_call_;
   bool auto_accept_;
-  buzz::XmppClientSettings xcs_;
+  //use default constructors
   buzz::Status my_status_;
+  buzz::XmppClientSettings xcs_;
   DISALLOW_COPY_AND_ASSIGN(ClientSignalingThread);
 };
 

@@ -72,7 +72,7 @@ public:
 // initialization
     VoiceClient(VoiceClientNotify *notify);
     ~VoiceClient();
-    void Destroy();//Deletes self after deleting threads
+    void Destroy(int delay);//Deletes self after deleting threads
 
 // passthru functions
     void Login(std::string &username, std::string &password, std::string &server, bool use_ssl);
