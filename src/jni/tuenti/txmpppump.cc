@@ -28,6 +28,7 @@
 #include "tuenti/logging.h"
 #include "tuenti/txmpppump.h"
 #include "tuenti/txmppauth.h"
+#include "tuenti/txmppsocket.h"
 
 namespace tuenti {
 TXmppPump::TXmppPump(TXmppPumpNotify * notify) {
@@ -36,18 +37,26 @@ TXmppPump::TXmppPump(TXmppPumpNotify * notify) {
   notify_ = notify;
   //NFHACK where does this get deleted?
   client_ = new buzz::XmppClient(this);  // NOTE: deleted by TaskRunner
+  socket_ = NULL;
+  auth_ = NULL;
   LOGI("TXmppPump::TXmppPump - new XmppClient client_@(0x%x)", reinterpret_cast<int>(client_));
 }
 
-void TXmppPump::DoLogin(const buzz::XmppClientSettings & xcs,
-                       buzz::AsyncSocket* socket,
-                       buzz::PreXmppAuth* auth) {
+void TXmppPump::DoLogin(const buzz::XmppClientSettings & xcs, buzz::TlsOptions & auth_type){
   LOGI("TXmppPump::DoLogin");
-  OnStateChange(buzz::XmppEngine::STATE_START);
   if (!AllChildrenDone()){
+    OnStateChange(buzz::XmppEngine::STATE_START);
+    if(socket_ == NULL) {
+      socket_ = new TXmppSocket(auth_type);
+      LOGI("TXmppPump::DoLogin - new TXmppSocket socket_@(0x%x)", reinterpret_cast<int>(socket_));
+    }
+    if(auth_ == NULL) {
+      auth_ = new TXmppAuth();
+      LOGI("TXmppPump::DoLogin - new TXmppAuth auth_@(0x%x)", reinterpret_cast<int>(auth_));
+    }
     LOGI("TXmppPump::DoLogin - logging on");
     client_->SignalStateChange.connect(this, &TXmppPump::OnStateChange);
-    client_->Connect(xcs, "", socket, auth);
+    client_->Connect(xcs, "", socket_, auth_);
     client_->Start();
   }
 }
@@ -56,7 +65,12 @@ void TXmppPump::DoDisconnect() {
   LOGI("TXmppPump::DoDisconnect");
   if (!AllChildrenDone()){
     LOGI("TXmppPump::DoDisconnect - disconnecting");
+    //NFHACK we should have a signal that makes deletes these
     client_->Disconnect();
+    LOGI("TXmppPump::DoDisconnect - memory leaking socket_@(0x%x)", reinterpret_cast<int>(socket_));
+    socket_ = NULL;
+    LOGI("TXmppPump::DoDisconnect - memory leaking auth_@(0x%x)", reinterpret_cast<int>(auth_));
+    auth_ = NULL;
   }
   OnStateChange(buzz::XmppEngine::STATE_CLOSED);
 }

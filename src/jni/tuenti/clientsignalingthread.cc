@@ -4,8 +4,6 @@
 #include "tuenti/presenceouttask.h"
 #include "tuenti/presencepushtask.h"
 #include "tuenti/voiceclient.h"//Needed for notify_ would be nice to remove
-#include "tuenti/txmppauth.h"
-#include "tuenti/txmppsocket.h"
 #include "talk/base/signalthread.h"
 #include "talk/base/ssladapter.h"
 #include "talk/session/phone/call.h"
@@ -386,17 +384,10 @@ void ClientSignalingThread::LoginS() {
       } else {
           auth_type = buzz::TLS_DISABLED;
       }
-
       if (pump_->AllChildrenDone()) {
         LOGE("AllChildrenDone doing required {delete pump_;pump_ = new TXmppPump(this);} yet...");
       }
-
-      //I don't like this where does it get deleted? feels like a memory leak.
-      TXmppSocket *sock = new TXmppSocket(auth_type);
-      TXmppAuth *auth = new TXmppAuth();
-      //I don't like this where does it get deleted? feels like a memory leak.
-      LOGE("Where do we delete sock@(0x%x) and auth@(0x%x)", reinterpret_cast<int>(sock), reinterpret_cast<int>(auth));
-      pump_->DoLogin(xcs_, sock, auth);
+      pump_->DoLogin(xcs_, auth_type);//sock, auth);
     }
 }
 
