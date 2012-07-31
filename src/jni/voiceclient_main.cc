@@ -7,7 +7,6 @@
 #include "tuenti/voiceclient.h"
 #include "tuenti/threadpriorityhandler.h"
 
-
 JavaVM* jvm_;
 jobject reference_object_;
 tuenti::VoiceClient *client_;
@@ -32,8 +31,7 @@ public:
             jvm_->DetachCurrentThread();
             return;
         }
-        jmethodID method = env->GetStaticMethodID(cls, "dispatchNativeEvent",
-                "(IILjava/lang/String;)V");
+        jmethodID method = env->GetStaticMethodID(cls, "dispatchNativeEvent", "(IILjava/lang/String;)V");
         if (!method) {
             LOGE("Failed to get method ID");
             jvm_->DetachCurrentThread();
@@ -47,16 +45,12 @@ public:
 
     void OnXmppStateChange(buzz::XmppEngine::State state) {
         CallNativeDispatchEvent(com_tuenti_voice_VoiceClient_XMPP_STATE_EVENT, state, "");
-        switch (state) {
-        case buzz::XmppEngine::STATE_CLOSED:
-            if (!client_ && !reference_object_) {
-                JNIEnv *env;
-                jvm_->AttachCurrentThread(&env, NULL);
-                env->DeleteGlobalRef(reference_object_);
-                reference_object_ = NULL;
-                jvm_->DetachCurrentThread();
-            }
-            break;
+        if (state == buzz::XmppEngine::STATE_CLOSED && !client_ && !reference_object_) {
+            JNIEnv *env;
+            jvm_->AttachCurrentThread(&env, NULL);
+            env->DeleteGlobalRef(reference_object_);
+            reference_object_ = NULL;
+            jvm_->DetachCurrentThread();
         }
     }
 
@@ -90,35 +84,30 @@ jint JNI_OnLoad(JavaVM* vm, void* /*reserved*/) {
     return JNI_VERSION_1_6;
 }
 
-JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeAcceptCall(JNIEnv *env,
-        jobject object) {
+JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeAcceptCall(JNIEnv *env, jobject object) {
     if (client_) {
         client_->AcceptCall();
     }
 }
 
-JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeCall(JNIEnv *env, jobject object,
-        jstring remoteJid) {
+JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeCall(JNIEnv *env, jobject object, jstring remoteJid) {
     if (client_) {
         std::string nativeRemoteJid = env->GetStringUTFChars(remoteJid, NULL);
         client_->Call(nativeRemoteJid);
     }
 }
 
-JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeDeclineCall(JNIEnv *env,
-        jobject object) {
+JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeDeclineCall(JNIEnv *env, jobject object) {
     if (client_) {
         client_->DeclineCall();
     }
 }
 
-JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeDestroy(JNIEnv *env,
-        jobject object) {
+JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeDestroy(JNIEnv *env, jobject object) {
     Java_com_tuenti_voice_VoiceClient_nativeRelease(env, object);
 }
 
-JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeEndCall(JNIEnv *env,
-        jobject object) {
+JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeEndCall(JNIEnv *env, jobject object) {
     if (client_) {
         client_->EndCall();
     }
@@ -163,10 +152,9 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeLogout(JNIEnv *en
     }
 }
 
-JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeRelease(JNIEnv *env,
-        jobject object) {
+JNIEXPORT void JNICALL Java_com_tuenti_voice_VoiceClient_nativeRelease(JNIEnv *env, jobject object) {
     if (client_) {
-        client_->Destroy(0);//Does an internal delete when all threads have stopped but a callback to do the delete here would be better
+        client_->Destroy(0); //Does an internal delete when all threads have stopped but a callback to do the delete here would be better
         client_ = NULL;
     }
 }

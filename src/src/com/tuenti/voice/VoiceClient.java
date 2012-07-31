@@ -75,12 +75,7 @@ public class VoiceClient
     {
         synchronized ( mutex )
         {
-            loadLibrary( "stlport_shared" );
-            loadLibrary( "crypto_jingle" );
-            loadLibrary( "webrtc_audio_preprocessing" );
-            loadLibrary( "webrtc_voice" );
-            loadLibrary( "jingle" );
-            loadLibrary( "webrtc-voice-demo-jni" );
+            loadLibrary( "voiceclient" );
         }
     }
 

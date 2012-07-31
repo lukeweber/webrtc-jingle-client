@@ -12,72 +12,69 @@
 
 //#include "talk/base/signalthread.h"
 
-namespace tuenti{
+namespace tuenti {
+
 enum {
-    MSG_INIT,
-    MSG_DESTROY,
+    MSG_INIT, MSG_DESTROY,
 };
-const char* msgNames[] = 
-  {
-    "MSG_INIT",
-    "MSG_DESTROY",
-  };
+
+const char* msgNames[] = { "MSG_INIT", "MSG_DESTROY", };
 
 VoiceClient::VoiceClient(VoiceClientNotify *notify)
-:notify_(notify)
-,signal_thread_(NULL)
-,client_signaling_thread_(NULL)
-{
+        : notify_(notify),
+          signal_thread_(NULL),
+          client_signaling_thread_(NULL) {
     LOGI("VoiceClient::VoiceClient");
-
 
     // a few standard logs not sure why they are not working
     talk_base::LogMessage::LogThreads();
     talk_base::LogMessage::LogTimestamps();
 
     //this creates all objects on the signaling thread
-    if(signal_thread_ == NULL){
-      signal_thread_ = new talk_base::Thread();
-      signal_thread_->Post(this, MSG_INIT);
-      signal_thread_->Start();
+    if (signal_thread_ == NULL) {
+        signal_thread_ = new talk_base::Thread();
+        signal_thread_->Post(this, MSG_INIT);
+        signal_thread_->Start();
     }
 }
 
 VoiceClient::~VoiceClient() {
     LOGI("VoiceClient::~VoiceClient");
-    if(signal_thread_ != NULL){
-      signal_thread_->Quit();
-      signal_thread_ = NULL;
+    if (signal_thread_ != NULL) {
+        signal_thread_->Quit();
+        signal_thread_ = NULL;
     }
 }
 
 void VoiceClient::Destroy(int delay) {
     LOGI("VoiceClient::Destroy");
-    if(signal_thread_ != NULL){
-      if(delay <= 0){
-        signal_thread_->Post(this, MSG_DESTROY);
-      }else{
-        signal_thread_->PostDelayed(delay, this, MSG_DESTROY);
-      }
+    if (signal_thread_ != NULL) {
+        if (delay <= 0) {
+            signal_thread_->Post(this, MSG_DESTROY);
+        } else {
+            signal_thread_->PostDelayed(delay, this, MSG_DESTROY);
+        }
     }
 }
 
 void VoiceClient::InitializeS() {
     LOGI("VoiceClient::InitializeS");
-    if(client_signaling_thread_ == NULL){
+    if (client_signaling_thread_ == NULL) {
         client_signaling_thread_ = new tuenti::ClientSignalingThread(notify_, signal_thread_);
-        LOGI("VoiceClient::VoiceClient - new ClientSignalingThread client_signaling_thread_@(0x%x)", reinterpret_cast<int>(client_signaling_thread_));
+        LOGI(
+                "VoiceClient::VoiceClient - new ClientSignalingThread client_signaling_thread_@(0x%x)", reinterpret_cast<int>(client_signaling_thread_));
         client_signaling_thread_->Start();
     }
 }
 void VoiceClient::DestroyS() {
     LOGI("VoiceClient::DestroyS");
-    if(client_signaling_thread_ != NULL){
-        LOGI("VoiceClient::VoiceClient - destroy ClientSignalingThread client_signaling_thread_@(0x%x)", reinterpret_cast<int>(client_signaling_thread_));
-        if(client_signaling_thread_->Destroy()){
-          delete this; //NFHACK Pretty ugly should probably call a all good to delete callback in voiceclient_main
-        }else{
-          Destroy(100);
+    if (client_signaling_thread_ != NULL) {
+        LOGI(
+                "VoiceClient::VoiceClient - destroy ClientSignalingThread client_signaling_thread_@(0x%x)", reinterpret_cast<int>(client_signaling_thread_));
+        if (client_signaling_thread_->Destroy()) {
+            delete this; //NFHACK Pretty ugly should probably call a all good to delete callback in voiceclient_main
+        } else {
+            Destroy(100);
         }
     }
 }
@@ -131,4 +128,4 @@ void VoiceClient::DeclineCall() {
     client_signaling_thread_->DeclineCall();
 }
 
-}// namespace tuenti
+} // namespace tuenti
