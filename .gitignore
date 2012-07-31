@@ -19,7 +19,7 @@ classes
 *.iml
 .svn
 
-*.mk
+*.target.mk
 *.Makefile
 Makefile
 tools/*
