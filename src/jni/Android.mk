@@ -61,10 +61,9 @@ LOCAL_WHOLE_STATIC_LIBRARIES := \
 	libwebrtc_aec \
 	libwebrtc_aecm \
 	libwebrtc_system_wrappers
-LOCAL_SHARED_LIBRARIES := libcutils libstlport_shared
 LOCAL_LDLIBS := -lgcc -llog
 LOCAL_PRELINK_MODULE := false
-include $(BUILD_SHARED_LIBRARY)
+include $(BUILD_STATIC_LIBRARY)
 
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
@@ -87,14 +86,11 @@ LOCAL_WHOLE_STATIC_LIBRARIES := \
 	libwebrtc_voe_core \
 	libwebrtc_g722 \
 	libwebrtc_g711 \
-	libwebrtc_rtp_rtcp
-LOCAL_SHARED_LIBRARIES := \
-	libcutils \
-	libstlport_shared \
+	libwebrtc_rtp_rtcp \
 	libwebrtc_audio_preprocessing
 LOCAL_LDLIBS := -lgcc -llog -lOpenSLES
 LOCAL_PRELINK_MODULE := false
-include $(BUILD_SHARED_LIBRARY)
+include $(BUILD_STATIC_LIBRARY)
 
 LOCAL_PATH := $(MY_ROOT_PATH)
 include $(CLEAR_VARS)
@@ -140,14 +136,14 @@ LOCAL_C_INCLUDES := \
 	$(MY_THIRD_PARTY_PATH)/libjingle
 
 LOCAL_PRELINK_MODULE := false
+LOCAL_WHOLE_STATIC_LIBRARIES := \
+	libjingle \
+	libwebrtc_voice
 LOCAL_SHARED_LIBRARIES := \
 	libutils \
 	libandroid \
-	libGLESv2 \
-	libjingle \
-	libstlport_shared \
-	libwebrtc_voice
-LOCAL_LDLIBS := -llog
+	libGLESv2
+LOCAL_LDLIBS := -lOpenSLES -llog
 include $(BUILD_SHARED_LIBRARY)
 
 endif
