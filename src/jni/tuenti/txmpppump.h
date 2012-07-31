@@ -36,9 +36,12 @@
 #include "talk/xmpp/xmppengine.h"
 #include "talk/xmpp/xmpptask.h"
 
+
+
 // Simple xmpp pump
 namespace tuenti {
-
+class TXmppSocket;
+class TXmppAuth;
 class TXmppPumpNotify {
 public:
   virtual ~TXmppPumpNotify() {}
@@ -51,9 +54,8 @@ public:
 
   buzz::XmppClient *client() { return client_; }
 
-  void DoLogin(const buzz::XmppClientSettings & xcs,
-               buzz::AsyncSocket* socket,
-               buzz::PreXmppAuth* auth);
+  void DoLogin(const buzz::XmppClientSettings & xcs,buzz::TlsOptions & auth_type);
+
   void DoDisconnect();
 
   void OnStateChange(buzz::XmppEngine::State state);
@@ -69,6 +71,8 @@ private:
   buzz::XmppClient *client_;
   buzz::XmppEngine::State state_;
   TXmppPumpNotify *notify_;
+  TXmppSocket *socket_;
+  TXmppAuth *auth_;
 };
 
 } //namespace tuenti
