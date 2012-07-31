@@ -73,8 +73,10 @@ public:
   void OnCallCreate(cricket::Call* call);
   void OnCallDestroy(cricket::Call* call);
   void OnMediaEngineTerminate();
+  void OnPingTimeout();
   //These are signal thread entry points that will be farmed out to the worker equivilent functions
-  void Login(bool use_ssl, buzz::XmppClientSettings settings);
+  void Login(const std::string &username, const std::string &password, const std::string &xmpp_host, int xmpp_port,
+              bool use_ssl, const std::string &stun_host, int stun_port);
   void Disconnect();
   void Call(std::string &remoteJid);
   void AcceptCall();
@@ -100,35 +102,34 @@ private:
   //These should live inside of the TXmppPump
   void InitMedia();
   void InitPresence();
-  void SetMediaCaps(int media_caps, buzz::Status* status);
-  void SetCaps(int media_caps, buzz::Status* status);
-  void SetAvailable(const buzz::Jid& jid, buzz::Status* status);
+  void InitPing();
 
   //data
   typedef std::map<std::string, RosterItem> RosterMap;
-  VoiceClientNotify *notify_;
-  talk_base::Thread *signal_thread_;
-  RosterMap *roster_;
-  TXmppPump *pump_;
-  buzz::PresencePushTask* presence_push_;
-  buzz::PresenceOutTask* presence_out_;
-  talk_base::BasicNetworkManager *network_manager_;
-  cricket::BasicPortAllocator *port_allocator_;
-  cricket::Session *session_;
-  cricket::SessionManager *session_manager_;
-  cricket::SessionManagerTask* session_manager_task_;
-  cricket::Call* call_;
-  cricket::MediaSessionClient* media_client_;
-  cricket::MediaEngineInterface* media_engine_;
-  cricket::DataEngine *data_engine_;
-  uint32 port_allocator_flags_;
-  bool use_ssl_;
-  bool incoming_call_;
-  bool auto_accept_;
-  //use default constructors
-  buzz::Status my_status_;
-  buzz::XmppClientSettings xcs_;
-  DISALLOW_COPY_AND_ASSIGN(ClientSignalingThread);
+
+    DISALLOW_COPY_AND_ASSIGN(ClientSignalingThread);
+    VoiceClientNotify *notify_;
+    talk_base::Thread *signal_thread_;
+    TXmppPump *pump_;
+    talk_base::BasicNetworkManager *network_manager_;
+    cricket::DataEngine *data_engine_;
+    cricket::BasicPortAllocator *port_allocator_;
+    cricket::SessionManager *session_manager_;
+    cricket::SessionManagerTask* session_manager_task_;
+    cricket::MediaSessionClient* media_client_;
+    cricket::MediaEngineInterface* media_engine_;
+    buzz::XmppClientSettings xcs_;
+
+    cricket::Session *session_;
+    cricket::Call* call_;
+    bool incoming_call_;
+    bool auto_accept_;
+
+    buzz::Status my_status_;
+    buzz::PresencePushTask* presence_push_;
+    buzz::PresenceOutTask* presence_out_;
+    buzz::PingTask* ping_;
+    RosterMap *roster_;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

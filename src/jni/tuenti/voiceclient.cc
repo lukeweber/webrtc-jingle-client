@@ -23,20 +23,6 @@ const char* msgNames[] =
     "MSG_DESTROY",
   };
 
-struct StringData: public talk_base::MessageData {
-    StringData(std::string s) :
-            s_(s) {
-    }
-    std::string s_;
-};
-
-struct StateChangeData: public talk_base::MessageData {
-    StateChangeData(buzz::XmppEngine::State state) :
-            s_(state) {
-    }
-    buzz::XmppEngine::State s_;
-};
-
 VoiceClient::VoiceClient(VoiceClientNotify *notify)
 :notify_(notify)
 ,signal_thread_(NULL)
@@ -48,9 +34,6 @@ VoiceClient::VoiceClient(VoiceClientNotify *notify)
     // a few standard logs not sure why they are not working
     talk_base::LogMessage::LogThreads();
     talk_base::LogMessage::LogTimestamps();
-
-    my_status_.set_caps_node("http://github.com/lukeweber/webrtc-jingle");
-    my_status_.set_version("1.0-SNAPSHOT");
 
     //this creates all objects on the signaling thread
     if(signal_thread_ == NULL){
@@ -67,6 +50,7 @@ VoiceClient::~VoiceClient() {
       signal_thread_ = NULL;
     }
 }
+
 void VoiceClient::Destroy(int delay) {
     LOGI("VoiceClient::Destroy");
     if(signal_thread_ != NULL){
@@ -116,20 +100,10 @@ void VoiceClient::OnMessage(talk_base::Message *msg) {
     }
 }
 
-void VoiceClient::Login(std::string &username, std::string &password, std::string &server, bool use_ssl) {
+void VoiceClient::Login(const std::string &username, const std::string &password, const std::string &xmpp_host,
+        int xmpp_port, bool use_ssl, const std::string &stun_host, int stun_port) {
     LOGI("VoiceClient::Login");
-    buzz::XmppClientSettings xcs;
-    buzz::Jid jid = buzz::Jid(username);
-    talk_base::InsecureCryptStringImpl pass;
-    pass.password() = password;
-    xcs.set_user(jid.node());
-    xcs.set_resource("Tuenti Voice");
-    xcs.set_host(jid.domain());
-    xcs.set_use_tls(buzz::TLS_REQUIRED);
-    xcs.set_pass(talk_base::CryptString(pass));
-    xcs.set_server(talk_base::SocketAddress(server, 5222));
-
-    client_signaling_thread_->Login(use_ssl, xcs);
+    client_signaling_thread_->Login(username, password, xmpp_host, xmpp_port, use_ssl, stun_host, stun_port);
 }
 
 void VoiceClient::Disconnect() {

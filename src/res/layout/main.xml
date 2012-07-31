@@ -21,56 +21,42 @@
         android:id="@+id/init_btn"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/init_btn" >
+        android:text="@string/init_client" >
     </Button>
 
     <Button
         android:id="@+id/release_btn"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/release_btn" >
+        android:text="@string/release_client" >
     </Button>
 
     <Button
         android:id="@+id/login_btn"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/login_btn" >
+        android:text="@string/login" >
     </Button>
 
     <Button
         android:id="@+id/logout_btn"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/logout_btn" >
+        android:text="@string/logout" >
     </Button>
 
     <Button
         android:id="@+id/place_call_btn"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/place_call_btn" >
+        android:text="@string/place_call" >
     </Button>
 
     <Button
         android:id="@+id/hang_up_btn"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/hang_up_btn" >
-    </Button>
-
-    <Button
-        android:id="@+id/accept_call_btn"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/accept_call_btn" >
-    </Button>
-
-    <Button
-        android:id="@+id/decline_call_btn"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/decline_call_btn" >
+        android:text="@string/hang_up" >
     </Button>
 
 </LinearLayout>
