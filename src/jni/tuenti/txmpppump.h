@@ -36,43 +36,44 @@
 #include "talk/xmpp/xmppengine.h"
 #include "talk/xmpp/xmpptask.h"
 
-
-
 // Simple xmpp pump
 namespace tuenti {
 class TXmppSocket;
 class TXmppAuth;
 class TXmppPumpNotify {
 public:
-  virtual ~TXmppPumpNotify() {}
-  virtual void OnStateChange(buzz::XmppEngine::State state) = 0;
+    virtual ~TXmppPumpNotify() {
+    }
+    virtual void OnStateChange(buzz::XmppEngine::State state) = 0;
 };
 
-class TXmppPump : public talk_base::MessageHandler, public talk_base::TaskRunner {
+class TXmppPump: public talk_base::MessageHandler, public talk_base::TaskRunner {
 public:
-  TXmppPump(TXmppPumpNotify * notify = NULL);
+    TXmppPump(TXmppPumpNotify * notify = NULL);
 
-  buzz::XmppClient *client() { return client_; }
+    buzz::XmppClient *client() {
+        return client_;
+    }
 
-  void DoLogin(const buzz::XmppClientSettings & xcs,buzz::TlsOptions & auth_type);
+    void DoLogin(const buzz::XmppClientSettings & xcs);
 
-  void DoDisconnect();
+    void DoDisconnect();
 
-  void OnStateChange(buzz::XmppEngine::State state);
+    void OnStateChange(buzz::XmppEngine::State state);
 
-  void WakeTasks();
+    void WakeTasks();
 
-  int64 CurrentTime();
+    int64 CurrentTime();
 
-  void OnMessage(talk_base::Message *pmsg);
+    void OnMessage(talk_base::Message *pmsg);
 
-  buzz::XmppReturnStatus SendStanza(const buzz::XmlElement *stanza);
+    buzz::XmppReturnStatus SendStanza(const buzz::XmlElement *stanza);
 private:
-  buzz::XmppClient *client_;
-  buzz::XmppEngine::State state_;
-  TXmppPumpNotify *notify_;
-  TXmppSocket *socket_;
-  TXmppAuth *auth_;
+    buzz::XmppClient *client_;
+    buzz::XmppEngine::State state_;
+    TXmppPumpNotify *notify_;
+    TXmppSocket *socket_;
+    TXmppAuth *auth_;
 };
 
 } //namespace tuenti

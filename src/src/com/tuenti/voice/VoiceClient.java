@@ -28,57 +28,9 @@ public class VoiceClient
     /* Event Types */
     public static final int CALL_STATE_EVENT = 0;
 
-    public static final int XMPP_ENGINE_EVENT = 1;
-
     public static final int XMPP_ERROR_EVENT = 2;
 
-    /* Call Event States */
-    public final static int CALL_CALLING = 0;
-
-    public final static int CALL_ANSWERED = 1;
-
-    public final static int CALL_REJECTED = 2;
-
-    public final static int CALL_INPROGRESS = 3;
-
-    public final static int CALL_RECIVEDTERMINATE = 4;
-
-    public final static int CALL_INCOMING = 5;
-
-    /* Xmpp Engine Event States */ 
-    public final static int XMPP_ENGINE_CLOSED = 0;
-
-    public final static int XMPP_ENGINE_OPEN = 1;
-
-    public final static int XMPP_ENGINE_OPENING = 2;
-
-    public final static int XMPP_ENGINE_START = 3;
-
-
-    /* XMPP Error Event States */
-    public final static int XMPP_ERROR_NONE = 0;
-
-    public final static int XMPP_ERROR_XML = 1;
-
-    public final static int XMPP_ERROR_STREAM = 2;
-
-    public final static int XMPP_ERROR_VERSION = 3;
-
-    public final static int XMPP_ERROR_UNAUTH = 4;
-
-    public final static int XMPP_ERROR_TLS = 5;
-
-    public final static int XMPP_ERROR_AUTH = 6;
-
-    public final static int XMPP_ERROR_BIND = 7;
-
-    public final static int XMPP_ERROR_CONN_CLOSED = 8;
-
-    public final static int XMPP_ERROR_DOC_CLOSED = 9;
-
-    public final static int XMPP_ERROR_SOCK_ERR = 10;
-
-    public final static int XMPP_ERROR_UNKNOWN = 11;
+    public static final int XMPP_STATE_EVENT = 1;
     //End Event constants
 
     private final static String TAG = "j-libjingle-webrtc";
@@ -102,6 +54,7 @@ public class VoiceClient
         return instance;
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     private static void dispatchNativeEvent( int what, int code, String str1 )
     {
         VoiceClient client = getInstance();
@@ -170,9 +123,10 @@ public class VoiceClient
         }
     }
 
-    public void login( String username, String password, String server, boolean useSsl )
+    public void login( String username, String password, String xmppServer, int xmppPort, boolean useSsl,
+                       String stunServer, int stunPort )
     {
-        nativeLogin( username, password, server, useSsl );
+        nativeLogin( username, password, xmppServer, xmppPort, useSsl, stunServer, stunPort );
     }
 
     public void logout()
@@ -207,7 +161,8 @@ public class VoiceClient
 
     private native void nativeInit();
 
-    private native void nativeLogin( String user_name, String password, String server, boolean UseSSL );
+    private native void nativeLogin( String user_name, String password, String xmppServer, int xmppPort, boolean UseSSL,
+                                     String stunServer, int stunPort );
 
     private native void nativeLogout();
 

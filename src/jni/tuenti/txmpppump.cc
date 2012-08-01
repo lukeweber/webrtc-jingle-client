@@ -42,12 +42,12 @@ TXmppPump::TXmppPump(TXmppPumpNotify * notify) {
   LOGI("TXmppPump::TXmppPump - new XmppClient client_@(0x%x)", reinterpret_cast<int>(client_));
 }
 
-void TXmppPump::DoLogin(const buzz::XmppClientSettings & xcs, buzz::TlsOptions & auth_type){
+void TXmppPump::DoLogin(const buzz::XmppClientSettings & xcs){
   LOGI("TXmppPump::DoLogin");
   if (!AllChildrenDone()){
     OnStateChange(buzz::XmppEngine::STATE_START);
     if(socket_ == NULL) {
-      socket_ = new TXmppSocket(auth_type);
+      socket_ = new TXmppSocket(xcs.use_tls());
       LOGI("TXmppPump::DoLogin - new TXmppSocket socket_@(0x%x)", reinterpret_cast<int>(socket_));
     }
     if(auth_ == NULL) {
