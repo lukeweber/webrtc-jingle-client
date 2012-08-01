@@ -15,5 +15,5 @@ Work in progress:
 # export CHROME_SRC=`pwd`
 # source build/android/envsetup.sh
 # gclient runhooks
-# make
+# make webrtc_jingle
 ```
