@@ -38,10 +38,11 @@
 
 namespace buzz {
 
-class PresencePushTask : public XmppTask {
+class PresencePushTask: public XmppTask {
  public:
-  PresencePushTask(XmppTaskParentInterface* parent)
-    : XmppTask(parent, XmppEngine::HL_TYPE) {}
+  PresencePushTask(XmppTaskParentInterface* parent) :
+      XmppTask(parent, XmppEngine::HL_TYPE) {
+  }
   virtual int ProcessStart();
 
   sigslot::signal1<const Status&> SignalStatusUpdate;
@@ -50,10 +51,8 @@ class PresencePushTask : public XmppTask {
   virtual bool HandleStanza(const XmlElement * stanza);
   void HandlePresence(const Jid& from, const XmlElement * stanza);
   static void FillStatus(const Jid& from, const XmlElement * stanza,
-                         Status* status);
+      Status* status);
 };
-
-
 }
 
 #endif

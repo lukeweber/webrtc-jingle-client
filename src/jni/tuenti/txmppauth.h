@@ -28,6 +28,7 @@
 #ifndef TXMPPAUTH_H_
 #define TXMPPAUTH_H_
 
+#include <string>
 #include <vector>
 
 #include "talk/base/cryptstring.h"
@@ -38,42 +39,52 @@
 
 namespace tuenti {
 class TXmppAuth: public buzz::PreXmppAuth {
-public:
+ public:
   TXmppAuth();
   virtual ~TXmppAuth();
 
-  // TODO: Just have one "secret" that is either pass or
+  // TODO(nick) Just have one "secret" that is either pass or
   // token?
   virtual void StartPreXmppAuth(const buzz::Jid& jid,
-                                const talk_base::SocketAddress& server,
-                                const talk_base::CryptString& pass,
-                                const std::string& auth_mechanism,
-                                const std::string& auth_token);
+      const talk_base::SocketAddress& server,
+      const talk_base::CryptString& pass, const std::string& auth_mechanism,
+      const std::string& auth_token);
 
-  virtual bool IsAuthDone() const { return done_; }
-  virtual bool IsAuthorized() const { return true; }
-  virtual bool HadError() const { return false; }
-  virtual int  GetError() const { return 0; }
-  virtual buzz::CaptchaChallenge GetCaptchaChallenge() const {
-      return buzz::CaptchaChallenge();
+  virtual bool IsAuthDone() const {
+    return done_;
   }
-  virtual std::string GetAuthMechanism() const { return auth_mechanism_; }
-  virtual std::string GetAuthToken() const { return auth_token_; }
+  virtual bool IsAuthorized() const {
+    return true;
+  }
+  virtual bool HadError() const {
+    return false;
+  }
+  virtual int GetError() const {
+    return 0;
+  }
+  virtual buzz::CaptchaChallenge GetCaptchaChallenge() const {
+    return buzz::CaptchaChallenge();
+  }
+  virtual std::string GetAuthMechanism() const {
+    return auth_mechanism_;
+  }
+  virtual std::string GetAuthToken() const {
+    return auth_token_;
+  }
 
   virtual std::string ChooseBestSaslMechanism(
-      const std::vector<std::string>& mechanisms,
-      bool encrypted);
+      const std::vector<std::string>& mechanisms, bool encrypted);
 
   virtual buzz::SaslMechanism * CreateSaslMechanism(
       const std::string& mechanism);
 
-private:
+ private:
   buzz::Jid jid_;
   talk_base::CryptString passwd_;
   std::string auth_mechanism_;
   std::string auth_token_;
   bool done_;
 };
-} //namespace tuenti
+}  // namespace tuenti
 
 #endif  // TXMPPAUTH_H_

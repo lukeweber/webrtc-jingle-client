@@ -25,33 +25,30 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <string>
 #include "tuenti/presencepushtask.h"
 
 #include "talk/base/stringencode.h"
 #include "talk/xmpp/constants.h"
 
-
-
 namespace buzz {
 
 // string helper functions -----------------------------------------------------
 
-static bool
-IsXmlSpace(int ch) {
+static bool IsXmlSpace(int ch) {
   return ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t';
 }
 
 static bool ListContainsToken(const std::string & list,
-                              const std::string & token) {
+    const std::string & token) {
   size_t i = list.find(token);
   if (i == std::string::npos || token.empty())
     return false;
   bool boundary_before = (i == 0 || IsXmlSpace(list[i - 1]));
-  bool boundary_after = (i == list.length() - token.length() ||
-                         IsXmlSpace(list[i + token.length()]));
+  bool boundary_after = (i == list.length() - token.length()
+      || IsXmlSpace(list[i + token.length()]));
   return boundary_before && boundary_after;
 }
-
 
 bool PresencePushTask::HandleStanza(const XmlElement * stanza) {
   if (stanza->Name() != QN_PRESENCE)
@@ -61,8 +58,8 @@ bool PresencePushTask::HandleStanza(const XmlElement * stanza) {
 }
 
 static bool IsUtf8FirstByte(int c) {
-  return (((c)&0x80)==0) || // is single byte
-    ((unsigned char)((c)-0xc0)<0x3e); // or is lead byte
+  return (((c) & 0x80) == 0) ||  // is single byte
+      ((unsigned char) ((c) - 0xc0) < 0x3e);  // or is lead byte
 }
 
 int PresencePushTask::ProcessStart() {
@@ -77,7 +74,7 @@ int PresencePushTask::ProcessStart() {
 }
 
 void PresencePushTask::HandlePresence(const Jid& from,
-                                      const XmlElement* stanza) {
+    const XmlElement* stanza) {
   if (stanza->Attr(QN_TYPE) == STR_ERROR)
     return;
 
@@ -87,7 +84,7 @@ void PresencePushTask::HandlePresence(const Jid& from,
 }
 
 void PresencePushTask::FillStatus(const Jid& from, const XmlElement* stanza,
-                                  Status* s) {
+    Status* s) {
   s->set_jid(from);
   if (stanza->Attr(QN_TYPE) == STR_UNAVAILABLE) {
     s->set_available(false);
@@ -121,21 +118,16 @@ void PresencePushTask::FillStatus(const Jid& from, const XmlElement* stanza,
     const XmlElement * show = stanza->FirstNamed(QN_SHOW);
     if (show == NULL || show->FirstChild() == NULL) {
       s->set_show(Status::SHOW_ONLINE);
-    }
-    else {
+    } else {
       if (show->BodyText() == "away") {
         s->set_show(Status::SHOW_AWAY);
-      }
-      else if (show->BodyText() == "xa") {
+      } else if (show->BodyText() == "xa") {
         s->set_show(Status::SHOW_XA);
-      }
-      else if (show->BodyText() == "dnd") {
+      } else if (show->BodyText() == "dnd") {
         s->set_show(Status::SHOW_DND);
-      }
-      else if (show->BodyText() == "chat") {
+      } else if (show->BodyText() == "chat") {
         s->set_show(Status::SHOW_CHAT);
-      }
-      else {
+      } else {
         s->set_show(Status::SHOW_ONLINE);
       }
     }
@@ -143,14 +135,14 @@ void PresencePushTask::FillStatus(const Jid& from, const XmlElement* stanza,
 #ifdef TUENTI_CUSTOM_BUILD
     const XmlElement * td = stanza->FirstNamed(QN_TUENTI_DATA);
     if (td != NULL) {
-        const XmlElement * caps = td->FirstNamed(QN_TUENTI_CAPS);
-        const XmlElement * voice_v1 = caps->FirstNamed(QN_TUENTI_VOICE);
-        if (voice_v1 != NULL) {
-          s->set_voice_capability(true);
-          s->set_know_capabilities(true);
-          s->set_caps_node("http://www.google.com/xmpp/client/caps");
-          s->set_version("1.0");
-        }
+      const XmlElement * caps = td->FirstNamed(QN_TUENTI_CAPS);
+      const XmlElement * voice_v1 = caps->FirstNamed(QN_TUENTI_VOICE);
+      if (voice_v1 != NULL) {
+        s->set_voice_capability(true);
+        s->set_know_capabilities(true);
+        s->set_caps_node("http://www.google.com/xmpp/client/caps");
+        s->set_version("1.0");
+      }
     }
 #else
     const XmlElement * caps = stanza->FirstNamed(QN_CAPS_C);
@@ -187,5 +179,4 @@ void PresencePushTask::FillStatus(const Jid& from, const XmlElement* stanza,
     }
   }
 }
-
 }

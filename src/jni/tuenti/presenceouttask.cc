@@ -26,6 +26,7 @@
  */
 
 #include <time.h>
+#include <string>
 #include <sstream>
 #include "tuenti/presenceouttask.h"
 #include "talk/base/stringencode.h"
@@ -34,8 +35,7 @@
 
 namespace buzz {
 
-XmppReturnStatus
-PresenceOutTask::Send(const Status & s) {
+XmppReturnStatus PresenceOutTask::Send(const Status & s) {
   if (GetState() != STATE_INIT && GetState() != STATE_START)
     return XMPP_RETURN_BADSTATE;
 
@@ -45,8 +45,8 @@ PresenceOutTask::Send(const Status & s) {
   return XMPP_RETURN_OK;
 }
 
-XmppReturnStatus
-PresenceOutTask::SendDirected(const Jid & j, const Status & s) {
+XmppReturnStatus PresenceOutTask::SendDirected(const Jid & j,
+    const Status & s) {
   if (GetState() != STATE_INIT && GetState() != STATE_START)
     return XMPP_RETURN_BADSTATE;
 
@@ -70,8 +70,7 @@ XmppReturnStatus PresenceOutTask::SendProbe(const Jid & jid) {
   return XMPP_RETURN_OK;
 }
 
-int
-PresenceOutTask::ProcessStart() {
+int PresenceOutTask::ProcessStart() {
   const XmlElement * stanza = NextStanza();
   if (stanza == NULL)
     return STATE_BLOCKED;
@@ -87,23 +86,22 @@ PresenceOutTask::TranslateStatus(const Status & s) {
   XmlElement * result = new XmlElement(QN_PRESENCE);
   if (!s.available()) {
     result->AddAttr(QN_TYPE, STR_UNAVAILABLE);
-  }
-  else {
+  } else {
     if (s.show() != Status::SHOW_ONLINE && s.show() != Status::SHOW_OFFLINE) {
       result->AddElement(new XmlElement(QN_SHOW));
       switch (s.show()) {
-        default:
-          result->AddText(STR_SHOW_AWAY, 1);
-          break;
-        case Status::SHOW_XA:
-          result->AddText(STR_SHOW_XA, 1);
-          break;
-        case Status::SHOW_DND:
-          result->AddText(STR_SHOW_DND, 1);
-          break;
-        case Status::SHOW_CHAT:
-          result->AddText(STR_SHOW_CHAT, 1);
-          break;
+      default:
+        result->AddText(STR_SHOW_AWAY, 1);
+        break;
+      case Status::SHOW_XA:
+        result->AddText(STR_SHOW_XA, 1);
+        break;
+      case Status::SHOW_DND:
+        result->AddText(STR_SHOW_DND, 1);
+        break;
+      case Status::SHOW_CHAT:
+        result->AddText(STR_SHOW_CHAT, 1);
+        break;
       }
     }
 
@@ -160,6 +158,4 @@ PresenceOutTask::TranslateStatus(const Status & s) {
 
   return result;
 }
-
-
 }

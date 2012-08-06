@@ -34,17 +34,16 @@
 #include "talk/xmpp/saslplainmechanism.h"
 
 namespace tuenti {
-TXmppAuth::TXmppAuth() : done_(false) {
+TXmppAuth::TXmppAuth()
+    : done_(false) {
 }
 
 TXmppAuth::~TXmppAuth() {
 }
 
 void TXmppAuth::StartPreXmppAuth(const buzz::Jid& jid,
-                                const talk_base::SocketAddress& server,
-                                const talk_base::CryptString& pass,
-                                const std::string& auth_mechanism,
-                                const std::string& auth_token) {
+    const talk_base::SocketAddress& server, const talk_base::CryptString& pass,
+    const std::string& auth_mechanism, const std::string& auth_token) {
   jid_ = jid;
   passwd_ = pass;
   auth_mechanism_ = auth_mechanism;
@@ -55,28 +54,27 @@ void TXmppAuth::StartPreXmppAuth(const buzz::Jid& jid,
 }
 
 static bool contains(const std::vector<std::string>& strings,
-                     const std::string& string) {
+    const std::string& string) {
   return std::find(strings.begin(), strings.end(), string) != strings.end();
 }
 
 std::string TXmppAuth::ChooseBestSaslMechanism(
-    const std::vector<std::string>& mechanisms,
-    bool encrypted) {
+    const std::vector<std::string>& mechanisms, bool encrypted) {
   // First try Oauth2.
-  if (GetAuthMechanism() == buzz::AUTH_MECHANISM_OAUTH2 &&
-      contains(mechanisms, buzz::AUTH_MECHANISM_OAUTH2)) {
+  if (GetAuthMechanism() == buzz::AUTH_MECHANISM_OAUTH2
+      && contains(mechanisms, buzz::AUTH_MECHANISM_OAUTH2)) {
     return buzz::AUTH_MECHANISM_OAUTH2;
   }
 
   // A token is the weakest auth - 15s, service-limited, so prefer it.
-  if (GetAuthMechanism() == buzz::AUTH_MECHANISM_GOOGLE_TOKEN &&
-      contains(mechanisms, buzz::AUTH_MECHANISM_GOOGLE_TOKEN)) {
+  if (GetAuthMechanism() == buzz::AUTH_MECHANISM_GOOGLE_TOKEN
+      && contains(mechanisms, buzz::AUTH_MECHANISM_GOOGLE_TOKEN)) {
     return buzz::AUTH_MECHANISM_GOOGLE_TOKEN;
   }
 
   // A cookie is the next weakest - 14 days.
-  if (GetAuthMechanism() == buzz::AUTH_MECHANISM_GOOGLE_COOKIE &&
-      contains(mechanisms, buzz::AUTH_MECHANISM_GOOGLE_COOKIE)) {
+  if (GetAuthMechanism() == buzz::AUTH_MECHANISM_GOOGLE_COOKIE
+      && contains(mechanisms, buzz::AUTH_MECHANISM_GOOGLE_COOKIE)) {
     return buzz::AUTH_MECHANISM_GOOGLE_COOKIE;
   }
 
@@ -92,16 +90,16 @@ std::string TXmppAuth::ChooseBestSaslMechanism(
 buzz::SaslMechanism* TXmppAuth::CreateSaslMechanism(
     const std::string& mechanism) {
   if (mechanism == buzz::AUTH_MECHANISM_OAUTH2) {
-    return new buzz::SaslCookieMechanism(
-        mechanism, jid_.Str(), auth_token_, "oauth2");
+    return new buzz::SaslCookieMechanism(mechanism, jid_.Str(), auth_token_,
+        "oauth2");
   } else if (mechanism == buzz::AUTH_MECHANISM_GOOGLE_TOKEN) {
     return new buzz::SaslCookieMechanism(mechanism, jid_.Str(), auth_token_);
-  // } else if (mechanism == buzz::AUTH_MECHANISM_GOOGLE_COOKIE) {
-  //   return new buzz::SaslCookieMechanism(mechanism, jid.Str(), sid_);
+    // } else if (mechanism == buzz::AUTH_MECHANISM_GOOGLE_COOKIE) {
+    //   return new buzz::SaslCookieMechanism(mechanism, jid.Str(), sid_);
   } else if (mechanism == buzz::AUTH_MECHANISM_PLAIN) {
     return new buzz::SaslPlainMechanism(jid_, passwd_);
   } else {
     return NULL;
   }
 }
-} //namespace tuenti
+}  // namespace tuenti

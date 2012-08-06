@@ -35,21 +35,22 @@
 
 namespace buzz {
 
-class PresenceOutTask : public XmppTask {
-public:
-  explicit PresenceOutTask(XmppTaskParentInterface* parent)
-      : XmppTask(parent) {}
-  virtual ~PresenceOutTask() {}
+class PresenceOutTask: public XmppTask {
+ public:
+  explicit PresenceOutTask(XmppTaskParentInterface* parent) :
+      XmppTask(parent) {
+  }
+  virtual ~PresenceOutTask() {
+  }
 
   XmppReturnStatus Send(const Status & s);
   XmppReturnStatus SendDirected(const Jid & j, const Status & s);
   XmppReturnStatus SendProbe(const Jid& jid);
 
   virtual int ProcessStart();
-private:
+ private:
   XmlElement * TranslateStatus(const Status & s);
 };
-
 }
 
 #endif

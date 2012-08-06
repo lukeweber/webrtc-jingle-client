@@ -2,26 +2,26 @@
  * libjingle
  * Copyright 2004--2005, Google Inc.
  *
- * Redistribution and use in source and binary forms, with or without 
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  1. Redistributions of source code must retain the above copyright notice, 
+ *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
  *  2. Redistributions in binary form must reproduce the above copyright notice,
  *     this list of conditions and the following disclaimer in the documentation
  *     and/or other materials provided with the distribution.
- *  3. The name of the author may not be used to endorse or promote products 
+ *  3. The name of the author may not be used to endorse or promote products
  *     derived from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
- * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+ * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
  * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
@@ -44,10 +44,9 @@
 #include "talk/base/sslstreamadapter.h"
 #endif  // FEATURE_ENABLE_SSL
 #endif  // USE_SSLSTREAM
-
 namespace tuenti {
-TXmppSocket::TXmppSocket(buzz::TlsOptions tls) : cricket_socket_(NULL),
-                                               tls_(tls) {
+TXmppSocket::TXmppSocket(buzz::TlsOptions tls)
+    : cricket_socket_(NULL), tls_(tls) {
   state_ = buzz::AsyncSocket::STATE_CLOSED;
 }
 
@@ -56,8 +55,8 @@ void TXmppSocket::CreateCricketSocket(int family) {
   if (family == AF_UNSPEC) {
     family = AF_INET;
   }
-  talk_base::AsyncSocket* socket =
-      pth->socketserver()->CreateAsyncSocket(family, SOCK_STREAM);
+  talk_base::AsyncSocket* socket = pth->socketserver()->CreateAsyncSocket(
+      family, SOCK_STREAM);
 #ifndef USE_SSLSTREAM
 #ifdef FEATURE_ENABLE_SSL
   if (tls_ != buzz::TLS_DISABLED) {
@@ -68,14 +67,14 @@ void TXmppSocket::CreateCricketSocket(int family) {
   cricket_socket_->SignalReadEvent.connect(this, &TXmppSocket::OnReadEvent);
   cricket_socket_->SignalWriteEvent.connect(this, &TXmppSocket::OnWriteEvent);
   cricket_socket_->SignalConnectEvent.connect(this,
-                                              &TXmppSocket::OnConnectEvent);
+      &TXmppSocket::OnConnectEvent);
   cricket_socket_->SignalCloseEvent.connect(this, &TXmppSocket::OnCloseEvent);
 #else  // USE_SSLSTREAM
   cricket_socket_ = socket;
   stream_ = new talk_base::SocketStream(cricket_socket_);
 #ifdef FEATURE_ENABLE_SSL
   if (tls_ != buzz::TLS_DISABLED)
-    stream_ = talk_base::SSLStreamAdapter::Create(stream_);
+  stream_ = talk_base::SSLStreamAdapter::Create(stream_);
 #endif  // FEATURE_ENABLE_SSL
   stream_->SignalEvent.connect(this, &TXmppSocket::OnEvent);
 #endif  // USE_SSLSTREAM
@@ -127,9 +126,8 @@ void TXmppSocket::OnCloseEvent(talk_base::AsyncSocket * socket, int error) {
 }
 
 #else  // USE_SSLSTREAM
-
 void TXmppSocket::OnEvent(talk_base::StreamInterface* stream,
-                         int events, int err) {
+    int events, int err) {
   if ((events & talk_base::SE_OPEN)) {
 #if defined(FEATURE_ENABLE_SSL)
     if (state_ == buzz::AsyncSocket::STATE_TLS_CONNECTING) {
@@ -144,7 +142,7 @@ void TXmppSocket::OnEvent(talk_base::StreamInterface* stream,
     }
   }
   if ((events & talk_base::SE_READ))
-    SignalRead();
+  SignalRead();
   if ((events & talk_base::SE_WRITE)) {
     // Write bytes if there are any
     while (buffer_.Length() != 0) {
@@ -152,23 +150,22 @@ void TXmppSocket::OnEvent(talk_base::StreamInterface* stream,
       size_t written;
       int error;
       result = stream_->Write(buffer_.Data(), buffer_.Length(),
-                              &written, &error);
+          &written, &error);
       if (result == talk_base::SR_ERROR) {
         LOG(LS_ERROR) << "Send error: " << error;
         return;
       }
       if (result == talk_base::SR_BLOCK)
-        return;
+      return;
       ASSERT(result == talk_base::SR_SUCCESS);
       ASSERT(written > 0);
       buffer_.Shift(written);
     }
   }
   if ((events & talk_base::SE_CLOSE))
-    SignalCloseEvent(err);
+  SignalCloseEvent(err);
 }
 #endif  // USE_SSLSTREAM
-
 buzz::AsyncSocket::State TXmppSocket::state() {
   return state_;
 }
@@ -195,13 +192,13 @@ bool TXmppSocket::Read(char * data, size_t len, size_t* len_read) {
 #ifndef USE_SSLSTREAM
   int read = cricket_socket_->Recv(data, len);
   if (read > 0) {
-    *len_read = (size_t)read;
+    *len_read = (size_t) read;
     return true;
   }
 #else  // USE_SSLSTREAM
   talk_base::StreamResult result = stream_->Read(data, len, len_read, NULL);
   if (result == talk_base::SR_SUCCESS)
-    return true;
+  return true;
 #endif  // USE_SSLSTREAM
   return false;
 }
@@ -237,17 +234,17 @@ bool TXmppSocket::Close() {
 bool TXmppSocket::StartTls(const std::string & domainname) {
 #if defined(FEATURE_ENABLE_SSL)
   if (tls_ == buzz::TLS_DISABLED)
-    return false;
+  return false;
 #ifndef USE_SSLSTREAM
   talk_base::SSLAdapter* ssl_adapter =
-    static_cast<talk_base::SSLAdapter *>(cricket_socket_);
+  static_cast<talk_base::SSLAdapter *>(cricket_socket_);
   if (ssl_adapter->StartSSL(domainname.c_str(), false) != 0)
-    return false;
+  return false;
 #else  // USE_SSLSTREAM
   talk_base::SSLStreamAdapter* ssl_stream =
-    static_cast<talk_base::SSLStreamAdapter *>(stream_);
+  static_cast<talk_base::SSLStreamAdapter *>(stream_);
   if (ssl_stream->StartSSLWithServer(domainname.c_str()) != 0)
-    return false;
+  return false;
 #endif  // USE_SSLSTREAM
   state_ = buzz::AsyncSocket::STATE_TLS_CONNECTING;
   return true;
@@ -255,4 +252,4 @@ bool TXmppSocket::StartTls(const std::string & domainname) {
   return false;
 #endif  // !defined(FEATURE_ENABLE_SSL)
 }
-} //namespace tuenti
+}  // namespace tuenti
