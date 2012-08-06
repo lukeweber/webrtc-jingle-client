@@ -10,8 +10,16 @@
     <packaging>apk</packaging>
 
     <properties>
-        <android.version>2.3.1</android.version>
-        <android.plugin.version>3.2.0</android.plugin.version>
+        <android.api.version>14</android.api.version>
+        <android.version>4.0.1.2</android.version>
+
+        <android-maven-plugin.version>3.2.0</android-maven-plugin.version>
+        <maven-compiler-plugin.version>2.3.2</maven-compiler-plugin.version>
+        <maven-jarsigner-plugin.version>1.2</maven-jarsigner-plugin.version>
+        <build-helper-maven-plugin.version>1.7</build-helper-maven-plugin.version>
+        <proguard-maven-plugin.version>2.0.4</proguard-maven-plugin.version>
+        <proguard.version>4.4</proguard.version>
+        <java.version>1.6</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -26,6 +34,7 @@
 
     <build>
 
+        <defaultGoal>package</defaultGoal>
         <sourceDirectory>${basedir}/src</sourceDirectory>
 
         <plugins>
@@ -33,16 +42,48 @@
             <!-- compiler settings -->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <inherited>true</inherited>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>com.jayway.maven.plugins.android.generation2</groupId>
                 <artifactId>android-maven-plugin</artifactId>
-                <version>${android.plugin.version}</version>
+                <version>${android-maven-plugin.version}</version>
                 <extensions>true</extensions>
+                <configuration>
+                    <ndk>
+                        <path>${env.ANDROID_NDK_HOME}</path>
+                    </ndk>
+                    <sdk>
+                        <platform>${android.api.version}</platform>
+                        <path>${env.ANDROID_HOME}</path>
+                    </sdk>
+                    <undeployBeforeDeploy>true</undeployBeforeDeploy>
+                    <manifest>
+                        <debuggable>true</debuggable>
+                    </manifest>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>manifestUpdate</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>manifest-update</goal>
+                            <goal>ndk-build</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>alignApk</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>zipalign</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -55,6 +96,15 @@
                     </javahClassNames>
                     <javahVerbose>true</javahVerbose>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>generateNative</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>javah</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
         </plugins>
