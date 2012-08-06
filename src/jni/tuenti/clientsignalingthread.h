@@ -10,7 +10,7 @@
 #include "talk/base/sigslot.h"
 #include "tuenti/txmpppump.h"//Needed for TXmppPumpNotify
 #include "talk/p2p/base/session.h"//Needed for enum cricket::Session::State
-#include "talk/session/phone/mediachannel.h"//Needed for enum cricket::ReceiveDataParams
+#include "talk/media/base/mediachannel.h"//Needed for enum cricket::ReceiveDataParams
 
 #include "tuenti/status.h"
 namespace talk_base {

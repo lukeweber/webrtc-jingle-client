@@ -5,9 +5,9 @@
 #include <string.h>
 
 #include "talk/p2p/base/session.h"
-#include "talk/session/phone/mediachannel.h"
-#include "talk/session/phone/mediamessages.h"
-#include "talk/session/phone/mediasessionclient.h"
+#include "talk/media/base/mediachannel.h"
+#include "talk/session/media/mediamessages.h"
+#include "talk/session/media/mediasessionclient.h"
 #include "talk/xmpp/xmppclient.h"
 #include "talk/examples/login/xmpppump.h"
 
