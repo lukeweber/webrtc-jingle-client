@@ -34,9 +34,10 @@
 #include "talk/base/constructormagic.h"
 #include "talk/base/thread.h"
 #include "talk/base/sigslot.h"
-#include "talk/p2p/base/session.h"  // Needed for enum cricket::Session::State
-#include "talk/session/phone/mediachannel.h"  // Needed for enum cricket::ReceiveDataParams
 #include "talk/xmpp/pingtask.h"
+#include "tuenti/txmpppump.h"//Needed for TXmppPumpNotify
+#include "talk/p2p/base/session.h"//Needed for enum cricket::Session::State
+#include "talk/media/base/mediachannel.h"//Needed for enum cricket::ReceiveDataParams
 
 #include "tuenti/status.h"
 #include "tuenti/txmpppump.h"  // Needed for TXmppPumpNotify

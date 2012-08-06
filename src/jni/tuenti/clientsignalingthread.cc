@@ -32,8 +32,8 @@
 #include "tuenti/voiceclient.h"  // Needed for notify_ would be nice to remove
 #include "talk/base/signalthread.h"
 #include "talk/base/ssladapter.h"
-#include "talk/session/phone/call.h"
-#include "talk/session/phone/mediasessionclient.h"
+#include "talk/session/media/call.h"
+#include "talk/session/media/mediasessionclient.h"
 #include "talk/p2p/base/sessionmanager.h"
 #include "talk/p2p/client/basicportallocator.h"
 #include "talk/p2p/client/sessionmanagertask.h"
