@@ -73,8 +73,9 @@ void TXmppSocket::CreateCricketSocket(int family) {
   cricket_socket_ = socket;
   stream_ = new talk_base::SocketStream(cricket_socket_);
 #ifdef FEATURE_ENABLE_SSL
-  if (tls_ != buzz::TLS_DISABLED)
-  stream_ = talk_base::SSLStreamAdapter::Create(stream_);
+  if (tls_ != buzz::TLS_DISABLED) {
+    stream_ = talk_base::SSLStreamAdapter::Create(stream_);
+  }
 #endif  // FEATURE_ENABLE_SSL
   stream_->SignalEvent.connect(this, &TXmppSocket::OnEvent);
 #endif  // USE_SSLSTREAM
@@ -141,8 +142,9 @@ void TXmppSocket::OnEvent(talk_base::StreamInterface* stream,
       SignalConnected();
     }
   }
-  if ((events & talk_base::SE_READ))
-  SignalRead();
+  if ((events & talk_base::SE_READ)){
+    SignalRead();
+  }
   if ((events & talk_base::SE_WRITE)) {
     // Write bytes if there are any
     while (buffer_.Length() != 0) {
@@ -155,15 +157,17 @@ void TXmppSocket::OnEvent(talk_base::StreamInterface* stream,
         LOG(LS_ERROR) << "Send error: " << error;
         return;
       }
-      if (result == talk_base::SR_BLOCK)
-      return;
+      if (result == talk_base::SR_BLOCK){
+        return;
+      }
       ASSERT(result == talk_base::SR_SUCCESS);
       ASSERT(written > 0);
       buffer_.Shift(written);
     }
   }
-  if ((events & talk_base::SE_CLOSE))
-  SignalCloseEvent(err);
+  if ((events & talk_base::SE_CLOSE)){
+    SignalCloseEvent(err);
+  }
 }
 #endif  // USE_SSLSTREAM
 buzz::AsyncSocket::State TXmppSocket::state() {
@@ -197,8 +201,9 @@ bool TXmppSocket::Read(char * data, size_t len, size_t* len_read) {
   }
 #else  // USE_SSLSTREAM
   talk_base::StreamResult result = stream_->Read(data, len, len_read, NULL);
-  if (result == talk_base::SR_SUCCESS)
-  return true;
+  if (result == talk_base::SR_SUCCESS) {
+    return true;
+  }
 #endif  // USE_SSLSTREAM
   return false;
 }
@@ -233,18 +238,21 @@ bool TXmppSocket::Close() {
 
 bool TXmppSocket::StartTls(const std::string & domainname) {
 #if defined(FEATURE_ENABLE_SSL)
-  if (tls_ == buzz::TLS_DISABLED)
-  return false;
+  if (tls_ == buzz::TLS_DISABLED){
+    return false;
+  }
 #ifndef USE_SSLSTREAM
   talk_base::SSLAdapter* ssl_adapter =
   static_cast<talk_base::SSLAdapter *>(cricket_socket_);
-  if (ssl_adapter->StartSSL(domainname.c_str(), false) != 0)
-  return false;
+  if (ssl_adapter->StartSSL(domainname.c_str(), false) != 0){
+    return false;
+  }
 #else  // USE_SSLSTREAM
   talk_base::SSLStreamAdapter* ssl_stream =
   static_cast<talk_base::SSLStreamAdapter *>(stream_);
-  if (ssl_stream->StartSSLWithServer(domainname.c_str()) != 0)
-  return false;
+  if  (ssl_stream->StartSSLWithServer(domainname.c_str()) != 0) {
+    return false;
+  }
 #endif  // USE_SSLSTREAM
   state_ = buzz::AsyncSocket::STATE_TLS_CONNECTING;
   return true;
