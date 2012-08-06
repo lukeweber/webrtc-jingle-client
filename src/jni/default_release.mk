@@ -13,5 +13,5 @@ APP_CPPFLAGS += -fno-rtti -ffast-math -O3 -funroll-loops
 APP_CFLAGS += \
 	-DENABLE_DEBUG=0 \
 	-DLOGGING=0
-APP_STL := stlport_shared
+APP_STL := stlport_static
 APP_OPTIM := release

@@ -14,5 +14,5 @@ APP_CFLAGS += \
 	-DENABLE_DEBUG=0 \
 	-DLOGGING=0 \
 	-DTUENTI_CUSTOM_BUILD=1
-APP_STL := stlport_shared
+APP_STL := stlport_static
 APP_OPTIM := release

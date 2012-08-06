@@ -14,5 +14,5 @@ APP_CFLAGS += \
 	-DLOGGING=1 \
 	-DWEBRTC_ANDROID_DEBUG=1 \
 	-DTUENTI_CUSTOM_BUILD=1
-APP_STL := stlport_shared
+APP_STL := stlport_static
 APP_OPTIM := debug
