@@ -1,7 +1,3 @@
-Retired for https://github.com/lukeweber/webrtc-jingle-client
-==================
-
-
 webrtc-jingle for android 
 =============
 (libjingle signaling + webrtc voice engine)
