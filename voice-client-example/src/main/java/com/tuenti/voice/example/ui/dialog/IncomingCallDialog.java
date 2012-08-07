@@ -1,10 +1,10 @@
-package com.tuenti.voice.ui.dialog;
+package com.tuenti.voice.example.ui.dialog;
 
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import com.tuenti.voice.R;
-import com.tuenti.voice.VoiceClient;
+import com.tuenti.voice.core.VoiceClient;
+import com.tuenti.voice.example.R;
 
 public class IncomingCallDialog
     extends AlertDialog.Builder

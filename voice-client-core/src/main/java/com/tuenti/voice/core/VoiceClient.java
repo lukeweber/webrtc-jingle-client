@@ -13,7 +13,7 @@
  * a GUI test.
  */
 
-package com.tuenti.voice;
+package com.tuenti.voice.core;
 
 import android.os.Bundle;
 import android.os.Handler;

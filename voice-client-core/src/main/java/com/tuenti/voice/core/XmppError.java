@@ -1,4 +1,4 @@
-package com.tuenti.voice;
+package com.tuenti.voice.core;
 
 public enum XmppError
 {

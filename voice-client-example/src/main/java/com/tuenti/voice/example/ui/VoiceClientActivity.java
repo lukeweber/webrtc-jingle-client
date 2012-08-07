@@ -1,4 +1,4 @@
-package com.tuenti.voice.ui;
+package com.tuenti.voice.example.ui;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -14,14 +14,14 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-import com.tuenti.voice.CallState;
-import com.tuenti.voice.R;
-import com.tuenti.voice.VoiceClient;
-import com.tuenti.voice.VoiceClientEventCallback;
-import com.tuenti.voice.VoiceClientEventHandler;
-import com.tuenti.voice.XmppError;
-import com.tuenti.voice.XmppState;
-import com.tuenti.voice.ui.dialog.IncomingCallDialog;
+import com.tuenti.voice.core.CallState;
+import com.tuenti.voice.core.VoiceClient;
+import com.tuenti.voice.core.VoiceClientEventCallback;
+import com.tuenti.voice.core.VoiceClientEventHandler;
+import com.tuenti.voice.core.XmppError;
+import com.tuenti.voice.core.XmppState;
+import com.tuenti.voice.example.R;
+import com.tuenti.voice.example.ui.dialog.IncomingCallDialog;
 
 public class VoiceClientActivity
     extends Activity
