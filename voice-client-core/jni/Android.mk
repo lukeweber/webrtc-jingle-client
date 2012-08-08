@@ -94,7 +94,6 @@ include $(BUILD_STATIC_LIBRARY)
 
 LOCAL_PATH := $(MY_ROOT_PATH)
 include $(CLEAR_VARS)
-include $(LOCAL_PATH)/config.mk
 
 LOCAL_MODULE := libvoiceclient
 LOCAL_CPP_EXTENSION := .cc
