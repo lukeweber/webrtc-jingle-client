@@ -37,7 +37,7 @@ Get started with the code:
 * run "ndk-build" in trunk/src
 * Import src directory as an android project with existing sources into eclipse and build. Note that emulator may not work. 
 * Build project and you should be ready to go and make calls between your browser and the app.
-* As well the expiremental build options are badit in trunk directory which wraps some of the makefile logic, to utilize gyp for build, ie make webrtc_jingle. This isn't really recommeneded, but if you'd like to push forward tests, this is the area where work will happen.
+* As well the expiremental build options are badit in trunk directory which wraps some of the makefile logic, to utilize gyp for build, ie make. This isn't really recommeneded, but if you'd like to push forward tests, this is the area where work will happen.
 
 Todo/Issues:
 --------------------------

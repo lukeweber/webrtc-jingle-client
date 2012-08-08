@@ -15,7 +15,7 @@
     ['OS=="android"', {
       'targets': [
         {
-          'target_name': 'webrtc_jingle',
+          'target_name': 'All',
           'message': 'building native webrtc_jingle apk',
           'type': 'none',
           'dependencies': [
