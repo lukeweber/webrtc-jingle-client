@@ -93,7 +93,7 @@ if [ "$BUILDSYSTEM" == "gyp" ]; then
   gclient runhooks;
   check_return_code "$?"
 
-  make webrtc_jingle -j4 BUILDTYPE=Debug
+  make -j4 BUILDTYPE=Debug
   check_return_code "$?"
 
   adb uninstall com.tuenti.voice;

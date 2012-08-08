@@ -9,13 +9,13 @@
 {
   'includes': [ 'third_party/webrtc/build/common.gypi', ],
   'variables': {
-    'webrtc_jingle': 'src/jni',
+    'webrtc_jingle': 'voice-client-core/jni',
   },  
   'conditions': [
     ['OS=="android"', {
       'targets': [
         {
-          'target_name': 'webrtc_jingle',
+          'target_name': 'All',
           'message': 'building native webrtc_jingle apk',
           'type': 'none',
           'dependencies': [
@@ -25,9 +25,9 @@
             {
               'action_name': 'webrtc_jingle',
               'inputs': [
-                '<(DEPTH)/src/AndroidManifest.xml',
-                '<!@(find <(DEPTH)/src/src/ -name "*.java")',
-                'src/jni/voiceclient_main.cc'
+                '<(DEPTH)/voice-client-core/AndroidManifest.xml',
+                '<!@(find <(DEPTH)/voice-client-core/src/main/java/ -name "*.java")',
+                'voice-client-core/jni/voiceclient_main.cc'
               ],
               'outputs': [
                 # Awkwardly, we build a Debug APK even when gyp is in
@@ -42,7 +42,7 @@
                 '-DPRODUCT_DIR=<(ant_build_out)',
                 '-DAPP_ABI=<(android_app_abi)',
                 '-buildfile',
-                '<(DEPTH)/src/build.xml',
+                '<(DEPTH)/voice-client-core/build.xml',
                 'debug',
               ]
             }
@@ -115,10 +115,10 @@
               'action_name': 'generate_jni_headers',
               'inputs': [
                 #'<(DEPTH)/base/android/jni_generator/jni_generator.py',
-                'src/src/com/tuenti/voice/VoiceClientActivity.java',
+                'voice-client-core/src/main/java/com/tuenti/voice/core/VoiceClient.java',
               ],
               'outputs': [
-                '<(DEPTH)/src/jni/',
+                '<(DEPTH)/voice-client-core/jni/',
                 #'com_tuenti_voice_VoiceClient.h',
               ],
               'action': [
