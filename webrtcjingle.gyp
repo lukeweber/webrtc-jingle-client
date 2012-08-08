@@ -115,7 +115,7 @@
               'action_name': 'generate_jni_headers',
               'inputs': [
                 #'<(DEPTH)/base/android/jni_generator/jni_generator.py',
-                'voice-client-core/src/main/java/com/tuenti/voice/VoiceClient.java',
+                'voice-client-core/src/main/java/com/tuenti/voice/core/VoiceClient.java',
               ],
               'outputs': [
                 '<(DEPTH)/voice-client-core/jni/',
