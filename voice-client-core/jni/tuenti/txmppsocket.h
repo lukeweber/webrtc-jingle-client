@@ -49,7 +49,7 @@ extern talk_base::AsyncSocket* cricket_socket_;
 
 class TXmppSocket: public buzz::AsyncSocket, public sigslot::has_slots<> {
  public:
-  explicit TXmppSocket(buzz::TlsOptions tls);
+  TXmppSocket(buzz::TlsOptions tls);
   ~TXmppSocket();
 
   virtual buzz::AsyncSocket::State state();
