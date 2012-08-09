@@ -62,6 +62,7 @@
                             <platform>${android.api.version}</platform>
                             <path>${env.ANDROID_HOME}</path>
                         </sdk>
+                        <apkDebug>true</apkDebug>
                         <undeployBeforeDeploy>true</undeployBeforeDeploy>
                     </configuration>
                 </plugin>
