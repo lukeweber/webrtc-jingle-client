@@ -22,6 +22,7 @@
         <android-maven-plugin.version>3.3.0</android-maven-plugin.version>
         <maven-compiler-plugin.version>2.3.2</maven-compiler-plugin.version>
         <maven-jarsigner-plugin.version>1.2</maven-jarsigner-plugin.version>
+        <native-maven-plugin.version>1.0-alpha-7</native-maven-plugin.version>
         <build-helper-maven-plugin.version>1.7</build-helper-maven-plugin.version>
         <proguard-maven-plugin.version>2.0.4</proguard-maven-plugin.version>
         <proguard.version>4.4</proguard.version>
@@ -49,6 +50,11 @@
                         <source>${java.version}</source>
                         <target>${java.version}</target>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>native-maven-plugin</artifactId>
+                    <version>${native-maven-plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>com.jayway.maven.plugins.android.generation2</groupId>
