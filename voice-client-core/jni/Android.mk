@@ -36,7 +36,7 @@ include $(MY_WEBRTC_PATH)/modules/audio_processing/utility/Android.mk
 include $(MY_WEBRTC_PATH)/modules/media_file/source/Android.mk
 include $(MY_WEBRTC_PATH)/modules/rtp_rtcp/source/Android.mk
 include $(MY_WEBRTC_PATH)/system_wrappers/source/Android.mk
-include $(MY_WEBRTC_PATH)/voice_engine/main/source/Android.mk
+include $(MY_WEBRTC_PATH)/voice_engine/Android.mk
 
 include $(MY_ANDROID_MAKE_FILES_PATH)/expat.mk
 include $(MY_ANDROID_MAKE_FILES_PATH)/openssl.mk

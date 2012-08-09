@@ -11,6 +11,12 @@
   'variables': {
     'webrtc_jingle': 'voice-client-core/jni',
   },  
+  'targets': [
+    {
+      'target_name': 'Dummy',
+      'type': 'none',
+    },
+  ],
   'conditions': [
     ['OS=="android"', {
       'targets': [
