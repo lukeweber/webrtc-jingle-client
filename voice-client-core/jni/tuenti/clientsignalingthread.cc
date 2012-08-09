@@ -43,8 +43,7 @@ namespace tuenti {
 enum {
   // ST_MSG_WORKER_DONE is defined in SignalThread.h
   MSG_LOGIN = talk_base::SignalThread::ST_MSG_FIRST_AVAILABLE,
-  MSG_DISCONNECT  // Logout
-  ,
+  MSG_DISCONNECT,  // Logout
   MSG_CALL,
   MSG_ACCEPT_CALL,
   MSG_DECLINE_CALL,
@@ -64,27 +63,26 @@ struct StringData: public talk_base::MessageData {
 ///////////////////////////////////////////////////////////////////////////////
 
 ClientSignalingThread::ClientSignalingThread(VoiceClientNotify *notifier,
-    talk_base::Thread *signal_thread) 
-    : talk_base::SignalThread(), 
-    notify_(notifier), 
+    talk_base::Thread *signal_thread)
+    : talk_base::SignalThread(),
+    notify_(notifier),
     signal_thread_(signal_thread),
-    roster_(NULL), 
-    pump_(NULL), 
-    presence_push_(NULL), 
+    roster_(NULL),
+    pump_(NULL),
+    presence_push_(NULL),
     presence_out_(NULL),
-    ping_(NULL), 
-    network_manager_(NULL), 
+    ping_(NULL),
+    network_manager_(NULL),
     port_allocator_(NULL),
-    session_(NULL), 
-    session_manager_(NULL), 
+    session_(NULL),
+    session_manager_(NULL),
     session_manager_task_(NULL),
-    call_(NULL), 
-    media_client_(NULL), 
+    call_(NULL),
+    media_client_(NULL),
     port_allocator_flags_(0),
-    use_ssl_(false), 
-    incoming_call_(false), 
-    auto_accept_(false) 
-{
+    use_ssl_(false),
+    incoming_call_(false),
+    auto_accept_(false) {
   LOGI("ClientSignalingThread::ClientSignalingThread");
   assert(talk_base::Thread::Current() == signal_thread_);
   // Overriding name
@@ -101,16 +99,29 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientNotify *notifier,
             "BasicNetworkManager network_manager_@(0x%x)",
             reinterpret_cast<int>(network_manager_));
   }
+  if (port_allocator_ == NULL) {
+    talk_base::SocketAddress stun_addr("stun.l.google.com", 19302);
+    port_allocator_ =
+        new cricket::BasicPortAllocator(network_manager_, stun_addr,
+        talk_base::SocketAddress(), talk_base::SocketAddress(),
+        talk_base::SocketAddress());
+    LOGI("ClientSignalingThread::ClientSignalingThread - "
+      "new BasicPortAllocator port_allocator_@(0x%x)",
+      reinterpret_cast<int>(port_allocator_));
+    if (port_allocator_flags_ != 0) {
+      port_allocator_->set_flags(port_allocator_flags_);
+    }
+  }
   if (session_manager_ == NULL) {
     session_manager_ = new cricket::SessionManager(port_allocator_, worker());
     LOGI("ClientSignalingThread::ClientSignalingThread - new "
-            "SessionManager session_manager_@(0x%x)",
-            reinterpret_cast<int>(session_manager_));
+      "SessionManager session_manager_@(0x%x)",
+      reinterpret_cast<int>(session_manager_));
   }
   if (pump_ == NULL) {
     pump_ = new TXmppPump(this);
     LOGI("ClientSignalingThread::ClientSignalingThread - new TXmppPump "
-            "pump_@(0x%x)", reinterpret_cast<int>(pump_));
+      "pump_@(0x%x)", reinterpret_cast<int>(pump_));
   }
   my_status_.set_caps_node("http://github.com/lukeweber/webrtc-jingle");
   my_status_.set_version("1.0-SNAPSHOT");
@@ -190,9 +201,10 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
   case cricket::BaseSession::STATE_DEINIT:
     LOGI("VoiceClient::OnSessionState - STATE_DEINIT doing nothing...");
     break;
-  case cricket::Session::STATE_RECEIVEDINITIATE: {
-    LOGI("VoiceClient::OnSessionState - STATE_RECEIVEDINITIATE setting up "
-            "call...");
+  case cricket::Session::STATE_RECEIVEDINITIATE: 
+    {
+    LOGI("VoiceClient::OnSessionState - "
+      "STATE_RECEIVEDINITIATE setting up call...");
     buzz::Jid jid(session->remote_name());
     LOGI("Incoming call from '%s'", jid.Str().c_str());
     call_ = call;
@@ -202,13 +214,13 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
       AcceptCall();
     }
     break;
-  }
+    }
   case cricket::Session::STATE_SENTINITIATE:
     LOGI("VoiceClient::OnSessionState - STATE_SENTINITIATE doing nothing...");
     break;
   case cricket::Session::STATE_RECEIVEDACCEPT:
-    LOGI(
-        "VoiceClient::OnSessionState - STATE_RECEIVEDACCEPT transfering data.");
+    LOGI("VoiceClient::OnSessionState - "
+      "STATE_RECEIVEDACCEPT transfering data.");
     if (call_->has_data()) {
       call_->SignalDataReceived.connect(this,
           &ClientSignalingThread::OnDataReceived);
@@ -222,8 +234,8 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
     call->StartSpeakerMonitor(session);
     break;
   case cricket::Session::STATE_RECEIVEDTERMINATE:
-    LOGI(
-        "VoiceClient::OnSessionState - STATE_RECEIVEDTERMINATE doing nothing.");
+    LOGI("VoiceClient::OnSessionState - "
+      "STATE_RECEIVEDTERMINATE doing nothing.");
     break;
   }
   if (notify_) {
@@ -463,17 +475,12 @@ void ClientSignalingThread::LoginS() {
     if (xcs_.use_tls() == buzz::TLS_REQUIRED) {
       talk_base::InitializeSSL();
     }
-    talk_base::SocketAddress stun_addr("stun.l.google.com", 19302);
-    port_allocator_ = new cricket::BasicPortAllocator(network_manager_,
-        stun_addr, talk_base::SocketAddress(), talk_base::SocketAddress(),
-        talk_base::SocketAddress());
-    LOGI("ClientSignalingThread::Login - new BasicPortAllocator "
-            "port_allocator_@(0x%x)", reinterpret_cast<int>(port_allocator_));
+
     if (pump_->AllChildrenDone()) {
       LOGE("AllChildrenDone doing required "
-              "{delete pump_;pump_ = new TXmppPump(this);} yet...");
+        "{delete pump_;pump_ = new TXmppPump(this);} yet...");
     }
-    pump_->DoLogin(xcs_);  // sock, auth);
+    pump_->DoLogin(xcs_);
   }
 }
 
@@ -537,7 +544,7 @@ void ClientSignalingThread::AcceptCallS() {
     media_client_->SetFocus(call_);
     if (call_->has_data()) {
       call_->SignalDataReceived.connect(this,
-          &ClientSignalingThread::OnDataReceived);
+              &ClientSignalingThread::OnDataReceived);
     }
     incoming_call_ = false;
   } else {
@@ -577,13 +584,13 @@ void ClientSignalingThread::InitMedia() {
       &ClientSignalingThread::OnSessionCreate);
   session_manager_->OnSignalingReady();
 
-  session_manager_task_ = new cricket::SessionManagerTask(pump_->client(),
-      session_manager_);
+  session_manager_task_ =
+      new cricket::SessionManagerTask(pump_->client(), session_manager_);
   session_manager_task_->EnableOutgoingMessages();
   session_manager_task_->Start();
 
-  media_client_ = new cricket::MediaSessionClient(pump_->client()->jid(),
-      session_manager_);
+  media_client_ =
+      new cricket::MediaSessionClient(pump_->client()->jid(), session_manager_);
   media_client_->SignalCallCreate.connect(this,
       &ClientSignalingThread::OnCallCreate);
   media_client_->SignalCallDestroy.connect(this,
