@@ -1,7 +1,7 @@
-src/obj
-src/libs
-src/bin
-src/gen
+voice-client-core/obj
+voice-client-core/libs
+voice-client-core/bin
+voice-client-core/gen
 config.mk
 
 *.target.mk
@@ -13,7 +13,7 @@ testing/*
 base/*
 build/*
 gyp-mac-tool
-src/supplement.gypi
+voice-client-core/supplement.gypi
 
 #Android generated
 bin
