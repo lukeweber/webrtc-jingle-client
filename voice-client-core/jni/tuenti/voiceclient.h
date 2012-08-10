@@ -57,6 +57,9 @@ class VoiceClientNotify {
 
   /* Called when there is a xmpp error */
   virtual void OnXmppError(buzz::XmppEngine::Error) = 0;
+ 
+  virtual void OnRosterAdd(std::string user_key, std::string nick) = 0;
+  virtual void OnRosterRemove(std::string user_key) = 0;
 };
 
 class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {

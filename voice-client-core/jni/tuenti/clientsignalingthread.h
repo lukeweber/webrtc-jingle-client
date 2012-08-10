@@ -66,6 +66,7 @@ struct RosterItem {
   buzz::Jid jid;
   buzz::Status::Show show;
   std::string status;
+  std::string nick;
 };
 namespace tuenti {
 class TXmppPump;
@@ -143,10 +144,12 @@ class ClientSignalingThread: public talk_base::SignalThread,
 
   // data
   typedef std::map<std::string, RosterItem> RosterMap;
+  typedef std::map<std::string, int> BuddyListMap;
 
   VoiceClientNotify *notify_;
   talk_base::Thread *signal_thread_;
   RosterMap *roster_;
+  BuddyListMap *buddy_list_;
   TXmppPump *pump_;
   buzz::PresencePushTask* presence_push_;
   buzz::PresenceOutTask* presence_out_;

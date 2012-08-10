@@ -25,7 +25,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <jni.h>
-#include <string.h>
+#include <string>
+#include <cstring>
 #include <assert.h>
 
 #include "com_tuenti_voice_core_VoiceClient.h"
@@ -92,6 +93,14 @@ class CallbackHelper: public tuenti::VoiceClientNotify {
     void OnXmppError(buzz::XmppEngine::Error error) {
         CallNativeDispatchEvent(com_tuenti_voice_core_VoiceClient_XMPP_ERROR_EVENT,
                 error, "");
+    }
+
+    void OnRosterAdd(const std::string user_key, const std::string nick) {
+        LOGI("Adding to roster: %s, %s", user_key.c_str(), nick.c_str());
+    }
+
+    void OnRosterRemove(const std::string userkey) {
+        LOGI("Removing from roster: %s", userkey.c_str());
     }
 };
 static CallbackHelper callback_;
@@ -167,9 +176,6 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin(
         return;
     }
 
-    // Although we're assigning this to std::string,
-    // env->GetStringUTFChars is a malloc type operation.
-    // I think this is a memory leak.
     const char* nativeUsername = env->GetStringUTFChars(username, NULL);
     const char* nativePassword = env->GetStringUTFChars(password, NULL);
     const char* nativeXmppHost = env->GetStringUTFChars(xmppHost, NULL);

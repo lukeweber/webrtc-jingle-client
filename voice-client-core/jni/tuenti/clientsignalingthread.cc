@@ -68,6 +68,7 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientNotify *notifier,
     notify_(notifier),
     signal_thread_(signal_thread),
     roster_(NULL),
+    buddy_list_(NULL),
     pump_(NULL),
     presence_push_(NULL),
     presence_out_(NULL),
@@ -92,6 +93,10 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientNotify *notifier,
     roster_ = new RosterMap();
     LOGI("ClientSignalingThread::ClientSignalingThread - new RosterMap "
             "roster_@(0x%x)", reinterpret_cast<int>(roster_));
+  }
+
+  if (buddy_list_ == NULL) {
+    buddy_list_ = new BuddyListMap();
   }
   if (network_manager_ == NULL) {
     network_manager_ = new talk_base::BasicNetworkManager();
@@ -131,11 +136,14 @@ ClientSignalingThread::~ClientSignalingThread() {
   LOGI("ClientSignalingThread::~ClientSignalingThread");
   assert(talk_base::Thread::Current() == signal_thread_);
   if (roster_) {
-    LOGI(
-        "ClientSignalingThread::~ClientSignalingThread - "
+    LOGI("ClientSignalingThread::~ClientSignalingThread - "
         "deleting roster_@(0x%x)", reinterpret_cast<int>(roster_));
     delete roster_;
     roster_ = NULL;
+  }
+  if (buddy_list_) {
+    delete buddy_list_;
+    buddy_list_ = NULL;
   }
   if (network_manager_ != NULL) {
     LOGI("ClientSignalingThread::~ClientSignalingThread - "
@@ -173,17 +181,38 @@ void ClientSignalingThread::OnStatusUpdate(const buzz::Status& status) {
   item.jid = status.jid();
   item.show = status.show();
   item.status = status.status();
-
+  item.nick = status.nick();
   std::string key = item.jid.Str();
 
+  std::string bare_jid_str = item.jid.BareJid().Str();
+  BuddyListMap::iterator buddy_iter = buddy_list_->find(bare_jid_str);
+
+  RosterMap::iterator iter = roster_->find(key);
   if (status.available() && status.voice_capability()) {
-    LOGI("Adding to roster: %s", key.c_str());
+    // New buddy, add and notify
+    if (buddy_iter == buddy_list_->end()) {
+      // LOGI("Adding to roster: %s, %s", key.c_str(), item.nick.c_str());
+      (*buddy_list_)[bare_jid_str] = 1;
+      notify_->OnRosterAdd(bare_jid_str, item.nick);
+    // New Available client of existing buddy
+    } else if (iter == roster_->end()) {
+      (*buddy_iter).second++;
+    // Something changed in a roster item, but we already have it.
+    } else { 
+      LOGI("Updating roster info: %s", key.c_str());
+    }
     (*roster_)[key] = item;
   } else {
-    LOGI("Removing from roster: %s", key.c_str());
-    RosterMap::iterator iter = roster_->find(key);
-    if (iter != roster_->end())
+    if (iter != roster_->end()) {
       roster_->erase(iter);
+
+      // Last available endpoint gone, remove the buddy and notify
+      if(buddy_iter != buddy_list_->end() && --((*buddy_iter).second) == 0) {
+        // LOGI("Removing from roster: %s", key.c_str());
+        buddy_list_->erase(buddy_iter);
+        notify_->OnRosterRemove(bare_jid_str);
+      }
+    }
   }
 }
 
@@ -278,6 +307,9 @@ void ClientSignalingThread::OnStateChange(buzz::XmppEngine::State state) {
     // Remove everyone from your roster
     if (roster_) {
       roster_->clear();
+    }
+    if(buddy_list_) {
+      buddy_list_->clear();
     }
     // NFHACK we should probably do something with the media_client_ here
     if (media_client_) {
