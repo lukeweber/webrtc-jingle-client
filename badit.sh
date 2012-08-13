@@ -6,11 +6,13 @@
 ##  The following options are provided.
 ##  -h             help. What you are reading now.
 ##  -g             gyp. do the gyp build
+##  -m             maven. do the maven build (this depends on the ndk build)
 ##  -s             sync. sync before doing the build
 #
 # default variables
 #
-BUILDSYSTEM="gyp"
+SNAPSHOT_VERSION="1.0-SNAPSHOT"
+BUILDSYSTEM="mvn"
 SYNCREPOS="no"
 TRUNKDIR="$( cd "$( dirname "$0" )" && pwd )"
 SRCDIR="$TRUNKDIR/src"
@@ -50,7 +52,7 @@ validate_optarg(){
 
 
 
-while getopts "hgs" opt
+while getopts "hgms" opt
 do
   case $opt in
     h ) #help
@@ -58,6 +60,9 @@ do
       ;;
     g ) #gyp
       BUILDSYSTEM="gyp"
+      ;;
+    m ) #mvn
+      BUILDSYSTEM="mvn"
       ;;
     s ) #sync
       SYNCREPOS="yes"
@@ -107,7 +112,25 @@ if [ "$BUILDSYSTEM" == "gyp" ]; then
 
   $TRUNKDIR/build/android/gdb_apk -p com.tuenti.voice -l out/Debug/obj.target/
   check_return_code "$?"
+elif [ "$BUILDSYSTEM" == "mvn" ]; then
+  gclient runhooks;
+  check_return_code "$?"
+
+  mvn clean install
+  check_return_code "$?"
+
+  adb uninstall com.tuenti.voice.example
+  check_return_code "$?"
+
+  adb install $HOME/.m2/repository/com/tuenti/voice/voice-example/$SNAPSHOT_VERSION/voice-example-$SNAPSHOT_VERSION.apk
+  check_return_code "$?"
+
+  adb shell am start -a android.intent.action.VIEW  -n com.tuenti.voice.example/.ui.VoiceClientActivity
+  check_return_code "$?"
+
+  $TRUNKDIR/build/android/gdb_apk -p com.tuenti.voice.example -l voice-client-core/obj/local/armeabi-v7a/
+  check_return_code "$?"
 else
-  print_usage "Only gdb build system available for now"
+  print_usage "Only gyp & mvn build systems available for now"
 fi
 popd;
