@@ -10,14 +10,6 @@
     <packaging>pom</packaging>
     <name>Tuenti Voice Client Parent</name>
 
-    <licenses>
-        <license>
-            <name>The BSD 3-Clause License</name>
-            <url>http://opensource.org/licenses/BSD-3-Clause</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-
     <modules>
         <module>voice-client-core</module>
         <module>voice-client-example</module>
@@ -27,7 +19,6 @@
         <connection>scm:git:git://github.com/lukeweber/webrtc-jingle-client.git</connection>
         <developerConnection>scm:git:git@github.com:lukeweber/webrtc-jingle-client.git</developerConnection>
     </scm>
-
     <licenses>
         <license>
             <name>The BSD 3-Clause License</name>
@@ -35,7 +26,6 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-
     <issueManagement>
         <system>GitHub Issues</system>
         <url>https://github.com/lukeweber/webrtc-jingle-client/issues</url>
