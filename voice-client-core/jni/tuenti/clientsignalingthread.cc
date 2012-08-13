@@ -296,6 +296,7 @@ void ClientSignalingThread::OnStateChange(buzz::XmppEngine::State state) {
             "initing media & presence...");
     InitMedia();
     InitPresence();
+    InitPing();
     break;
   case buzz::XmppEngine::STATE_CLOSED:
     LOGI("ClientSignalingThread::OnStateChange - State (STATE_CLOSED) "
