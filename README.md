@@ -18,11 +18,12 @@ gmail for example, just for testing, I haven't seen any problems.
 ## Prereqs:
 
 * [android NDK r8](http://developer.android.com/sdk/ndk/index.html). r8b was
-tested and it doesn't work. Just modify the download link to get r8.
+tested and it doesn't work. Just modify the download link to get r8
 * [Android SDK](http://developer.android.com/sdk/index.html) 
 * [eclipse](http://www.eclipse.org/downloads/)
 * [Maven](http://maven.apache.org/download.html) v3.0.3+
-* Add the following to your environment, i.e. .bashrc or .bash_profile.
+* Add the following to your environment, i.e. .bashrc or .bash_profile
+
 ```
 #Android
 export ANDROID_SDK_ROOT=/path/to/sdk/
