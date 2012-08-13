@@ -14,6 +14,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import com.tuenti.voice.core.BuddyListState;
 import com.tuenti.voice.core.CallState;
 import com.tuenti.voice.core.VoiceClient;
 import com.tuenti.voice.core.VoiceClientEventCallback;
@@ -186,6 +187,23 @@ public class VoiceClientActivity
                 changeStatus( "logged out... " );
                 break;
         }
+    }
+    
+    @Override
+    public void handleBuddyListChanged( int state , String remoteJid)
+    {
+        switch ( BuddyListState.fromInteger( state ) ){
+            case ADD:
+                Log.v( TAG, "Adding buddy " + remoteJid );
+                break;
+            case REMOVE:
+                Log.v( TAG, "Removing buddy" + remoteJid );
+                break;
+            case RESET:
+                Log.v( TAG, "Reset buddy list" );
+                break;
+        }
+        
     }
 
 // -------------------------- OTHER METHODS --------------------------

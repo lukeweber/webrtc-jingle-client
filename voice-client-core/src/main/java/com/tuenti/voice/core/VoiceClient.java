@@ -28,9 +28,11 @@ public class VoiceClient
     /* Event Types */
     public static final int CALL_STATE_EVENT = 0;
 
-    public static final int XMPP_ERROR_EVENT = 2;
-
     public static final int XMPP_STATE_EVENT = 1;
+    
+    public static final int XMPP_ERROR_EVENT = 2;
+    
+    public static final int BUDDY_LIST_EVENT = 3;
     //End Event constants
 
     private final static String TAG = "j-libjingle-webrtc";

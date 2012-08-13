@@ -9,10 +9,12 @@ extern "C" {
 #endif
 #undef com_tuenti_voice_core_VoiceClient_CALL_STATE_EVENT
 #define com_tuenti_voice_core_VoiceClient_CALL_STATE_EVENT 0L
-#undef com_tuenti_voice_core_VoiceClient_XMPP_ERROR_EVENT
-#define com_tuenti_voice_core_VoiceClient_XMPP_ERROR_EVENT 2L
 #undef com_tuenti_voice_core_VoiceClient_XMPP_STATE_EVENT
 #define com_tuenti_voice_core_VoiceClient_XMPP_STATE_EVENT 1L
+#undef com_tuenti_voice_core_VoiceClient_XMPP_ERROR_EVENT
+#define com_tuenti_voice_core_VoiceClient_XMPP_ERROR_EVENT 2L
+#undef com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT
+#define com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT 3L
 /*
  * Class:     com_tuenti_voice_core_VoiceClient
  * Method:    nativeAcceptCall

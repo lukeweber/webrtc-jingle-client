@@ -25,186 +25,121 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <jni.h>
+#include <assert.h>
 #include <string>
 #include <cstring>
-#include <assert.h>
 
 #include "com_tuenti_voice_core_VoiceClient.h"
 #include "tuenti/logging.h"
 #include "tuenti/voiceclient.h"
 #include "tuenti/threadpriorityhandler.h"
+#include "tuenti/voiceclientnotify.h"
+#include "tuenti/callbackhelper.h"
 
-JavaVM* jvm_;
-jobject reference_object_;
 tuenti::VoiceClient *client_;
-
-class CallbackHelper: public tuenti::VoiceClientNotify {
- public:
-    CallbackHelper() {
-    }
-
-    void CallNativeDispatchEvent(jint type, jint code, const std::string &msg) {
-        JNIEnv *env;
-        int status = jvm_->AttachCurrentThread(&env, NULL);
-        if (status < 0) {
-            LOGE("failed to attach native thread");
-            return;
-        }
-        jclass cls = env->GetObjectClass(reference_object_);
-        if (!cls) {
-            LOGE("Failed to get class reference");
-            jvm_->DetachCurrentThread();
-            return;
-        }
-        jmethodID method = env->GetStaticMethodID(cls, "dispatchNativeEvent",
-                "(IILjava/lang/String;)V");
-        if (!method) {
-            LOGE("Failed to get method ID");
-            jvm_->DetachCurrentThread();
-            return;
-        }
-        jstring message = env->NewStringUTF(msg.c_str());
-        env->CallStaticVoidMethod(cls, method, type, code, message);
-        jvm_->DetachCurrentThread();
-        return;
-    }
-
-    void OnXmppStateChange(buzz::XmppEngine::State state) {
-        CallNativeDispatchEvent(com_tuenti_voice_core_VoiceClient_XMPP_STATE_EVENT,
-                state, "");
-        if (state == buzz::XmppEngine::STATE_CLOSED && !client_
-                && !reference_object_) {
-            JNIEnv *env;
-            jvm_->AttachCurrentThread(&env, NULL);
-            env->DeleteGlobalRef(reference_object_);
-            reference_object_ = NULL;
-            jvm_->DetachCurrentThread();
-        }
-    }
-
-    void OnCallStateChange(cricket::Session* session,
-            cricket::Session::State state) {
-        buzz::Jid jid(session->remote_name());
-        std::string remoteJid = jid.Str();
-        CallNativeDispatchEvent(com_tuenti_voice_core_VoiceClient_CALL_STATE_EVENT,
-                state, remoteJid);
-    }
-
-    void OnXmppError(buzz::XmppEngine::Error error) {
-        CallNativeDispatchEvent(com_tuenti_voice_core_VoiceClient_XMPP_ERROR_EVENT,
-                error, "");
-    }
-
-    void OnRosterAdd(const std::string user_key, const std::string nick) {
-        LOGI("Adding to roster: %s, %s", user_key.c_str(), nick.c_str());
-    }
-
-    void OnRosterRemove(const std::string userkey) {
-        LOGI("Removing from roster: %s", userkey.c_str());
-    }
-};
-static CallbackHelper callback_;
+tuenti::CallbackHelper *callback_helper_;
 
 jint JNI_OnLoad(JavaVM* vm, void* /*reserved*/) {
-    if (!vm) {
-        LOGE("JNI_OnLoad did not receive a valid VM pointer");
-        return JNI_ERR;
-    }
-    JNIEnv* env;
-    if (JNI_OK != vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6)) {
-        LOGE("JNI_OnLoad could not get JNI env");
-        return JNI_ERR;
-    }
+  if (!vm) {
+    LOGE("JNI_OnLoad did not receive a valid VM pointer");
+    return JNI_ERR;
+  }
+  JNIEnv* env;
+  if (JNI_OK != vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6)) {
+    LOGE("JNI_OnLoad could not get JNI env");
+    return JNI_ERR;
+  }
+  callback_helper_ = new tuenti::CallbackHelper();
+  callback_helper_->setJvm(vm);
 
-    jvm_ = vm;
+  tuenti::ThreadPriorityHandler::Init(vm);
 
-    tuenti::ThreadPriorityHandler::Init(vm);
-
-    return JNI_VERSION_1_6;
+  return JNI_VERSION_1_6;
 }
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeAcceptCall(
-        JNIEnv *env, jobject object) {
-    if (client_) {
-        client_->AcceptCall();
-    }
+    JNIEnv *env, jobject object) {
+  if (client_) {
+    client_->AcceptCall();
+  }
 }
 
-JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeCall(JNIEnv *env,
-        jobject object, jstring remoteJid) {
-    if (client_) {
-        std::string nativeRemoteJid = env->GetStringUTFChars(remoteJid, NULL);
-        client_->Call(nativeRemoteJid);
-    }
+JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeCall(
+    JNIEnv *env, jobject object, jstring remoteJid) {
+  if (client_) {
+    std::string nativeRemoteJid = env->GetStringUTFChars(remoteJid, NULL);
+    client_->Call(nativeRemoteJid);
+  }
 }
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeDeclineCall(
-        JNIEnv *env, jobject object) {
-    if (client_) {
-        client_->DeclineCall();
-    }
+    JNIEnv *env, jobject object) {
+  if (client_) {
+    client_->DeclineCall();
+  }
 }
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeDestroy(
-        JNIEnv *env, jobject object) {
+    JNIEnv *env, jobject object) {
     Java_com_tuenti_voice_core_VoiceClient_nativeRelease(env, object);
 }
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeEndCall(
-        JNIEnv *env, jobject object) {
-    if (client_) {
-        client_->EndCall();
-    }
+    JNIEnv *env, jobject object) {
+  if (client_) {
+    client_->EndCall();
+  }
 }
 
-JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeInit(JNIEnv *env,
-        jobject object) {
-    if (!client_) {
-        LOGI("Java_com_tuenti_voice_VoiceClient_nativeInit - initializing "
-               "client");
-        reference_object_ = env->NewGlobalRef(object);
-        client_ = new tuenti::VoiceClient(&callback_);
-    }
+JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeInit(
+    JNIEnv *env, jobject object) {
+  if (!client_) {
+    LOGI("Java_com_tuenti_voice_VoiceClient_nativeInit - initializing "
+      "client");
+    callback_helper_->setReferenceObject(env->NewGlobalRef(object));
+    client_ = new tuenti::VoiceClient(
+        static_cast<tuenti::VoiceClientNotify*>(callback_helper_));
+  }
 }
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin(
-        JNIEnv *env, jobject object, jstring username, jstring password,
-        jstring xmppHost, jint xmppPort, jboolean useSSL, jstring stunHost,
-        jint stunPort) {
-    if (!client_) {
-        LOGE("client not initialized");
-        return;
-    }
+    JNIEnv *env, jobject object, jstring username, jstring password,
+    jstring xmppHost, jint xmppPort, jboolean useSSL, jstring stunHost,
+    jint stunPort) {
+  if (!client_) {
+    LOGE("client not initialized");
+    return;
+  }
 
-    const char* nativeUsername = env->GetStringUTFChars(username, NULL);
-    const char* nativePassword = env->GetStringUTFChars(password, NULL);
-    const char* nativeXmppHost = env->GetStringUTFChars(xmppHost, NULL);
-    const char* nativeStunHost = env->GetStringUTFChars(stunHost, NULL);
+  const char* nativeUsername = env->GetStringUTFChars(username, NULL);
+  const char* nativePassword = env->GetStringUTFChars(password, NULL);
+  const char* nativeXmppHost = env->GetStringUTFChars(xmppHost, NULL);
+  const char* nativeStunHost = env->GetStringUTFChars(stunHost, NULL);
 
-    // login
-    client_->Login(nativeUsername, nativePassword, nativeXmppHost, xmppPort,
-            useSSL, nativeStunHost, stunPort);
+  // login
+  client_->Login(nativeUsername, nativePassword, nativeXmppHost, xmppPort,
+    useSSL, nativeStunHost, stunPort);
 
-    // release
-    env->ReleaseStringUTFChars(username, nativeUsername);
-    env->ReleaseStringUTFChars(password, nativePassword);
-    env->ReleaseStringUTFChars(xmppHost, nativeXmppHost);
-    env->ReleaseStringUTFChars(stunHost, nativeStunHost);
+  // release
+  env->ReleaseStringUTFChars(username, nativeUsername);
+  env->ReleaseStringUTFChars(password, nativePassword);
+  env->ReleaseStringUTFChars(xmppHost, nativeXmppHost);
+  env->ReleaseStringUTFChars(stunHost, nativeStunHost);
 }
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogout(
         JNIEnv *env, jobject object) {
-    if (client_) {
-        client_->Disconnect();
-    }
+  if (client_) {
+    client_->Disconnect();
+  }
 }
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeRelease(
-        JNIEnv *env, jobject object) {
-    if (client_) {
-        // Does an internal delete when all threads have stopped
-        // but a callback to do the delete here would be better
-        client_->Destroy(0);
-        client_ = NULL;
-    }
+  JNIEnv *env, jobject object) {
+  if (client_) {
+    // Does an internal delete when all threads have stopped
+    // but a callback to do the delete here would be better
+    client_->Destroy(0);
+    client_ = NULL;
+  }
 }

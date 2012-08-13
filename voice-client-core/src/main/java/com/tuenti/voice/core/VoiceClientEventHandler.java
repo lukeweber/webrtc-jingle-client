@@ -34,6 +34,10 @@ public class VoiceClientEventHandler
                 String remoteJid = bundle.getString( "str1" );
                 mCallback.handleCallStateChanged( code, remoteJid );
                 break;
+            case VoiceClient.BUDDY_LIST_EVENT:
+                String remoteJidBuddy = bundle.getString( "str1" );
+                mCallback.handleBuddyListChanged( code , remoteJidBuddy);
+                break;
             case VoiceClient.XMPP_STATE_EVENT:
                 mCallback.handleXmppStateChanged( code );
                 break;

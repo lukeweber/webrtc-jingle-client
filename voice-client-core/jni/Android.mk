@@ -101,6 +101,7 @@ LOCAL_SRC_FILES := \
 	voiceclient_main.cc \
 	tuenti/presenceouttask.cc \
 	tuenti/presencepushtask.cc \
+	tuenti/callbackhelper.cc \
 	tuenti/clientsignalingthread.cc \
 	tuenti/voiceclient.cc \
 	tuenti/txmppauth.cc \

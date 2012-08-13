@@ -9,4 +9,6 @@ public interface VoiceClientEventCallback
     void handleXmppError( int error );
 
     void handleXmppStateChanged( int state );
+
+    void handleBuddyListChanged( int state, String remoteJid );
 }
