@@ -51,6 +51,7 @@ class TXmppPump: public talk_base::MessageHandler,
     public talk_base::TaskRunner {
  public:
   TXmppPump(TXmppPumpNotify * notify = NULL);
+  virtual ~TXmppPump();
 
   buzz::XmppClient *client() {
     return client_;
@@ -70,11 +71,15 @@ class TXmppPump: public talk_base::MessageHandler,
 
   buzz::XmppReturnStatus SendStanza(const buzz::XmlElement *stanza);
  private:
+  void Initialize();
+  void Deinitialize();
   buzz::XmppClient *client_;
   buzz::XmppEngine::State state_;
+  buzz::XmppClientSettings xcs_;
   TXmppPumpNotify *notify_;
   TXmppSocket *socket_;
   TXmppAuth *auth_;
+  bool initialized_;
 };
 
 }  // namespace tuenti
