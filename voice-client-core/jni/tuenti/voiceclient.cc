@@ -133,33 +133,45 @@ void VoiceClient::Login(const std::string &username,
     const std::string &password, const std::string &xmpp_host, int xmpp_port,
     bool use_ssl, const std::string &stun_host, int stun_port) {
   LOGI("VoiceClient::Login");
-  client_signaling_thread_->Login(username, password, xmpp_host, xmpp_port,
-      use_ssl, stun_host, stun_port);
+  if (client_signaling_thread_) {
+    client_signaling_thread_->Login(username, password, xmpp_host, xmpp_port,
+        use_ssl, stun_host, stun_port);
+  }
 }
 
 void VoiceClient::Disconnect() {
   LOGI("VoiceClient::Disconnect");
-  client_signaling_thread_->Disconnect();
+  if (client_signaling_thread_) {
+    client_signaling_thread_->Disconnect();
+  }
 }
 
 void VoiceClient::Call(std::string remoteJid) {
   LOGI("VoiceClient::Call");
-  client_signaling_thread_->Call(remoteJid);
+  if (client_signaling_thread_) {
+    client_signaling_thread_->Call(remoteJid);
+  }
 }
 
 void VoiceClient::EndCall() {
   LOGI("VoiceClient::EndCall");
-  client_signaling_thread_->EndCall();
+  if (client_signaling_thread_) {
+    client_signaling_thread_->EndCall();
+  }
 }
 
 void VoiceClient::AcceptCall() {
   LOGI("VoiceClient::AcceptCall");
-  client_signaling_thread_->AcceptCall();
+  if (client_signaling_thread_) {
+    client_signaling_thread_->AcceptCall();
+  }
 }
 
 void VoiceClient::DeclineCall() {
   LOGI("VoiceClient::DeclineCall");
-  client_signaling_thread_->DeclineCall();
+  if (client_signaling_thread_) {
+    client_signaling_thread_->DeclineCall();
+  }
 }
 
 }  // namespace tuenti

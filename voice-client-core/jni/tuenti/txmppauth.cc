@@ -26,8 +26,9 @@
  */
 
 #include "tuenti/txmppauth.h"
-
 #include <algorithm>
+#include "tuenti/logging.h"
+
 
 #include "talk/xmpp/constants.h"
 #include "talk/xmpp/saslcookiemechanism.h"
@@ -39,6 +40,8 @@ TXmppAuth::TXmppAuth()
 }
 
 TXmppAuth::~TXmppAuth() {
+  LOGI("TXmppAuth::~TXmppAuth this@(0x%x)",
+          reinterpret_cast<int>(this));
 }
 
 void TXmppAuth::StartPreXmppAuth(const buzz::Jid& jid,

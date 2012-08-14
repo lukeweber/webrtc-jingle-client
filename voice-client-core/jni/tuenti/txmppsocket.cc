@@ -25,18 +25,19 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "tuenti/txmppsocket.h"
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 #include <errno.h>
+#include "tuenti/logging.h"
 #include "talk/base/basicdefs.h"
 #include "talk/base/logging.h"
 #include "talk/base/thread.h"
 #ifdef FEATURE_ENABLE_SSL
 #include "talk/base/ssladapter.h"
 #endif
-#include "tuenti/txmppsocket.h"
 
 #ifdef USE_SSLSTREAM
 #include "talk/base/socketstream.h"
@@ -81,6 +82,8 @@ void TXmppSocket::CreateCricketSocket(int family) {
 }
 
 TXmppSocket::~TXmppSocket() {
+  LOGI("TXmppSocket::~TXmppSocket this@(0x%x)",
+          reinterpret_cast<int>(this));
   Close();
 #ifndef USE_SSLSTREAM
   delete cricket_socket_;
@@ -134,12 +137,14 @@ void TXmppSocket::OnEvent(talk_base::StreamInterface* stream,
       state_ = buzz::AsyncSocket::STATE_TLS_OPEN;
       SignalSSLConnected();
       events |= talk_base::SE_WRITE;
-    } else
-#endif
-    {
+    } else {
       state_ = buzz::AsyncSocket::STATE_OPEN;
       SignalConnected();
     }
+#else
+    state_ = buzz::AsyncSocket::STATE_OPEN;
+    SignalConnected();
+#endif
   }
   if ((events & talk_base::SE_READ))
     SignalRead();
