@@ -6,5 +6,6 @@
 
     <uses-sdk android:minSdkVersion="9"
               android:targetSdkVersion="14"/>
+    <application android:debuggable="true"/>
 
 </manifest>
