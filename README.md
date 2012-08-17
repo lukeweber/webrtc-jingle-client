@@ -49,10 +49,10 @@ export ANDROID_NDK_HOME=$ANDROID_NDK_ROOT
 # gclient runhooks
 ```
 * Set your username, pass and connection setttings in voice-client-example/src/main/java/com/tuenti/voice/example/ui/VoiceClientActivity.java.
-* cd trunk/voice-client-core && ./build.sh
-* cd trunk && mvn clean install
-* To install on a connected device: mvn -pl voice-client-example android:run
-* To run a debugger ex.: build/android/gdb_apk -p com.tuenti.voice.example -l voice-client-core/obj/local/armeabi-v7a/
+* Build the core(c++ code): cd trunk/voice-client-core && ./build.sh
+* Build the apks: cd trunk && mvn install
+* To run a debugger: build/android/gdb_apk -p com.tuenti.voice.example -l voice-client-core/obj/local/armeabi-v7a/
+* Build, deploy to phone, and start debugger in one script: badit.sh
  
 
 ## Todo/Issues:
