@@ -47,8 +47,8 @@ class ClientSignalingThread;
 class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
  public:
   // initialization
-  explicit VoiceClient(VoiceClientNotify *notify, const std::string &stunserver,
-    const std::string &relayserver);
+  explicit VoiceClient(VoiceClientNotify *notify,
+    const char *stunserver, const char *relayserver);
   ~VoiceClient();
   void Destroy(int delay);  // Deletes self after deleting threads
 

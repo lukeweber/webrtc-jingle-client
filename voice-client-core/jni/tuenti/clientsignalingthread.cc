@@ -108,12 +108,14 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientNotify *notifier,
   if (port_allocator_ == NULL) {
     //talk_base::SocketAddress stun_addr("stun.l.google.com", 19302);
     //talk_base::SocketAddress relay_addr("10.0.25.203", 19304);
+    LOGI("ClientSignalingThread::ClientSignalingThread creating stun_addr(%s)", stunserver.c_str());
+    LOGI("ClientSignalingThread::ClientSignalingThread creating relay_addr_*(%s)", relayserver.c_str());
     talk_base::SocketAddress stun_addr;
     talk_base::SocketAddress relay_addr_udp;
-    if (!stun_addr.FromString(stunserver)) {
+    if (!stunserver.empty() && !stun_addr.FromString(stunserver)) {
       stun_addr.Clear();
     }
-    if (!relay_addr_udp.FromString(relayserver)) {
+    if (!relayserver.empty() && !relay_addr_udp.FromString(relayserver)) {
       relay_addr_udp.Clear();
     }
     talk_base::SocketAddress relay_addr_tcp(relay_addr_udp);

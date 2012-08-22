@@ -47,14 +47,15 @@ enum {
 const char* msgNames[] = { "MSG_INIT", "MSG_DESTROY", };
 
 VoiceClient::VoiceClient(VoiceClientNotify *notify, 
-  const std::string &stunserver, const std::string &relayserver)
+  const char *stunserver, const char *relayserver)
   : notify_(notify),
   stunserver_(stunserver),
   relayserver_(relayserver),
   signal_thread_(NULL),
   client_signaling_thread_(NULL) {
     LOGI("VoiceClient::VoiceClient");
-
+  stunserver_ = stunserver;
+  relayserver_ = relayserver;
   // a few standard logs not sure why they are not working
   talk_base::LogMessage::LogThreads();
   talk_base::LogMessage::LogTimestamps();
