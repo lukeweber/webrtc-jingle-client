@@ -116,19 +116,18 @@ public class VoiceClient
         nativeEndCall();
     }
 
-    public void init()
+    public void init( String stunserver, String relayserver )
     {
         if ( !initialized )
         {
-            nativeInit();
+            nativeInit(stunserver, relayserver);
             initialized = true;
         }
     }
 
-    public void login( String username, String password, String xmppServer, int xmppPort, boolean useSsl,
-                       String stunServer, int stunPort )
+    public void login( String username, String password, String xmppServer, int xmppPort, boolean useSsl )
     {
-        nativeLogin( username, password, xmppServer, xmppPort, useSsl, stunServer, stunPort );
+        nativeLogin( username, password, xmppServer, xmppPort, useSsl );
     }
 
     public void logout()
@@ -161,10 +160,9 @@ public class VoiceClient
 
     private native void nativeEndCall();
 
-    private native void nativeInit();
+    private native void nativeInit( String stunserver, String relayserver );
 
-    private native void nativeLogin( String user_name, String password, String xmppServer, int xmppPort, boolean UseSSL,
-                                     String stunServer, int stunPort );
+    private native void nativeLogin( String user_name, String password, String xmppServer, int xmppPort, boolean UseSSL );
 
     private native void nativeLogout();
 

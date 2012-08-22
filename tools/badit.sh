@@ -126,6 +126,13 @@ elif [ "$BUILDSYSTEM" == "mvn" ]; then
   RET_CODE_CACHE="$?"
   popd
   check_return_code "$RET_CODE_CACHE"
+
+  echo -e "===============================\nHEADERGEN\n==============================="
+  pushd $TRUNKDIR/voice-client-core/target/classes
+  javah -classpath `pwd` com.tuenti.voice.core.VoiceClient && mv com_tuenti_voice_core_VoiceClient.h ../../jni/
+  RET_CODE_CACHE="$?"
+  popd
+  check_return_code "$RET_CODE_CACHE"
   
   echo -e "===============================\nINSTALLING\n==============================="
   mvn $CLEAN install
@@ -135,12 +142,14 @@ elif [ "$BUILDSYSTEM" == "mvn" ]; then
   adb uninstall com.tuenti.voice.example
   check_return_code "$?"
 
-  echo -e "===============================\nINSTALLING\n==============================="
+  echo -e "===============================\nDEPLOYING\n==============================="
   adb install $HOME/.m2/repository/com/tuenti/voice/voice-example/$SNAPSHOT_VERSION/voice-example-$SNAPSHOT_VERSION.apk
+  #mvn -pl voice-client-example android:deploy
   check_return_code "$?"
 
   echo -e "===============================\nRUNNING\n==============================="
   adb shell am start -a android.intent.action.VIEW  -n com.tuenti.voice.example/.ui.VoiceClientActivity
+  #mvn -pl voice-client-example android:run
   check_return_code "$?"
 
   echo -e "===============================\nDEBUGGING\n==============================="
