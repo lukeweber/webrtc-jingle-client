@@ -33,11 +33,15 @@ public class VoiceClientActivity
     private static final String TAG = "VoiceClientActivity";
 
     // Template Google Settings
-    private static final String TO_USER = "user@gmail.com";
+    //private static final String TO_USER = "user@gmail.com";
+private static final String TO_USER = "nickflink@gmail.com";
+//private static final String TO_USER = "alexander@tuenti.com";
 
-    private static final String MY_USER = "username@mydomain.com";
+    //private static final String MY_USER = "username@mydomain.com";
+private static final String MY_USER = "nicktuentitesting@gmail.com";
 
-    private static final String MY_PASS = "pass";
+    //private static final String MY_PASS = "pass";
+private static final String MY_PASS = "20testing";
 
     private AudioManager mAudioManager;
 
@@ -71,7 +75,7 @@ public class VoiceClientActivity
         switch ( view.getId() )
         {
             case R.id.init_btn:
-                mClient.init();
+                initClient();
                 break;
             case R.id.release_btn:
                 mClient.release();
@@ -218,7 +222,7 @@ public class VoiceClientActivity
         mSettings = PreferenceManager.getDefaultSharedPreferences( this );
 
         initAudio();
-        initClient();
+        initClientWrapper();
     }
 
     @Override
@@ -263,7 +267,7 @@ public class VoiceClientActivity
         mAudioManager = (AudioManager) getSystemService( Context.AUDIO_SERVICE );
     }
 
-    private void initClient()
+    private void initClientWrapper()
     {
         VoiceClientEventHandler handler = new VoiceClientEventHandler( this );
 
@@ -277,15 +281,20 @@ public class VoiceClientActivity
         findViewById( R.id.place_call_btn ).setOnClickListener( this );
         findViewById( R.id.hang_up_btn ).setOnClickListener( this );
     }
+    
+    private void initClient()
+    {
+        String stunServer = getStringPref( R.string.stunserver_key, R.string.stunserver_value );
+        String relayServer = getStringPref( R.string.relayserver_key, R.string.relayserver_value );
+        mClient.init(stunServer, relayServer);
+    }
 
     private void login()
     {
         String xmppHost = getStringPref( R.string.xmpp_host_key, R.string.xmpp_host_value );
         int xmppPort = getIntPref( R.string.xmpp_port_key, R.string.xmpp_port_value );
         boolean xmppUseSSL = getBooleanPref( R.string.xmpp_use_ssl_key, R.string.xmpp_use_ssl_value );
-        String stunHost = getStringPref( R.string.stun_host_key, R.string.stun_host_value );
-        int stunPort = getIntPref( R.string.stun_port_key, R.string.stun_port_value );
-        mClient.login( MY_USER, MY_PASS, xmppHost, xmppPort, xmppUseSSL, stunHost, stunPort );
+        mClient.login( MY_USER, MY_PASS, xmppHost, xmppPort, xmppUseSSL);
     }
 
     private void resetAudio()

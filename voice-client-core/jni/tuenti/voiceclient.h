@@ -47,14 +47,14 @@ class ClientSignalingThread;
 class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
  public:
   // initialization
-  explicit VoiceClient(VoiceClientNotify *notify);
+  explicit VoiceClient(VoiceClientNotify *notify, const std::string &stunserver,
+    const std::string &relayserver);
   ~VoiceClient();
   void Destroy(int delay);  // Deletes self after deleting threads
 
   // passthru functions
   void Login(const std::string &username, const std::string &password,
-      const std::string &xmpp_host, int xmpp_port, bool use_ssl,
-      const std::string &stun_host, int stun_port);
+    const std::string &xmpp_host, int xmpp_port, bool use_ssl);
   void Disconnect();
   void Call(std::string remoteJid);
   void EndCall();
@@ -70,6 +70,8 @@ class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
   void OnMessage(talk_base::Message *msg);
 
   VoiceClientNotify *notify_;
+  std::string stunserver_;
+  std::string relayserver_;
   talk_base::Thread *signal_thread_;
   tuenti::ClientSignalingThread *client_signaling_thread_;
 };

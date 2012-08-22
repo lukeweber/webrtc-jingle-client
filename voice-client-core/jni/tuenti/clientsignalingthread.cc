@@ -63,7 +63,8 @@ struct StringData: public talk_base::MessageData {
 ///////////////////////////////////////////////////////////////////////////////
 
 ClientSignalingThread::ClientSignalingThread(VoiceClientNotify *notifier,
-    talk_base::Thread *signal_thread)
+    talk_base::Thread *signal_thread, const std::string& stunserver, 
+    const std::string& relayserver)
     : talk_base::SignalThread(),
     notify_(notifier),
     signal_thread_(signal_thread),
@@ -105,11 +106,20 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientNotify *notifier,
             reinterpret_cast<int>(network_manager_));
   }
   if (port_allocator_ == NULL) {
-    talk_base::SocketAddress stun_addr("stun.l.google.com", 19302);
-    port_allocator_ =
-        new cricket::BasicPortAllocator(network_manager_, stun_addr,
-        talk_base::SocketAddress(), talk_base::SocketAddress(),
-        talk_base::SocketAddress());
+    //talk_base::SocketAddress stun_addr("stun.l.google.com", 19302);
+    //talk_base::SocketAddress relay_addr("10.0.25.203", 19304);
+    talk_base::SocketAddress stun_addr;
+    talk_base::SocketAddress relay_addr_udp;
+    if (!stun_addr.FromString(stunserver)) {
+      stun_addr.Clear();
+    }
+    if (!relay_addr_udp.FromString(relayserver)) {
+      relay_addr_udp.Clear();
+    }
+    talk_base::SocketAddress relay_addr_tcp(relay_addr_udp);
+    talk_base::SocketAddress relay_addr_ssl(relay_addr_udp);
+    port_allocator_ = new cricket::BasicPortAllocator(network_manager_,
+      stun_addr, relay_addr_udp, relay_addr_tcp, relay_addr_ssl);
     LOGI("ClientSignalingThread::ClientSignalingThread - "
       "new BasicPortAllocator port_allocator_@(0x%x)",
       reinterpret_cast<int>(port_allocator_));
@@ -385,10 +395,9 @@ void ClientSignalingThread::OnPingTimeout() {
 // ================================================================
 // THESE ARE THE ONLY FUNCTIONS THAT CAN BE CALLED USING ANY THREAD
 // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-
 void ClientSignalingThread::Login(const std::string &username,
     const std::string &password, const std::string &xmpp_host, int xmpp_port,
-    bool use_ssl, const std::string &stun_host, int stun_port) {
+    bool use_ssl) {
   LOGI("ClientSignalingThread::Login");
 
   buzz::Jid jid = buzz::Jid(username);
@@ -402,9 +411,6 @@ void ClientSignalingThread::Login(const std::string &username,
   xcs_.set_use_tls(use_ssl ? buzz::TLS_REQUIRED : buzz::TLS_DISABLED);
   xcs_.set_pass(talk_base::CryptString(pass));
   xcs_.set_server(talk_base::SocketAddress(xmpp_host, xmpp_port));
-
-  // stun server socket address
-
   signal_thread_->Post(this, MSG_LOGIN);
 }
 

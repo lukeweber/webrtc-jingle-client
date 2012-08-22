@@ -26,11 +26,13 @@
     <string name="xmpp_use_ssl_value">true</string>
 
     <string name="stun_server_properties">Stun Server Properties</string>
-    <string name="stun_host">Stun Host</string>
-    <string name="stun_host_key">stun_host_key</string>
-    <string name="stun_host_value">stun.l.google.com</string>
-    <string name="stun_port">Stun Port</string>
-    <string name="stun_port_key">stun_port_key</string>
-    <string name="stun_port_value">19302</string>
+    <string name="stunserver">Stun Server</string>
+    <string name="stunserver_key">stunserver_key</string>
+    <!--string name="stunserver_value">10.0.25.203:19302</string-->
+    <string name="stunserver_value">stun.l.google.com</string>
+    <string name="relayserver">Relay Server</string>
+    <string name="relayserver_key">relayserver_key</string>
+    <!--string name="relayserver_value">10.0.25.203:19304</string-->
+    <string name="relayserver_value"></string>
 
 </resources>

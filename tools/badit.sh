@@ -7,10 +7,12 @@
 ##  -h             help. What you are reading now.
 ##  -g             gyp. do the gyp build
 ##  -m             maven. do the maven build (this depends on the ndk build)
+##  -c             clean. do a clean install
 ##  -s             sync. sync before doing the build
 #
 # default variables
 #
+CLEAN=""
 SNAPSHOT_VERSION="1.0-SNAPSHOT"
 BUILDSYSTEM="mvn"
 SYNCREPOS="no"
@@ -53,7 +55,7 @@ validate_optarg(){
 
 
 
-while getopts "hgms" opt
+while getopts "hgmcs" opt
 do
   case $opt in
     h ) #help
@@ -64,6 +66,9 @@ do
       ;;
     m ) #mvn
       BUILDSYSTEM="mvn"
+      ;;
+    c ) #clean
+      CLEAN="clean"
       ;;
     s ) #sync
       SYNCREPOS="yes"
@@ -123,7 +128,7 @@ elif [ "$BUILDSYSTEM" == "mvn" ]; then
   check_return_code "$RET_CODE_CACHE"
   
   echo -e "===============================\nINSTALLING\n==============================="
-  mvn install
+  mvn $CLEAN install
   check_return_code "$?"
 
   echo -e "===============================\nUNINSTALLING\n==============================="

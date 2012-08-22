@@ -94,7 +94,8 @@ class ClientSignalingThread: public talk_base::SignalThread,
     public TXmppPumpNotify {
  public:
   ClientSignalingThread(VoiceClientNotify *notifier,
-      talk_base::Thread *signal_thread);
+      talk_base::Thread *signal_thread, const std::string& stunserver, 
+    const std::string& relayserver);
   // Public Library Callbacks
   void OnSessionState(cricket::Call* call, cricket::Session* session,
       cricket::Session::State state);
@@ -113,8 +114,7 @@ class ClientSignalingThread: public talk_base::SignalThread,
   // These are signal thread entry points that will be farmed
   // out to the worker equivilent functions
   void Login(const std::string &username, const std::string &password,
-      const std::string &xmpp_host, int xmpp_port, bool use_ssl,
-      const std::string &stun_host, int stun_port);
+      const std::string &xmpp_host, int xmpp_port, bool use_ssl);
   void Disconnect();
   void Call(std::string remoteJid);
   void AcceptCall();

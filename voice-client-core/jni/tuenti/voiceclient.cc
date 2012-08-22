@@ -46,11 +46,14 @@ enum {
 
 const char* msgNames[] = { "MSG_INIT", "MSG_DESTROY", };
 
-VoiceClient::VoiceClient(VoiceClientNotify *notify)
-    : notify_(notify),
-    signal_thread_(NULL),
-    client_signaling_thread_(NULL) {
-  LOGI("VoiceClient::VoiceClient");
+VoiceClient::VoiceClient(VoiceClientNotify *notify, 
+  const std::string &stunserver, const std::string &relayserver)
+  : notify_(notify),
+  stunserver_(stunserver),
+  relayserver_(relayserver),
+  signal_thread_(NULL),
+  client_signaling_thread_(NULL) {
+    LOGI("VoiceClient::VoiceClient");
 
   // a few standard logs not sure why they are not working
   talk_base::LogMessage::LogThreads();
@@ -87,7 +90,7 @@ void VoiceClient::InitializeS() {
   LOGI("VoiceClient::InitializeS");
   if (client_signaling_thread_ == NULL) {
     client_signaling_thread_ = new tuenti::ClientSignalingThread(notify_,
-        signal_thread_);
+        signal_thread_, stunserver_, relayserver_);
     LOGI("VoiceClient::VoiceClient - new ClientSignalingThread "
             "client_signaling_thread_@(0x%x)",
             reinterpret_cast<int>(client_signaling_thread_));
@@ -129,13 +132,13 @@ void VoiceClient::OnMessage(talk_base::Message *msg) {
   }
 }
 
-void VoiceClient::Login(const std::string &username,
-    const std::string &password, const std::string &xmpp_host, int xmpp_port,
-    bool use_ssl, const std::string &stun_host, int stun_port) {
+void VoiceClient::Login(const std::string &username, 
+  const std::string &password, const std::string &xmpp_host, int xmpp_port,
+  bool use_ssl) {
   LOGI("VoiceClient::Login");
   if (client_signaling_thread_) {
     client_signaling_thread_->Login(username, password, xmpp_host, xmpp_port,
-        use_ssl, stun_host, stun_port);
+        use_ssl);
   }
 }
 

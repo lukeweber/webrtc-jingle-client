@@ -92,20 +92,24 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeEndCall(
 }
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeInit(
-    JNIEnv *env, jobject object) {
+    JNIEnv *env, jobject object, jstring stunServer, jstring relayServer) {
   if (!client_) {
     LOGI("Java_com_tuenti_voice_VoiceClient_nativeInit - initializing "
       "client");
     callback_helper_->setReferenceObject(env->NewGlobalRef(object));
+    const char* nativeStunServer = env->GetStringUTFChars(stunServer, NULL);
+    const char* nativeRelayServer = env->GetStringUTFChars(relayServer, NULL);
     client_ = new tuenti::VoiceClient(
-        static_cast<tuenti::VoiceClientNotify*>(callback_helper_));
+        static_cast<tuenti::VoiceClientNotify*>(callback_helper_),
+          nativeStunServer, nativeRelayServer);
+    env->ReleaseStringUTFChars(stunServer, nativeStunServer);
+    env->ReleaseStringUTFChars(relayServer, nativeRelayServer);
   }
 }
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin(
     JNIEnv *env, jobject object, jstring username, jstring password,
-    jstring xmppHost, jint xmppPort, jboolean useSSL, jstring stunHost,
-    jint stunPort) {
+    jstring xmppHost, jint xmppPort, jboolean useSSL) {
   if (!client_) {
     LOGE("client not initialized");
     return;
@@ -114,17 +118,15 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin(
   const char* nativeUsername = env->GetStringUTFChars(username, NULL);
   const char* nativePassword = env->GetStringUTFChars(password, NULL);
   const char* nativeXmppHost = env->GetStringUTFChars(xmppHost, NULL);
-  const char* nativeStunHost = env->GetStringUTFChars(stunHost, NULL);
 
   // login
   client_->Login(nativeUsername, nativePassword, nativeXmppHost, xmppPort,
-    useSSL, nativeStunHost, stunPort);
+    useSSL);
 
   // release
   env->ReleaseStringUTFChars(username, nativeUsername);
   env->ReleaseStringUTFChars(password, nativePassword);
   env->ReleaseStringUTFChars(xmppHost, nativeXmppHost);
-  env->ReleaseStringUTFChars(stunHost, nativeStunHost);
 }
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogout(
