@@ -121,7 +121,8 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientNotify *notifier,
     talk_base::SocketAddress relay_addr_tcp(relay_addr_udp);
     talk_base::SocketAddress relay_addr_ssl(relay_addr_udp);
     port_allocator_ = new cricket::BasicPortAllocator(network_manager_,
-      stun_addr, relay_addr_udp, relay_addr_tcp, relay_addr_ssl);
+      stun_addr, relay_addr_udp, relay_addr_tcp, relay_addr_ssl,
+      talk_base::SocketAddress());
     LOGI("ClientSignalingThread::ClientSignalingThread - "
       "new BasicPortAllocator port_allocator_@(0x%x)",
       reinterpret_cast<int>(port_allocator_));
