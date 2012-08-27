@@ -46,16 +46,13 @@ enum {
 
 const char* msgNames[] = { "MSG_INIT", "MSG_DESTROY", };
 
-VoiceClient::VoiceClient(VoiceClientNotify *notify, 
-  const char *stunserver, const char *relayserver)
-  : notify_(notify),
-  stunserver_(stunserver),
-  relayserver_(relayserver),
-  signal_thread_(NULL),
-  client_signaling_thread_(NULL) {
-    LOGI("VoiceClient::VoiceClient");
-  stunserver_ = stunserver;
-  relayserver_ = relayserver;
+VoiceClient::VoiceClient(VoiceClientNotify *notify, StunConfig *stun_config)
+    : notify_(notify),
+    signal_thread_(NULL),
+    client_signaling_thread_(NULL),
+    stun_config_(stun_config) {
+  LOGI("VoiceClient::VoiceClient");
+
   // a few standard logs not sure why they are not working
   talk_base::LogMessage::LogThreads();
   talk_base::LogMessage::LogTimestamps();
@@ -91,7 +88,7 @@ void VoiceClient::InitializeS() {
   LOGI("VoiceClient::InitializeS");
   if (client_signaling_thread_ == NULL) {
     client_signaling_thread_ = new tuenti::ClientSignalingThread(notify_,
-        signal_thread_, stunserver_, relayserver_);
+        signal_thread_, stun_config_);
     LOGI("VoiceClient::VoiceClient - new ClientSignalingThread "
             "client_signaling_thread_@(0x%x)",
             reinterpret_cast<int>(client_signaling_thread_));
@@ -105,7 +102,7 @@ void VoiceClient::DestroyS() {
             "client_signaling_thread_@(0x%x)",
             reinterpret_cast<int>(client_signaling_thread_));
     if (client_signaling_thread_->Destroy()) {
-      // NFHACK Pretty ugly should probably call a all
+      // NFHACK Pretty ugly should probably call a alL
       // good to delete callback in voiceclient_main
       delete this;
     } else {
@@ -154,6 +151,12 @@ void VoiceClient::Call(std::string remoteJid) {
   LOGI("VoiceClient::Call");
   if (client_signaling_thread_) {
     client_signaling_thread_->Call(remoteJid);
+  }
+}
+
+void VoiceClient::MuteCall(bool mute) {
+  if (client_signaling_thread_) {
+    client_signaling_thread_->MuteCall(mute);
   }
 }
 

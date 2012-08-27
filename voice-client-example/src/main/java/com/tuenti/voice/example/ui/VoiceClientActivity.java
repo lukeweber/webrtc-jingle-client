@@ -282,7 +282,7 @@ public class VoiceClientActivity
     {
         String stunServer = getStringPref( R.string.stunserver_key, R.string.stunserver_value );
         String relayServer = getStringPref( R.string.relayserver_key, R.string.relayserver_value );
-        mClient.init(stunServer, relayServer);
+        mClient.init( stunServer, relayServer, relayServer, relayServer );
     }
 
     private void login()

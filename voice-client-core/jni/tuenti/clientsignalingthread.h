@@ -41,6 +41,8 @@
 
 #include "tuenti/status.h"
 #include "tuenti/txmpppump.h"  // Needed for TXmppPumpNotify
+#include "tuenti/voiceclient.h"
+
 namespace talk_base {
 class BasicNetworkManager;
 }
@@ -94,8 +96,7 @@ class ClientSignalingThread: public talk_base::SignalThread,
     public TXmppPumpNotify {
  public:
   ClientSignalingThread(VoiceClientNotify *notifier,
-      talk_base::Thread *signal_thread, const std::string& stunserver, 
-    const std::string& relayserver);
+      talk_base::Thread *signal_thread, StunConfig *stun_config);
   // Public Library Callbacks
   void OnSessionState(cricket::Call* call, cricket::Session* session,
       cricket::Session::State state);
@@ -117,6 +118,7 @@ class ClientSignalingThread: public talk_base::SignalThread,
       const std::string &xmpp_host, int xmpp_port, bool use_ssl);
   void Disconnect();
   void Call(std::string remoteJid);
+  void MuteCall(bool mute);
   void AcceptCall();
   void DeclineCall();
   void EndCall();
@@ -133,6 +135,7 @@ class ClientSignalingThread: public talk_base::SignalThread,
   void LoginS();
   void DisconnectS();
   void CallS(const std::string &remoteJid);
+  void MuteCallS(bool mute);
   void AcceptCallS();
   void DeclineCallS();
   void EndCallS();
@@ -148,6 +151,7 @@ class ClientSignalingThread: public talk_base::SignalThread,
 
   VoiceClientNotify *notify_;
   talk_base::Thread *signal_thread_;
+  StunConfig *stun_confg_;
   RosterMap *roster_;
   BuddyListMap *buddy_list_;
   TXmppPump *pump_;

@@ -46,9 +46,15 @@ enum {
   MSG_DISCONNECT,  // Logout
   MSG_CALL,
   MSG_ACCEPT_CALL,
+  MSG_MUTE_CALL,
   MSG_DECLINE_CALL,
   MSG_END_CALL
 //  , MSG_DESTROY
+};
+struct BoolData: public talk_base::MessageData {
+  explicit BoolData(bool b) :
+      b_(b){}
+  bool b_;
 };
 
 struct StringData: public talk_base::MessageData {
@@ -63,8 +69,7 @@ struct StringData: public talk_base::MessageData {
 ///////////////////////////////////////////////////////////////////////////////
 
 ClientSignalingThread::ClientSignalingThread(VoiceClientNotify *notifier,
-    talk_base::Thread *signal_thread, const std::string& stunserver, 
-    const std::string& relayserver)
+    talk_base::Thread *signal_thread, StunConfig *stun_config)
     : talk_base::SignalThread(),
     notify_(notifier),
     signal_thread_(signal_thread),
@@ -106,23 +111,30 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientNotify *notifier,
             reinterpret_cast<int>(network_manager_));
   }
   if (port_allocator_ == NULL) {
-    //talk_base::SocketAddress stun_addr("stun.l.google.com", 19302);
-    //talk_base::SocketAddress relay_addr("10.0.25.203", 19304);
-    LOGI("ClientSignalingThread::ClientSignalingThread creating stun_addr(%s)", stunserver.c_str());
-    LOGI("ClientSignalingThread::ClientSignalingThread creating relay_addr_*(%s)", relayserver.c_str());
-    talk_base::SocketAddress stun_addr;
-    talk_base::SocketAddress relay_addr_udp;
-    if (!stunserver.empty() && !stun_addr.FromString(stunserver)) {
-      stun_addr.Clear();
-    }
-    if (!relayserver.empty() && !relay_addr_udp.FromString(relayserver)) {
-      relay_addr_udp.Clear();
-    }
-    talk_base::SocketAddress relay_addr_tcp(relay_addr_udp);
-    talk_base::SocketAddress relay_addr_ssl(relay_addr_udp);
-    port_allocator_ = new cricket::BasicPortAllocator(network_manager_,
-      stun_addr, relay_addr_udp, relay_addr_tcp, relay_addr_ssl,
-      talk_base::SocketAddress());
+
+  talk_base::SocketAddress stun = talk_base::SocketAddress();
+  talk_base::SocketAddress turn_udp = talk_base::SocketAddress();
+  talk_base::SocketAddress turn_tcp = talk_base::SocketAddress();
+  talk_base::SocketAddress turn_ssl = talk_base::SocketAddress();
+
+  if (!stun_config->stun.empty() && !stun.FromString(stun_config->stun)) {
+    stun.Clear();
+  }
+  if (!stun_config->turn_udp.empty() &&
+          !turn_udp.FromString(stun_config->turn_udp)) {
+    turn_udp.Clear();
+  }
+  if (!stun_config->turn_tcp.empty() &&
+          !turn_tcp.FromString(stun_config->turn_tcp)) {
+    turn_tcp.Clear();
+  }
+  if (!stun_config->turn_ssl.empty() &&
+          !turn_ssl.FromString(stun_config->turn_ssl)) {
+    turn_ssl.Clear();
+  }
+
+  port_allocator_ = new cricket::BasicPortAllocator(network_manager_,
+      stun, turn_udp, turn_tcp, turn_ssl);
     LOGI("ClientSignalingThread::ClientSignalingThread - "
       "new BasicPortAllocator port_allocator_@(0x%x)",
       reinterpret_cast<int>(port_allocator_));
@@ -428,6 +440,9 @@ void ClientSignalingThread::Call(std::string remoteJid) {
   // assert(talk_base::Thread::Current() == signal_thread_);
   signal_thread_->Post(this, MSG_CALL, new StringData(remoteJid));
 }
+void ClientSignalingThread::MuteCall(bool mute) {
+  signal_thread_->Post(this, MSG_MUTE_CALL, new BoolData(mute));
+}
 
 void ClientSignalingThread::AcceptCall() {
   LOGI("ClientSignalingThread::AcceptCall");
@@ -482,6 +497,11 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
   case MSG_CALL:
     LOGI("ClientSignalingThread::OnMessage - MSG_CALL");
     CallS(static_cast<StringData*>(message->pdata)->s_);
+    delete message->pdata;
+    break;
+  case MSG_MUTE_CALL:
+    LOGI("ClientSignallingThread::OnMessage - MSG_MUTE_CALL");
+    MuteCallS(static_cast<BoolData*>(message->pdata)->b_);
     delete message->pdata;
     break;
   case MSG_ACCEPT_CALL:
@@ -574,6 +594,13 @@ void ClientSignalingThread::CallS(const std::string &remoteJid) {
     media_client_->SetFocus(call_);
   } else {
     LOGI("Could not find online friend '%s'", remoteJid.c_str());
+  }
+}
+
+void ClientSignalingThread::MuteCallS(bool mute) {
+  if(call_) {
+    call_->Mute(mute);
+    LOGI("Toggled mute");
   }
 }
 

@@ -42,13 +42,19 @@
 
 namespace tuenti {
 
+typedef struct {
+std::string stun;
+std::string turn_udp;
+std::string turn_tcp;
+std::string turn_ssl;
+} StunConfig;
+
 class ClientSignalingThread;
 
 class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
  public:
   // initialization
-  explicit VoiceClient(VoiceClientNotify *notify,
-    const char *stunserver, const char *relayserver);
+  explicit VoiceClient(VoiceClientNotify *notify, StunConfig *stun_config);
   ~VoiceClient();
   void Destroy(int delay);  // Deletes self after deleting threads
 
@@ -57,6 +63,7 @@ class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
     const std::string &xmpp_host, int xmpp_port, bool use_ssl);
   void Disconnect();
   void Call(std::string remoteJid);
+  void MuteCall(bool mute);
   void EndCall();
   void AcceptCall();
   void DeclineCall();
@@ -73,6 +80,7 @@ class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
   std::string stunserver_;
   std::string relayserver_;
   talk_base::Thread *signal_thread_;
+  StunConfig *stun_config_;
   tuenti::ClientSignalingThread *client_signaling_thread_;
 };
 

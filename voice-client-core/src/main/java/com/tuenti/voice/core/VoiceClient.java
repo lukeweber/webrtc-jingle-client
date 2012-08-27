@@ -29,9 +29,9 @@ public class VoiceClient
     public static final int CALL_STATE_EVENT = 0;
 
     public static final int XMPP_STATE_EVENT = 1;
-    
+
     public static final int XMPP_ERROR_EVENT = 2;
-    
+
     public static final int BUDDY_LIST_EVENT = 3;
     //End Event constants
 
@@ -116,11 +116,11 @@ public class VoiceClient
         nativeEndCall();
     }
 
-    public void init( String stunserver, String relayserver )
+    public void init( String stunServer, String relayServerUDP, String relayServerTCP, String relayServerSSL )
     {
         if ( !initialized )
         {
-            nativeInit(stunserver, relayserver);
+            nativeInit( stunServer, relayServerUDP, relayServerTCP, relayServerSSL );
             initialized = true;
         }
     }
@@ -154,13 +154,15 @@ public class VoiceClient
 
     private native void nativeCall( String remoteJid );
 
+    private native void nativeMuteCall( boolean mute );
+
     private native void nativeDeclineCall();
 
     private native void nativeDestroy();
 
     private native void nativeEndCall();
 
-    private native void nativeInit( String stunserver, String relayserver );
+    private native void nativeInit( String stunServer, String relayServerUDP, String relayServerTCP, String relayServerSSL );
 
     private native void nativeLogin( String user_name, String password, String xmppServer, int xmppPort, boolean UseSSL );
 

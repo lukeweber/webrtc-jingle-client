@@ -38,6 +38,7 @@
 
 tuenti::VoiceClient *client_;
 tuenti::CallbackHelper *callback_helper_;
+tuenti::StunConfig *stun_config_;
 
 jint JNI_OnLoad(JavaVM* vm, void* /*reserved*/) {
   if (!vm) {
@@ -72,6 +73,13 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeCall(
   }
 }
 
+JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeMuteCall(
+    JNIEnv *env, jobject object, jboolean mute) {
+  if (client_) {
+    client_->MuteCall(mute);
+  }
+}
+
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeDeclineCall(
     JNIEnv *env, jobject object) {
   if (client_) {
@@ -92,18 +100,31 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeEndCall(
 }
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeInit(
-    JNIEnv *env, jobject object, jstring stunServer, jstring relayServer) {
+    JNIEnv *env, jobject object, jstring stun, jstring turn_udp,
+    jstring turn_tcp, jstring turn_ssl) {
+  const char* native_stun = env->GetStringUTFChars(stun, NULL);
+  const char* native_turn_udp = env->GetStringUTFChars(turn_udp, NULL);
+  const char* native_turn_tcp = env->GetStringUTFChars(turn_tcp, NULL);
+  const char* native_turn_ssl = env->GetStringUTFChars(turn_ssl, NULL);
+
+  stun_config_ = new tuenti::StunConfig;
+  stun_config_->stun = std::string(native_stun);
+  stun_config_->turn_udp = std::string(native_turn_udp);
+  stun_config_->turn_tcp = std::string(native_turn_tcp);
+  stun_config_->turn_ssl = std::string(native_turn_ssl);
+
+  env->ReleaseStringUTFChars(stun, native_stun);
+  env->ReleaseStringUTFChars(turn_udp, native_turn_udp);
+  env->ReleaseStringUTFChars(turn_tcp, native_turn_tcp);
+  env->ReleaseStringUTFChars(turn_ssl, native_turn_ssl);
+
   if (!client_) {
     LOGI("Java_com_tuenti_voice_VoiceClient_nativeInit - initializing "
       "client");
     callback_helper_->setReferenceObject(env->NewGlobalRef(object));
-    const char* nativeStunServer = env->GetStringUTFChars(stunServer, NULL);
-    const char* nativeRelayServer = env->GetStringUTFChars(relayServer, NULL);
-    client_ = new tuenti::VoiceClient(
-        static_cast<tuenti::VoiceClientNotify*>(callback_helper_),
-          nativeStunServer, nativeRelayServer);
-    env->ReleaseStringUTFChars(stunServer, nativeStunServer);
-    env->ReleaseStringUTFChars(relayServer, nativeRelayServer);
+    client_ =
+        new tuenti::VoiceClient(static_cast<tuenti::VoiceClientNotify*>
+        (callback_helper_), stun_config_);
   }
 }
 
@@ -119,8 +140,12 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin(
   const char* nativePassword = env->GetStringUTFChars(password, NULL);
   const char* nativeXmppHost = env->GetStringUTFChars(xmppHost, NULL);
 
+  std::string nativeUsernameS(nativeUsername);
+  std::string nativePasswordS(nativePassword);
+  std::string nativeXmppHostS(nativeXmppHost);
+
   // login
-  client_->Login(nativeUsername, nativePassword, nativeXmppHost, xmppPort,
+  client_->Login(nativeUsernameS, nativePasswordS, nativeXmppHostS, xmppPort,
     useSSL);
 
   // release
@@ -142,6 +167,7 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeRelease(
     // Does an internal delete when all threads have stopped
     // but a callback to do the delete here would be better
     client_->Destroy(0);
+    delete stun_config_;
     client_ = NULL;
   }
 }
