@@ -134,7 +134,7 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientNotify *notifier,
   }
 
   port_allocator_ = new cricket::BasicPortAllocator(network_manager_,
-      stun, turn_udp, turn_tcp, turn_ssl);
+      stun, turn_udp, turn_tcp, turn_ssl, talk_base::SocketAddress());
     LOGI("ClientSignalingThread::ClientSignalingThread - "
       "new BasicPortAllocator port_allocator_@(0x%x)",
       reinterpret_cast<int>(port_allocator_));
