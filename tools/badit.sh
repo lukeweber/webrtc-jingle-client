@@ -128,8 +128,9 @@ elif [ "$BUILDSYSTEM" == "mvn" ]; then
   check_return_code "$RET_CODE_CACHE"
 
   echo -e "===============================\nHEADERGEN\n==============================="
-  pushd $TRUNKDIR/voice-client-core/target/classes
-  javah -classpath `pwd` com.tuenti.voice.core.VoiceClient && mv com_tuenti_voice_core_VoiceClient.h ../../jni/
+  CLASSESPATH="$TRUNKDIR/voice-client-core/target/classes"
+  pushd $TRUNKDIR/voice-client-core/jni
+  javah -classpath $CLASSESPATH com.tuenti.voice.core.VoiceClient
   RET_CODE_CACHE="$?"
   popd
   check_return_code "$RET_CODE_CACHE"

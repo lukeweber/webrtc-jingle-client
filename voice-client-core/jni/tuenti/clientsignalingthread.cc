@@ -113,28 +113,33 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientNotify *notifier,
   if (port_allocator_ == NULL) {
 
   talk_base::SocketAddress stun = talk_base::SocketAddress();
-  talk_base::SocketAddress turn_udp = talk_base::SocketAddress();
-  talk_base::SocketAddress turn_tcp = talk_base::SocketAddress();
-  talk_base::SocketAddress turn_ssl = talk_base::SocketAddress();
+  talk_base::SocketAddress relay_udp = talk_base::SocketAddress();
+  talk_base::SocketAddress relay_tcp = talk_base::SocketAddress();
+  talk_base::SocketAddress relay_ssl = talk_base::SocketAddress();
+  talk_base::SocketAddress turn = talk_base::SocketAddress();
 
   if (!stun_config->stun.empty() && !stun.FromString(stun_config->stun)) {
     stun.Clear();
   }
-  if (!stun_config->turn_udp.empty() &&
-          !turn_udp.FromString(stun_config->turn_udp)) {
-    turn_udp.Clear();
+  if (!stun_config->relay_udp.empty() &&
+          !relay_udp.FromString(stun_config->relay_udp)) {
+    relay_udp.Clear();
   }
-  if (!stun_config->turn_tcp.empty() &&
-          !turn_tcp.FromString(stun_config->turn_tcp)) {
-    turn_tcp.Clear();
+  if (!stun_config->relay_tcp.empty() &&
+          !relay_tcp.FromString(stun_config->relay_tcp)) {
+    relay_tcp.Clear();
   }
-  if (!stun_config->turn_ssl.empty() &&
-          !turn_ssl.FromString(stun_config->turn_ssl)) {
-    turn_ssl.Clear();
+  if (!stun_config->relay_ssl.empty() &&
+          !relay_ssl.FromString(stun_config->relay_ssl)) {
+    relay_ssl.Clear();
+  }
+  if (!stun_config->turn.empty() &&
+          !relay_ssl.FromString(stun_config->turn)) {
+    turn.Clear();
   }
 
   port_allocator_ = new cricket::BasicPortAllocator(network_manager_,
-      stun, turn_udp, turn_tcp, turn_ssl, talk_base::SocketAddress());
+      stun, relay_udp, relay_tcp, relay_ssl, turn);
     LOGI("ClientSignalingThread::ClientSignalingThread - "
       "new BasicPortAllocator port_allocator_@(0x%x)",
       reinterpret_cast<int>(port_allocator_));

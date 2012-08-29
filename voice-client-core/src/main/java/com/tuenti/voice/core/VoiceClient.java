@@ -116,11 +116,11 @@ public class VoiceClient
         nativeEndCall();
     }
 
-    public void init( String stunServer, String relayServerUDP, String relayServerTCP, String relayServerSSL )
+    public void init( String stunServer, String relayServerUDP, String relayServerTCP, String relayServerSSL, String turnServer )
     {
         if ( !initialized )
         {
-            nativeInit( stunServer, relayServerUDP, relayServerTCP, relayServerSSL );
+            nativeInit( stunServer, relayServerUDP, relayServerTCP, relayServerSSL, turnServer );
             initialized = true;
         }
     }
@@ -162,7 +162,7 @@ public class VoiceClient
 
     private native void nativeEndCall();
 
-    private native void nativeInit( String stunServer, String relayServerUDP, String relayServerTCP, String relayServerSSL );
+    private native void nativeInit( String stunServer, String relayServerUDP, String relayServerTCP, String relayServerSSL, String turnServer);
 
     private native void nativeLogin( String user_name, String password, String xmppServer, int xmppPort, boolean UseSSL );
 

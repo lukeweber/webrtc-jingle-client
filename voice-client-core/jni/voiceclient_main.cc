@@ -100,23 +100,26 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeEndCall(
 }
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeInit(
-    JNIEnv *env, jobject object, jstring stun, jstring turn_udp,
-    jstring turn_tcp, jstring turn_ssl) {
+    JNIEnv *env, jobject object, jstring stun, jstring relay_udp,
+    jstring relay_tcp, jstring relay_ssl, jstring turn) {
   const char* native_stun = env->GetStringUTFChars(stun, NULL);
-  const char* native_turn_udp = env->GetStringUTFChars(turn_udp, NULL);
-  const char* native_turn_tcp = env->GetStringUTFChars(turn_tcp, NULL);
-  const char* native_turn_ssl = env->GetStringUTFChars(turn_ssl, NULL);
+  const char* native_relay_udp = env->GetStringUTFChars(relay_udp, NULL);
+  const char* native_relay_tcp = env->GetStringUTFChars(relay_tcp, NULL);
+  const char* native_relay_ssl = env->GetStringUTFChars(relay_ssl, NULL);
+  const char* native_turn = env->GetStringUTFChars(turn, NULL);
 
   stun_config_ = new tuenti::StunConfig;
   stun_config_->stun = std::string(native_stun);
-  stun_config_->turn_udp = std::string(native_turn_udp);
-  stun_config_->turn_tcp = std::string(native_turn_tcp);
-  stun_config_->turn_ssl = std::string(native_turn_ssl);
+  stun_config_->relay_udp = std::string(native_relay_udp);
+  stun_config_->relay_tcp = std::string(native_relay_tcp);
+  stun_config_->relay_ssl = std::string(native_relay_ssl);
+  stun_config_->turn = std::string(native_turn);
 
   env->ReleaseStringUTFChars(stun, native_stun);
-  env->ReleaseStringUTFChars(turn_udp, native_turn_udp);
-  env->ReleaseStringUTFChars(turn_tcp, native_turn_tcp);
-  env->ReleaseStringUTFChars(turn_ssl, native_turn_ssl);
+  env->ReleaseStringUTFChars(relay_udp, native_relay_udp);
+  env->ReleaseStringUTFChars(relay_tcp, native_relay_tcp);
+  env->ReleaseStringUTFChars(relay_ssl, native_relay_ssl);
+  env->ReleaseStringUTFChars(turn, native_turn);
 
   if (!client_) {
     LOGI("Java_com_tuenti_voice_VoiceClient_nativeInit - initializing "
