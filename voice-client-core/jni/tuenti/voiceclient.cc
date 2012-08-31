@@ -52,6 +52,8 @@ VoiceClient::VoiceClient(VoiceClientNotify *notify, StunConfig *stun_config)
     client_signaling_thread_(NULL),
     stun_config_(stun_config) {
   LOGI("VoiceClient::VoiceClient");
+  LOG(INFO) << "LOGT VoiceClient Constructed with stun_config";
+  LOG(INFO) << "LOGT " << stun_config->ToString();
 
   // a few standard logs not sure why they are not working
   talk_base::LogMessage::LogThreads();

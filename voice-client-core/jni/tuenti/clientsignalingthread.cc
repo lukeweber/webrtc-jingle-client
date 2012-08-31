@@ -90,6 +90,7 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientNotify *notifier,
     use_ssl_(false),
     incoming_call_(false),
     auto_accept_(false) {
+  int numRelayPorts = 0;
   LOGI("ClientSignalingThread::ClientSignalingThread");
   assert(talk_base::Thread::Current() == signal_thread_);
   // Overriding name
@@ -111,39 +112,51 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientNotify *notifier,
             reinterpret_cast<int>(network_manager_));
   }
   if (port_allocator_ == NULL) {
+    talk_base::SocketAddress stun = talk_base::SocketAddress();
+    talk_base::SocketAddress relay_udp = talk_base::SocketAddress();
+    talk_base::SocketAddress relay_tcp = talk_base::SocketAddress();
+    talk_base::SocketAddress relay_ssl = talk_base::SocketAddress();
+    talk_base::SocketAddress turn = talk_base::SocketAddress();
 
-  talk_base::SocketAddress stun = talk_base::SocketAddress();
-  talk_base::SocketAddress relay_udp = talk_base::SocketAddress();
-  talk_base::SocketAddress relay_tcp = talk_base::SocketAddress();
-  talk_base::SocketAddress relay_ssl = talk_base::SocketAddress();
-  talk_base::SocketAddress turn = talk_base::SocketAddress();
+    if (stun_config->stun.empty() || !stun.FromString(stun_config->stun)) {
+      stun.Clear();
+      port_allocator_flags_ |= cricket::PORTALLOCATOR_DISABLE_STUN;
+    }
+    if (stun_config->relay_udp.empty() ||
+            !relay_udp.FromString(stun_config->relay_udp)) {
+      relay_udp.Clear();
+      port_allocator_flags_ |= cricket::PORTALLOCATOR_DISABLE_UDP;
+      ++numRelayPorts;
+    }
+    
+    if (stun_config->relay_tcp.empty() ||
+            !relay_tcp.FromString(stun_config->relay_tcp)) {
+      relay_tcp.Clear();
+      port_allocator_flags_ |= cricket::PORTALLOCATOR_DISABLE_TCP;
+      ++numRelayPorts;
+    }
+    if (stun_config->relay_ssl.empty() ||
+            !relay_ssl.FromString(stun_config->relay_ssl)) {
+      relay_ssl.Clear();
+      ++numRelayPorts;
+    }
+    if (stun_config->turn.empty() ||
+            !turn.FromString(stun_config->turn)) {
+      turn.Clear();
+      port_allocator_flags_ |= cricket::PORTALLOCATOR_DISABLE_TURN;
+    }
+    if (numRelayPorts == 0) {
+      port_allocator_flags_ |= cricket::PORTALLOCATOR_DISABLE_RELAY;
+    }
 
-  if (!stun_config->stun.empty() && !stun.FromString(stun_config->stun)) {
-    stun.Clear();
-  }
-  if (!stun_config->relay_udp.empty() &&
-          !relay_udp.FromString(stun_config->relay_udp)) {
-    relay_udp.Clear();
-  }
-  if (!stun_config->relay_tcp.empty() &&
-          !relay_tcp.FromString(stun_config->relay_tcp)) {
-    relay_tcp.Clear();
-  }
-  if (!stun_config->relay_ssl.empty() &&
-          !relay_ssl.FromString(stun_config->relay_ssl)) {
-    relay_ssl.Clear();
-  }
-  if (!stun_config->turn.empty() &&
-          !relay_ssl.FromString(stun_config->turn)) {
-    turn.Clear();
-  }
-
-  port_allocator_ = new cricket::BasicPortAllocator(network_manager_,
-      stun, relay_udp, relay_tcp, relay_ssl, turn);
+    port_allocator_ = new cricket::BasicPortAllocator(network_manager_,
+        stun, relay_udp, relay_tcp, relay_ssl, turn);
     LOGI("ClientSignalingThread::ClientSignalingThread - "
-      "new BasicPortAllocator port_allocator_@(0x%x)",
-      reinterpret_cast<int>(port_allocator_));
+        "new BasicPortAllocator port_allocator_@(0x%x)",
+        reinterpret_cast<int>(port_allocator_));
     if (port_allocator_flags_ != 0) {
+      LOGI("LOGT ClientSignalingThread::ClientSignalingThread - setting port_allocator_flags_=%d", 
+        port_allocator_flags_);
       port_allocator_->set_flags(port_allocator_flags_);
     }
   }

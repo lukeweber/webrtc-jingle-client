@@ -43,11 +43,20 @@
 namespace tuenti {
 
 typedef struct {
-std::string stun;
-std::string relay_udp;
-std::string relay_tcp;
-std::string relay_ssl;
-std::string turn;
+  std::string stun;
+  std::string relay_udp;
+  std::string relay_tcp;
+  std::string relay_ssl;
+  std::string turn;
+  std::string ToString() {
+    std::stringstream stream;
+    stream << "[stun=(" << stun << "),";
+    stream << "relay_udp=(" << relay_udp << "),";
+    stream << "relay_tcp=(" << relay_tcp << "),";
+    stream << "relay_ssl=(" << relay_ssl << "),";
+    stream << "turn=(" << turn << ")]";
+    return stream.str();
+  }
 } StunConfig;
 
 class ClientSignalingThread;
