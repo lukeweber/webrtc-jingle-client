@@ -125,14 +125,12 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientNotify *notifier,
     if (stun_config->relay_udp.empty() ||
             !relay_udp.FromString(stun_config->relay_udp)) {
       relay_udp.Clear();
-      port_allocator_flags_ |= cricket::PORTALLOCATOR_DISABLE_UDP;
       ++numRelayPorts;
     }
     
     if (stun_config->relay_tcp.empty() ||
             !relay_tcp.FromString(stun_config->relay_tcp)) {
       relay_tcp.Clear();
-      port_allocator_flags_ |= cricket::PORTALLOCATOR_DISABLE_TCP;
       ++numRelayPorts;
     }
     if (stun_config->relay_ssl.empty() ||
