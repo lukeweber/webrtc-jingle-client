@@ -122,11 +122,20 @@ if [ "$BUILDSYSTEM" == "gyp" ]; then
 elif [ "$BUILDSYSTEM" == "mvn" ]; then
   echo -e "===============================\nBUILDING\n==============================="
   pushd $TRUNKDIR/voice-client-core/
+  if [ "$CLEAN" == "clean" ]; then
+    echo "cleaning with ndk-build clean"
+    ndk-build clean
+  fi
   ./build.sh
   RET_CODE_CACHE="$?"
   popd
   check_return_code "$RET_CODE_CACHE"
 
+  echo -e "===============================\nINSTALLING\n==============================="
+  #mvn $CLEAN install -rf :voice-example
+  mvn $CLEAN install 
+  check_return_code "$?"
+  
   echo -e "===============================\nHEADERGEN\n==============================="
   CLASSESPATH="$TRUNKDIR/voice-client-core/target/classes"
   pushd $TRUNKDIR/voice-client-core/jni
@@ -135,9 +144,6 @@ elif [ "$BUILDSYSTEM" == "mvn" ]; then
   popd
   check_return_code "$RET_CODE_CACHE"
   
-  echo -e "===============================\nINSTALLING\n==============================="
-  mvn $CLEAN install
-  check_return_code "$?"
 
   echo -e "===============================\nUNINSTALLING\n==============================="
   adb uninstall com.tuenti.voice.example

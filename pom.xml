@@ -85,6 +85,7 @@
                         </sdk>
                         <apkDebug>true</apkDebug>
                         <undeployBeforeDeploy>true</undeployBeforeDeploy>
+                        <extractDuplicates>true</extractDuplicates>
                     </configuration>
                 </plugin>
             </plugins>
