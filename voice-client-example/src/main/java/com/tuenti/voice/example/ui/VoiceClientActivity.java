@@ -33,15 +33,11 @@ public class VoiceClientActivity
     private static final String TAG = "VoiceClientActivity";
 
     // Template Google Settings
-    //private static final String TO_USER = "user@gmail.com";
-private static final String TO_USER = "nicktuentitesting2@gmail.com";
-//private static final String TO_USER = "alexander@tuenti.com";
+    private static final String TO_USER = "user@gmail.com";
 
-    //private static final String MY_USER = "username@mydomain.com";
-private static final String MY_USER = "nicktuentitesting@gmail.com";
+    private static final String MY_USER = "username@mydomain.com";
 
-    //private static final String MY_PASS = "pass";
-private static final String MY_PASS = "20testing";
+    private static final String MY_PASS = "pass";
 
     private AudioManager mAudioManager;
 
