@@ -102,7 +102,7 @@ void TXmppSocket::OnWriteEvent(talk_base::AsyncSocket * socket) {
   while (buffer_.Length() != 0) {
     int written = cricket_socket_->Send(buffer_.Data(), buffer_.Length());
     if (written > 0) {
-      buffer_.Shift(written);
+      buffer_.Consume(written);
       continue;
     }
     if (!cricket_socket_->IsBlocking())
