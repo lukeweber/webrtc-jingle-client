@@ -372,7 +372,9 @@ void ClientSignalingThread::OnDataReceived(cricket::Call*,
   LOGI("ClientSignalingThread::OnDataReceived");
   assert(talk_base::Thread::Current() == signal_thread_);
   cricket::StreamParams stream;
-  if (GetStreamBySsrc(call_->data_recv_streams(), params.ssrc, &stream)) {
+  const std::vector<cricket::StreamParams>* data_streams =
+      call_->GetDataRecvStreams(session_);
+  if (data_streams && GetStreamBySsrc(*data_streams, params.ssrc, &stream)) {
     LOGI("Received data from '%s' on stream '%s' (ssrc=%u): %s",
             stream.nick.c_str(), stream.name.c_str(), params.ssrc,
             data.c_str());
