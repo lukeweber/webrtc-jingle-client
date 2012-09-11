@@ -34,6 +34,20 @@
                 <groupId>com.jayway.maven.plugins.android.generation2</groupId>
                 <artifactId>android-maven-plugin</artifactId>
                 <extensions>true</extensions>
+                <configuration>
+                    <manifestDebuggable>${android.manifest.debuggable}</manifestDebuggable>
+                    <makefile>${android.makefile}</makefile>
+                    <target>all</target>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>executeNdk</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>ndk-build</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

@@ -40,6 +40,10 @@
                 <groupId>com.jayway.maven.plugins.android.generation2</groupId>
                 <artifactId>android-maven-plugin</artifactId>
                 <extensions>true</extensions>
+                <configuration>
+                    <apkDebug>${android.apk.debug}</apkDebug>
+                    <manifestDebuggable>${android.manifest.debuggable}</manifestDebuggable>
+                </configuration>
             </plugin>
 
         </plugins>
