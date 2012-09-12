@@ -104,8 +104,6 @@ class ClientSignalingThread: public talk_base::SignalThread,
   // OnStateChange Needed by TXmppPumpNotify maybe better in another class
   void OnStateChange(buzz::XmppEngine::State state);
 
-  void OnDataReceived(cricket::Call*, const cricket::ReceiveDataParams& params,
-      const std::string& data);
   void OnRequestSignaling();
   void OnSessionCreate(cricket::Session* session, bool initiate);
   void OnCallCreate(cricket::Call* call);
@@ -118,10 +116,11 @@ class ClientSignalingThread: public talk_base::SignalThread,
       const std::string &xmpp_host, int xmpp_port, bool use_ssl);
   void Disconnect();
   void Call(std::string remoteJid);
-  void MuteCall(bool mute);
-  void AcceptCall();
-  void DeclineCall();
-  void EndCall();
+  void AcceptCall(uint32 call_id);
+  void DeclineCall(uint32 call_id, bool busy);
+  void EndCall(uint32 call_id);
+  void MuteCall(uint32 call_id, bool mute);
+  void HoldCall(uint32 call_id, bool hold);
   bool Destroy();
 
  protected:
@@ -135,10 +134,13 @@ class ClientSignalingThread: public talk_base::SignalThread,
   void LoginS();
   void DisconnectS();
   void CallS(const std::string &remoteJid);
-  void MuteCallS(bool mute);
-  void AcceptCallS();
-  void DeclineCallS();
-  void EndCallS();
+  void MuteCallS(uint32 call_id, bool mute);
+  void HoldCallS(uint32 call_id, bool hold);
+  void AcceptCallS(uint32 call_id);
+  void DeclineCallS(uint32 call_id, bool busy);
+  void EndCallS(uint32 call_id);
+  cricket::Call* GetCall(uint32 call_id);
+  bool EndAllCalls();
 
   // These should live inside of the TXmppPump
   void InitMedia();
@@ -160,7 +162,6 @@ class ClientSignalingThread: public talk_base::SignalThread,
   buzz::PingTask* ping_;
   talk_base::BasicNetworkManager *network_manager_;
   cricket::BasicPortAllocator *port_allocator_;
-  cricket::Session *session_;
   cricket::SessionManager *session_manager_;
   cricket::SessionManagerTask* session_manager_task_;
   cricket::Call* call_;
@@ -169,7 +170,6 @@ class ClientSignalingThread: public talk_base::SignalThread,
   cricket::DataEngine *data_engine_;
   uint32 port_allocator_flags_;
   bool use_ssl_;
-  bool incoming_call_;
   bool auto_accept_;
   // use default constructors
   buzz::Status my_status_;

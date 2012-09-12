@@ -57,13 +57,14 @@ public class VoiceClient
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    private static void dispatchNativeEvent( int what, int code, String str1 )
+    private static void dispatchNativeEvent( int what, int code, String str1, long callId )
     {
         VoiceClient client = getInstance();
         if ( client != null && client.handler != null )
         {
             Bundle bundle = new Bundle();
             bundle.putString( "str1", str1 );
+            bundle.putLong( "long1", callId );
 
             Message msg = client.handler.obtainMessage( what, code, -1 );
             msg.setData( bundle );
@@ -90,9 +91,10 @@ public class VoiceClient
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public void acceptCall()
+    public void acceptCall(long call_id)
     {
-        nativeAcceptCall();
+        Log.i( TAG, "native accept call " + call_id );
+        nativeAcceptCall(call_id);
     }
 
     public void call( String remoteUsername )
@@ -100,9 +102,19 @@ public class VoiceClient
         nativeCall( remoteUsername );
     }
 
-    public void declineCall()
+    public void declineCall(long call_id, boolean busy)
     {
-        nativeDeclineCall();
+        nativeDeclineCall(call_id, busy);
+    }
+
+    public void muteCall(long call_id, boolean mute)
+    {
+        nativeMuteCall(call_id, mute);
+    }
+
+    public void holdCall(long call_id, boolean hold)
+    {
+        nativeHoldCall(call_id, hold);
     }
 
     public void destroy()
@@ -111,9 +123,9 @@ public class VoiceClient
         instance = null;
     }
 
-    public void endCall()
+    public void endCall(long call_id)
     {
-        nativeEndCall();
+        nativeEndCall(call_id);
     }
 
     public void init( String stunServer, String relayServerUDP, String relayServerTCP, String relayServerSSL, String turnServer )
@@ -150,17 +162,19 @@ public class VoiceClient
         System.loadLibrary( name );
     }
 
-    private native void nativeAcceptCall();
+    private native void nativeAcceptCall( long call_id );
 
     private native void nativeCall( String remoteJid );
 
-    private native void nativeMuteCall( boolean mute );
+    private native void nativeMuteCall( long call_id, boolean mute );
 
-    private native void nativeDeclineCall();
+    private native void nativeHoldCall( long call_id, boolean hold );
+
+    private native void nativeDeclineCall( long call_id, boolean busy );
 
     private native void nativeDestroy();
 
-    private native void nativeEndCall();
+    private native void nativeEndCall( long call_id );
 
     private native void nativeInit( String stunServer, String relayServerUDP, String relayServerTCP, String relayServerSSL, String turnServer);
 

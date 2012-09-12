@@ -18,10 +18,10 @@ extern "C" {
 /*
  * Class:     com_tuenti_voice_core_VoiceClient
  * Method:    nativeAcceptCall
- * Signature: ()V
+ * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeAcceptCall
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jlong);
 
 /*
  * Class:     com_tuenti_voice_core_VoiceClient
@@ -34,18 +34,26 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeCall
 /*
  * Class:     com_tuenti_voice_core_VoiceClient
  * Method:    nativeMuteCall
- * Signature: (Z)V
+ * Signature: (JZ)V
  */
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeMuteCall
-  (JNIEnv *, jobject, jboolean);
+  (JNIEnv *, jobject, jlong, jboolean);
+
+/*
+ * Class:     com_tuenti_voice_core_VoiceClient
+ * Method:    nativeHoldCall
+ * Signature: (JZ)V
+ */
+JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeHoldCall
+  (JNIEnv *, jobject, jlong, jboolean);
 
 /*
  * Class:     com_tuenti_voice_core_VoiceClient
  * Method:    nativeDeclineCall
- * Signature: ()V
+ * Signature: (JZ)V
  */
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeDeclineCall
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jlong, jboolean);
 
 /*
  * Class:     com_tuenti_voice_core_VoiceClient
@@ -58,10 +66,10 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeDestroy
 /*
  * Class:     com_tuenti_voice_core_VoiceClient
  * Method:    nativeEndCall
- * Signature: ()V
+ * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeEndCall
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jlong);
 
 /*
  * Class:     com_tuenti_voice_core_VoiceClient

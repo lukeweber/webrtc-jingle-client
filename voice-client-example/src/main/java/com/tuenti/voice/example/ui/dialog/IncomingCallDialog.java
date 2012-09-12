@@ -13,14 +13,16 @@ public class IncomingCallDialog
 // ------------------------------ FIELDS ------------------------------
 
     private VoiceClient mClient;
+    private long mcallId;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public IncomingCallDialog( final Context context, final VoiceClient client, final String remoteJid )
+    public IncomingCallDialog( final Context context, final VoiceClient client, final String remoteJid, long callId )
     {
         super( context );
 
         mClient = client;
+        mcallId = callId;
 
         setTitle( R.string.voice_chat_invite );
         setMessage( remoteJid );
@@ -38,10 +40,10 @@ public class IncomingCallDialog
         switch ( which )
         {
             case DialogInterface.BUTTON_POSITIVE:
-                mClient.acceptCall();
+                mClient.acceptCall(mcallId);
                 break;
             case DialogInterface.BUTTON_NEGATIVE:
-                mClient.declineCall();
+                mClient.declineCall(mcallId, true);
                 break;
         }
     }

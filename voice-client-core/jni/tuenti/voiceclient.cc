@@ -156,30 +156,38 @@ void VoiceClient::Call(std::string remoteJid) {
   }
 }
 
-void VoiceClient::MuteCall(bool mute) {
+void VoiceClient::MuteCall(uint32 call_id, bool mute) {
+  LOGI("VoiceClient::MuteCall");
   if (client_signaling_thread_) {
-    client_signaling_thread_->MuteCall(mute);
+    client_signaling_thread_->MuteCall(call_id, mute);
   }
 }
 
-void VoiceClient::EndCall() {
+void VoiceClient::HoldCall(uint32 call_id, bool hold) {
+  LOGI("VoiceClient::HoldCall");
+  if (client_signaling_thread_) {
+    client_signaling_thread_->HoldCall(call_id, hold);
+  }
+}
+
+void VoiceClient::EndCall(uint32 call_id) {
   LOGI("VoiceClient::EndCall");
   if (client_signaling_thread_) {
-    client_signaling_thread_->EndCall();
+    client_signaling_thread_->EndCall(call_id);
   }
 }
 
-void VoiceClient::AcceptCall() {
+void VoiceClient::AcceptCall(uint32 call_id) {
   LOGI("VoiceClient::AcceptCall");
   if (client_signaling_thread_) {
-    client_signaling_thread_->AcceptCall();
+    client_signaling_thread_->AcceptCall(call_id);
   }
 }
 
-void VoiceClient::DeclineCall() {
+void VoiceClient::DeclineCall(uint32 call_id, bool busy) {
   LOGI("VoiceClient::DeclineCall");
   if (client_signaling_thread_) {
-    client_signaling_thread_->DeclineCall();
+    client_signaling_thread_->DeclineCall(call_id, busy);
   }
 }
 

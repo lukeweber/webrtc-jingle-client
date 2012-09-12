@@ -59,9 +59,10 @@ jint JNI_OnLoad(JavaVM* vm, void* /*reserved*/) {
 }
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeAcceptCall(
-    JNIEnv *env, jobject object) {
+    JNIEnv *env, jobject object, jlong call_id) {
   if (client_) {
-    client_->AcceptCall();
+    LOGI("native accept call %d", call_id);
+    client_->AcceptCall(call_id);
   }
 }
 
@@ -74,16 +75,23 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeCall(
 }
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeMuteCall(
-    JNIEnv *env, jobject object, jboolean mute) {
+    JNIEnv *env, jobject object, jlong call_id, jboolean mute) {
   if (client_) {
-    client_->MuteCall(mute);
+    client_->MuteCall(call_id, mute);
+  }
+}
+
+JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeHoldCall(
+    JNIEnv *env, jobject object, jlong call_id, jboolean hold) {
+  if (client_) {
+    client_->HoldCall(call_id, hold);
   }
 }
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeDeclineCall(
-    JNIEnv *env, jobject object) {
+    JNIEnv *env, jobject object, jlong call_id, jboolean busy) {
   if (client_) {
-    client_->DeclineCall();
+    client_->DeclineCall(call_id, busy);
   }
 }
 
@@ -93,9 +101,9 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeDestroy(
 }
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeEndCall(
-    JNIEnv *env, jobject object) {
+    JNIEnv *env, jobject object, jlong call_id) {
   if (client_) {
-    client_->EndCall();
+    client_->EndCall(call_id);
   }
 }
 

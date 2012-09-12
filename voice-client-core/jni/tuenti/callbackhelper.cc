@@ -45,7 +45,7 @@ void CallbackHelper::setReferenceObject(jobject reference_obj) {
 }
 
 void CallbackHelper::CallNativeDispatchEvent(jint type, jint code,
-    const std::string &msg) {
+    const std::string &msg, jlong call_id) {
   JNIEnv *env;
   int status = jvm_->AttachCurrentThread(&env, NULL);
   if (status < 0) {
@@ -59,21 +59,21 @@ void CallbackHelper::CallNativeDispatchEvent(jint type, jint code,
     return;
   }
   jmethodID method = env->GetStaticMethodID(cls, "dispatchNativeEvent",
-    "(IILjava/lang/String;)V");
+    "(IILjava/lang/String;J)V");
   if (!method) {
     LOGE("Failed to get method ID");
     jvm_->DetachCurrentThread();
     return;
   }
   jstring message = env->NewStringUTF(msg.c_str());
-  env->CallStaticVoidMethod(cls, method, type, code, message);
+  env->CallStaticVoidMethod(cls, method, type, code, message, call_id);
   jvm_->DetachCurrentThread();
   return;
 }
 
 void CallbackHelper::OnXmppStateChange(buzz::XmppEngine::State state) {
   CallNativeDispatchEvent(com_tuenti_voice_core_VoiceClient_XMPP_STATE_EVENT,
-    state, "");
+    state, "", 0);
   if (state == buzz::XmppEngine::STATE_CLOSED && !reference_object_) {
     JNIEnv *env;
     jvm_->AttachCurrentThread(&env, NULL);
@@ -84,16 +84,16 @@ void CallbackHelper::OnXmppStateChange(buzz::XmppEngine::State state) {
 }
 
 void CallbackHelper::OnCallStateChange(cricket::Session* session,
-      cricket::Session::State state) {
+      cricket::Session::State state, uint32 call_id) {
     buzz::Jid jid(session->remote_name());
     std::string remoteJid = jid.Str();
     CallNativeDispatchEvent(com_tuenti_voice_core_VoiceClient_CALL_STATE_EVENT,
-        state, remoteJid);
+        state, remoteJid, call_id);
 }
 
 void CallbackHelper::OnXmppError(buzz::XmppEngine::Error error) {
   CallNativeDispatchEvent(com_tuenti_voice_core_VoiceClient_XMPP_ERROR_EVENT,
-    error, "");
+    error, "", 0);
 }
 
 void CallbackHelper::OnBuddyListAdd(const std::string user_key,
@@ -102,18 +102,18 @@ void CallbackHelper::OnBuddyListAdd(const std::string user_key,
   // TODO(Luke) We might want to pass nick back, but NativeDispatch only
   // supports one param.
   CallNativeDispatchEvent(com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT,
-      ADD, user_key);
+      ADD, user_key, 0);
 }
 
 void CallbackHelper::OnBuddyListRemove(const std::string user_key) {
   LOGI("Removing from buddy list: %s", user_key.c_str());
   CallNativeDispatchEvent(com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT,
-      REMOVE, user_key);
+      REMOVE, user_key, 0);
 }
 
 void CallbackHelper::OnBuddyListReset() {
   LOGI("Resetting buddy list");
   CallNativeDispatchEvent(com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT,
-      RESET, "");
+      RESET, "", 0);
 }
 }  // Namespace tuenti

@@ -32,7 +32,8 @@ public class VoiceClientEventHandler
         {
             case VoiceClient.CALL_STATE_EVENT:
                 String remoteJid = bundle.getString( "str1" );
-                mCallback.handleCallStateChanged( code, remoteJid );
+                long callId = bundle.getLong( "long1" );
+                mCallback.handleCallStateChanged( code, remoteJid, callId );
                 break;
             case VoiceClient.BUDDY_LIST_EVENT:
                 String remoteJidBuddy = bundle.getString( "str1" );

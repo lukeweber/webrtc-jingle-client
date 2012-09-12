@@ -42,7 +42,7 @@ class VoiceClientNotify {
 
   /* Called when the call state changes */
   virtual void OnCallStateChange(cricket::Session* session,
-      cricket::Session::State state) = 0;
+      cricket::Session::State state, uint32 call_id) = 0;
 
   /* Called when there is a xmpp error */
   virtual void OnXmppError(buzz::XmppEngine::Error) = 0;

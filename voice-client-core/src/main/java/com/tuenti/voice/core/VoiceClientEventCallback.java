@@ -4,7 +4,7 @@ public interface VoiceClientEventCallback
 {
 // -------------------------- OTHER METHODS --------------------------
 
-    void handleCallStateChanged( int state, String remoteJid );
+    void handleCallStateChanged( int state, String remoteJid, long callId );
 
     void handleXmppError( int error );
 

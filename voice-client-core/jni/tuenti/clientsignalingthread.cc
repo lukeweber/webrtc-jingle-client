@@ -46,22 +46,24 @@ enum {
   MSG_DISCONNECT,  // Logout
   MSG_CALL,
   MSG_ACCEPT_CALL,
-  MSG_MUTE_CALL,
+  MSG_HOLD_CALL,
   MSG_DECLINE_CALL,
+  MSG_MUTE_CALL,
   MSG_END_CALL
 //  , MSG_DESTROY
 };
-struct BoolData: public talk_base::MessageData {
-  explicit BoolData(bool b) :
-      b_(b){}
-  bool b_;
-};
 
-struct StringData: public talk_base::MessageData {
-  explicit StringData(std::string s) :
-      s_(s) {
-  }
+struct ClientSignalingData: public talk_base::MessageData {
+  ClientSignalingData(uint32 call_id, bool b) :
+      call_id_(call_id),
+      b_(b) {}
+  ClientSignalingData(std::string s) :
+      s_(s) {}
+  ClientSignalingData(uint32 call_id) :
+      call_id_(call_id) {}
+  uint32 call_id_;
   std::string s_;
+  bool b_;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -81,14 +83,12 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientNotify *notifier,
     ping_(NULL),
     network_manager_(NULL),
     port_allocator_(NULL),
-    session_(NULL),
     session_manager_(NULL),
     session_manager_task_(NULL),
     call_(NULL),
     media_client_(NULL),
     port_allocator_flags_(0),
     use_ssl_(false),
-    incoming_call_(false),
     auto_accept_(false) {
   int numRelayPorts = 0;
   LOGI("ClientSignalingThread::ClientSignalingThread");
@@ -127,7 +127,7 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientNotify *notifier,
       relay_udp.Clear();
       ++numRelayPorts;
     }
-    
+
     if (stun_config->relay_tcp.empty() ||
             !relay_tcp.FromString(stun_config->relay_tcp)) {
       relay_tcp.Clear();
@@ -153,8 +153,8 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientNotify *notifier,
         "new BasicPortAllocator port_allocator_@(0x%x)",
         reinterpret_cast<int>(port_allocator_));
     if (port_allocator_flags_ != 0) {
-      LOGI("LOGT ClientSignalingThread::ClientSignalingThread - setting port_allocator_flags_=%d", 
-        port_allocator_flags_);
+      LOGI("LOGT ClientSignalingThread::ClientSignalingThread - "
+        "setting port_allocator_flags_=%d", port_allocator_flags_);
       port_allocator_->set_flags(port_allocator_flags_);
     }
   }
@@ -275,12 +275,9 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
     LOGI("VoiceClient::OnSessionState - "
       "STATE_RECEIVEDINITIATE setting up call...");
     buzz::Jid jid(session->remote_name());
-    LOGI("Incoming call from '%s'", jid.Str().c_str());
-    call_ = call;
-    session_ = session;
-    incoming_call_ = true;
+    LOGI("Incoming call from '%s', call_id %d", jid.Str().c_str(), call->id());
     if (auto_accept_) {
-      AcceptCall();
+      AcceptCall(call->id());
     }
     break;
     }
@@ -290,10 +287,6 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
   case cricket::Session::STATE_RECEIVEDACCEPT:
     LOGI("VoiceClient::OnSessionState - "
       "STATE_RECEIVEDACCEPT transfering data.");
-    if (call_->has_data()) {
-      call_->SignalDataReceived.connect(this,
-          &ClientSignalingThread::OnDataReceived);
-    }
     break;
   case cricket::Session::STATE_RECEIVEDREJECT:
     LOGI("VoiceClient::OnSessionState - STATE_RECEIVEDREJECT doing nothing...");
@@ -303,12 +296,17 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
     call->StartSpeakerMonitor(session);
     break;
   case cricket::Session::STATE_RECEIVEDTERMINATE:
-    LOGI("VoiceClient::OnSessionState - "
-      "STATE_RECEIVEDTERMINATE doing nothing.");
+    LOGI("VoiceClient::OnSessionState - STATE_RECEIVEDTERMINATE");
+    break;
+  case cricket::Session::STATE_SENTBUSY:
+    LOGI("VoiceClient::OnSessionState - Sent Busy");
+    break;
+  case cricket::Session::STATE_RECEIVEDBUSY:
+    LOGI("VoiceClient::OnSessionState - Received Busy");
     break;
   }
   if (notify_) {
-    notify_->OnCallStateChange(session, state);
+    notify_->OnCallStateChange(session, state, call->id());
   }
 }
 
@@ -367,22 +365,6 @@ void ClientSignalingThread::OnStateChange(buzz::XmppEngine::State state) {
   // main_thread_->Post(this, MSG_STATE_CHANGE, new StateChangeData(state));
 }
 
-void ClientSignalingThread::OnDataReceived(cricket::Call*,
-    const cricket::ReceiveDataParams& params, const std::string& data) {
-  LOGI("ClientSignalingThread::OnDataReceived");
-  assert(talk_base::Thread::Current() == signal_thread_);
-  cricket::StreamParams stream;
-  const std::vector<cricket::StreamParams>* data_streams =
-      call_->GetDataRecvStreams(session_);
-  if (data_streams && GetStreamBySsrc(*data_streams, params.ssrc, &stream)) {
-    LOGI("Received data from '%s' on stream '%s' (ssrc=%u): %s",
-            stream.nick.c_str(), stream.name.c_str(), params.ssrc,
-            data.c_str());
-  } else {
-    LOGI("Received data (ssrc=%u): %s", params.ssrc, data.c_str());
-  }
-}
-
 void ClientSignalingThread::OnRequestSignaling() {
   LOGI("ClientSignalingThread::OnRequestSignaling");
   assert(talk_base::Thread::Current() == signal_thread_);
@@ -407,11 +389,9 @@ void ClientSignalingThread::OnCallDestroy(cricket::Call* call) {
   LOGI("ClientSignalingThread::OnCallDestroy");
   assert(talk_base::Thread::Current() == signal_thread_);
   if (call == call_) {
-    LOGI("internal delete found a valid call_@(0x%x) and session_@(0x%x) "
-            "to destroy ", reinterpret_cast<int>(call_),
-            reinterpret_cast<int>(session_));
+    LOGI("internal delete found a valid call_@(0x%x) "
+            "to destroy ", reinterpret_cast<int>(call_));
     call_ = NULL;
-    session_ = NULL;
   }
 }
 
@@ -456,28 +436,36 @@ void ClientSignalingThread::Disconnect() {
 void ClientSignalingThread::Call(std::string remoteJid) {
   LOGI("ClientSignalingThread::Call");
   // assert(talk_base::Thread::Current() == signal_thread_);
-  signal_thread_->Post(this, MSG_CALL, new StringData(remoteJid));
-}
-void ClientSignalingThread::MuteCall(bool mute) {
-  signal_thread_->Post(this, MSG_MUTE_CALL, new BoolData(mute));
+  signal_thread_->Post(this, MSG_CALL, new ClientSignalingData(remoteJid));
 }
 
-void ClientSignalingThread::AcceptCall() {
-  LOGI("ClientSignalingThread::AcceptCall");
-  // assert(talk_base::Thread::Current() == signal_thread_);
-  signal_thread_->Post(this, MSG_ACCEPT_CALL);
+void ClientSignalingThread::MuteCall(uint32 call_id, bool mute) {
+  signal_thread_->Post(this, MSG_MUTE_CALL, new ClientSignalingData(call_id,
+    mute));
 }
 
-void ClientSignalingThread::DeclineCall() {
-  LOGI("ClientSignalingThread::DeclineCall");
-  // assert(talk_base::Thread::Current() == signal_thread_);
-  signal_thread_->Post(this, MSG_DECLINE_CALL);
+void ClientSignalingThread::HoldCall(uint32 call_id, bool hold) {
+  signal_thread_->Post(this, MSG_HOLD_CALL, new ClientSignalingData(call_id,
+      hold));
 }
 
-void ClientSignalingThread::EndCall() {
-  LOGI("ClientSignalingThread::EndCall");
+void ClientSignalingThread::AcceptCall(uint32 call_id) {
+  LOGI("ClientSignalingThread::AcceptCall %d", call_id);
   // assert(talk_base::Thread::Current() == signal_thread_);
-  signal_thread_->Post(this, MSG_END_CALL);
+  signal_thread_->Post(this, MSG_ACCEPT_CALL, new ClientSignalingData(call_id));
+}
+
+void ClientSignalingThread::DeclineCall(uint32 call_id, bool busy) {
+  LOGI("ClientSignalingThread::DeclineCall %d", call_id);
+  // assert(talk_base::Thread::Current() == signal_thread_);
+  signal_thread_->Post(this, MSG_DECLINE_CALL, new ClientSignalingData(call_id,
+      busy));
+}
+
+void ClientSignalingThread::EndCall(uint32 call_id) {
+  LOGI("ClientSignalingThread::EndCall %d", call_id);
+  // assert(talk_base::Thread::Current() == signal_thread_);
+  signal_thread_->Post(this, MSG_END_CALL, new ClientSignalingData(call_id));
 }
 
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -489,13 +477,10 @@ bool ClientSignalingThread::Destroy() {
   assert(talk_base::Thread::Current() == signal_thread_);
   bool destroyed = false;
   // Single threaded shuts everything down
-  EndCall();
-  if (call_ == NULL) {
-    Disconnect();
-    if (media_client_ == NULL) {
-      SignalThread::Destroy(true);
-      destroyed = true;
-    }
+  Disconnect();
+  if (media_client_ == NULL) {
+    SignalThread::Destroy(true);
+    destroyed = true;
   }
   return destroyed;
 }
@@ -503,6 +488,7 @@ bool ClientSignalingThread::Destroy() {
 void ClientSignalingThread::OnMessage(talk_base::Message* message) {
   LOGI("ClientSignalingThread::OnMessage");
   assert(talk_base::Thread::Current() == signal_thread_);
+  ClientSignalingData* data;
   switch (message->message_id) {
   case MSG_LOGIN:
     LOGI("ClientSignalingThread::OnMessage - MSG_LOGIN");
@@ -514,25 +500,36 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
     break;
   case MSG_CALL:
     LOGI("ClientSignalingThread::OnMessage - MSG_CALL");
-    CallS(static_cast<StringData*>(message->pdata)->s_);
+    CallS(static_cast<ClientSignalingData*>(message->pdata)->s_);
     delete message->pdata;
     break;
   case MSG_MUTE_CALL:
     LOGI("ClientSignallingThread::OnMessage - MSG_MUTE_CALL");
-    MuteCallS(static_cast<BoolData*>(message->pdata)->b_);
+    data = static_cast<ClientSignalingData*>(message->pdata);
+    MuteCallS(data->call_id_, data->b_);
     delete message->pdata;
     break;
   case MSG_ACCEPT_CALL:
     LOGI("ClientSignalingThread::OnMessage - MSG_ACCEPT_CALL");
-    AcceptCallS();
+    AcceptCallS(static_cast<ClientSignalingData*>(message->pdata)->call_id_);
+    delete message->pdata;
     break;
   case MSG_DECLINE_CALL:
     LOGI("ClientSignalingThread::OnMessage - MSG_DECLINE_CALL");
-    DeclineCallS();
+    data = static_cast<ClientSignalingData*>(message->pdata);
+    DeclineCallS(data->call_id_, data->b_);
+    delete message->pdata;
+    break;
+  case MSG_HOLD_CALL:
+    LOGI("ClientSignalingThread::OnMessage - MSG_HOLD_CALL");
+    data = static_cast<ClientSignalingData*>(message->pdata);
+    HoldCallS(data->call_id_, data->b_);
+    delete message->pdata;
     break;
   case MSG_END_CALL:
     LOGI("ClientSignalingThread::OnMessage - MSG_END_CALL");
-    EndCallS();
+    EndCallS(static_cast<ClientSignalingData*>(message->pdata)->call_id_);
+    delete message->pdata;
     break;
   default:
     LOGI("ClientSignalingThread::OnMessage - UNKNOWN "
@@ -567,8 +564,7 @@ void ClientSignalingThread::LoginS() {
 void ClientSignalingThread::DisconnectS() {
   LOGI("ClientSignalingThread::DisconnectS");
   assert(talk_base::Thread::Current() == signal_thread_);
-  if (call_) {
-    signal_thread_->Post(this, MSG_END_CALL);
+  if (EndAllCalls()) {
     signal_thread_->PostDelayed(100, this, MSG_DISCONNECT);
   } else if (media_client_) {
     if (pump_->AllChildrenDone()) {
@@ -607,7 +603,7 @@ void ClientSignalingThread::CallS(const std::string &remoteJid) {
     LOGI("Found online friend '%s'", found_jid.Str().c_str());
     if (!call_) {
       call_ = media_client_->CreateCall();
-      session_ = call_->InitiateSession(found_jid, options);  // REQ_MAIN_THREAD
+      call_->InitiateSession(found_jid, options);  // REQ_MAIN_THREAD
     }
     media_client_->SetFocus(call_);
   } else {
@@ -615,46 +611,59 @@ void ClientSignalingThread::CallS(const std::string &remoteJid) {
   }
 }
 
-void ClientSignalingThread::MuteCallS(bool mute) {
-  if(call_) {
-    call_->Mute(mute);
-    LOGI("Toggled mute");
+void ClientSignalingThread::MuteCallS(uint32 call_id, bool mute) {
+  cricket::Call* call = GetCall(call_id);
+  if(call) {
+    call->Mute(mute);
+    LOGI("Toggled mute, call_id %d", call_id);
   }
 }
 
-void ClientSignalingThread::AcceptCallS() {
-  LOGI("ClientSignalingThread::AcceptCallS");
-  assert(talk_base::Thread::Current() == signal_thread_);
-  if (call_ && incoming_call_ && call_->sessions().size() == 1) {
-    cricket::CallOptions options;
-    call_->AcceptSession(call_->sessions()[0], options);
-    media_client_->SetFocus(call_);
-    if (call_->has_data()) {
-      call_->SignalDataReceived.connect(this,
-              &ClientSignalingThread::OnDataReceived);
+void ClientSignalingThread::HoldCallS(uint32 call_id, bool hold) {
+  cricket::Call* call = GetCall(call_id);
+  if(call) {
+    if(hold && call == call_) {
+      media_client_->SetFocus(NULL);
+      call_ = NULL;
+    } else if (!hold) {
+      media_client_->SetFocus(call);
+      call_ = call;
     }
-    incoming_call_ = false;
+    LOGI("Toggled hold call_id %d", call_id);
+  }
+}
+
+void ClientSignalingThread::AcceptCallS(uint32 call_id) {
+  LOGI("ClientSignalingThread::AcceptCallS, call_id %d", call_id);
+  assert(talk_base::Thread::Current() == signal_thread_);
+  cricket::Call* call = GetCall(call_id);
+  if (call && call->sessions().size() == 1) {
+    call_ = call;
+    cricket::CallOptions options;
+    call->AcceptSession(call->sessions()[0], options);
+    media_client_->SetFocus(call);
   } else {
     LOGE("ClientSignalingThread::AcceptCallW - No incoming call to accept");
   }
 }
 
-void ClientSignalingThread::DeclineCallS() {
-  LOGI("ClientSignalingThread::DeclineCallS");
+void ClientSignalingThread::DeclineCallS(uint32 call_id, bool busy) {
+  LOGI("ClientSignalingThread::DeclineCallS call_id %d, busy: %d", call_id, busy);
+  cricket::Call* call = GetCall(call_id);
   assert(talk_base::Thread::Current() == signal_thread_);
-  if (call_ && incoming_call_ && call_->sessions().size() == 1) {
-    call_->RejectSession(call_->sessions()[0]);
-    incoming_call_ = false;
+  if (call && call->sessions().size() == 1) {
+    call->RejectSession(call->sessions()[0], busy);
   } else {
     LOGE("ClientSignalingThread::DeclineCallW - No incoming call to decline");
   }
 }
 
-void ClientSignalingThread::EndCallS() {
-  LOGI("ClientSignalingThread::EndCallS");
+void ClientSignalingThread::EndCallS(uint32 call_id) {
+  LOGI("ClientSignalingThread::EndCallS %d", call_id);
   assert(talk_base::Thread::Current() == signal_thread_);
-  if (call_) {
-    call_->Terminate();
+  cricket::Call* call = GetCall(call_id);
+  if (call) {
+    call->Terminate();
   }
 }
 
@@ -719,4 +728,26 @@ void ClientSignalingThread::InitPing() {
   ping_->Start();
 }
 
+cricket::Call* ClientSignalingThread::GetCall(uint32 call_id) {
+  const std::map<uint32, cricket::Call*>& calls = media_client_->calls();
+  for (std::map<uint32, cricket::Call*>::const_iterator i = calls.begin();
+       i != calls.end(); ++i) {
+    if (i->first == call_id) {
+        return i->second;
+    }
+  }
+  return NULL;
+}
+
+bool ClientSignalingThread::EndAllCalls() {
+  bool calls_processed = false;
+  const std::map<uint32, cricket::Call*>& calls = media_client_->calls();
+  for (std::map<uint32, cricket::Call*>::const_iterator i = calls.begin();
+       i != calls.end(); ++i) {
+    signal_thread_->Post(this, MSG_END_CALL, new ClientSignalingData(i->first));
+    calls_processed = true;
+  }
+  call_  = NULL;
+  return calls_processed;
+}
 }  // namespace tuenti

@@ -46,6 +46,8 @@ public class VoiceClientActivity
     private Ringtone mRingerPlayer;
 
     private SharedPreferences mSettings;
+    
+    private long currentCallId = 0;
 
     private static String cleanJid( String jid )
     {
@@ -86,7 +88,9 @@ public class VoiceClientActivity
                 mClient.call( TO_USER );
                 break;
             case R.id.hang_up_btn:
-                mClient.endCall();
+                if( currentCallId > 0){
+                   mClient.endCall(currentCallId);
+                }
                 break;
         }
     }
@@ -94,11 +98,12 @@ public class VoiceClientActivity
 // --------------------- Interface VoiceClientEventCallback ---------------------
 
     @Override
-    public void handleCallStateChanged( int state, String remoteJid )
+    public void handleCallStateChanged( int state, String remoteJid, long callId )
     {
         switch ( CallState.fromInteger( state ) )
         {
             case SENT_INITIATE:
+                currentCallId = callId;
                 startOutgoingRinging();
                 changeStatus( "calling..." );
                 break;
@@ -107,17 +112,25 @@ public class VoiceClientActivity
                 changeStatus( "call hang up" );
                 break;
             case RECEIVED_INITIATE:
-                displayIncomingCall( remoteJid );
+                currentCallId = callId;
+                displayIncomingCall( remoteJid, callId );
                 break;
             case RECEIVED_ACCEPT:
+                currentCallId = callId;
                 stopRinging();
                 changeStatus( "call answered" );
                 break;
             case RECEIVED_REJECT:
+                currentCallId = 0;
                 stopRinging();
-                changeStatus( "call not answered" );
+                changeStatus( "call rejected" );
                 break;
+            case RECEIVED_BUSY:
+                currentCallId = 0;
+                stopRinging();
+                changeStatus( "user busy" );
             case RECEIVED_TERMINATE:
+                currentCallId = 0;
                 stopRinging();
                 changeStatus( "other side hung up" );
                 break;
@@ -233,13 +246,13 @@ public class VoiceClientActivity
         ( (TextView) findViewById( R.id.status_view ) ).setText( status );
     }
 
-    private void displayIncomingCall( String remoteJid )
+    private void displayIncomingCall( String remoteJid, long callId )
     {
         // start ringing
         startIncomingRinging();
 
         // and display the incoming call dialog
-        Dialog incomingCall = new IncomingCallDialog( this, mClient, cleanJid( remoteJid ) ).create();
+        Dialog incomingCall = new IncomingCallDialog( this, mClient, cleanJid( remoteJid ), callId ).create();
         incomingCall.show();
     }
 

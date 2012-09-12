@@ -55,10 +55,10 @@ class CallbackHelper : public VoiceClientNotify {
   void setJvm(JavaVM* jvm);
   void setReferenceObject(jobject reference_object);
   void CallNativeDispatchEvent(jint type, jint code,
-          const std::string& message);
+          const std::string& message, jlong call_id);
   void OnXmppStateChange(buzz::XmppEngine::State state);
   void OnCallStateChange(cricket::Session* session,
-      cricket::Session::State state);
+      cricket::Session::State state, uint32 call_id);
   void OnXmppError(buzz::XmppEngine::Error error);
   void OnBuddyListAdd(std::string user_key, std::string nick);
   void OnBuddyListRemove(std::string user_key);

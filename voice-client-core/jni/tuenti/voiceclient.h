@@ -73,10 +73,11 @@ class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
     const std::string &xmpp_host, int xmpp_port, bool use_ssl);
   void Disconnect();
   void Call(std::string remoteJid);
-  void MuteCall(bool mute);
-  void EndCall();
-  void AcceptCall();
-  void DeclineCall();
+  void MuteCall(uint32 call_id, bool mute);
+  void HoldCall(uint32 call_id, bool hold);
+  void EndCall(uint32 call_id);
+  void AcceptCall(uint32 call_id);
+  void DeclineCall(uint32 call_id, bool busy);
 
  private:
   // signaling thread functions initialization
