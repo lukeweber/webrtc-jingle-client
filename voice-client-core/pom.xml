@@ -31,9 +31,36 @@
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
             <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>libs</directory>
+                        </fileset>
+                        <fileset>
+                            <directory>obj</directory>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>com.jayway.maven.plugins.android.generation2</groupId>
                 <artifactId>android-maven-plugin</artifactId>
                 <extensions>true</extensions>
+                <configuration>
+                    <apkDebug>false</apkDebug>
+                    <makefile>${android.makefile}</makefile>
+                    <target>all</target>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>executeNdk</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>ndk-build</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

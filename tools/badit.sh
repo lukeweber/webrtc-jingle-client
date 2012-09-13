@@ -120,19 +120,7 @@ if [ "$BUILDSYSTEM" == "gyp" ]; then
   $TRUNKDIR/build/android/gdb_apk -p com.tuenti.voice -l out/Debug/obj.target/
   check_return_code "$?"
 elif [ "$BUILDSYSTEM" == "mvn" ]; then
-  echo -e "===============================\nBUILDING\n==============================="
-  pushd $TRUNKDIR/voice-client-core/
-  if [ "$CLEAN" == "clean" ]; then
-    echo "cleaning with ndk-build clean"
-    ndk-build clean
-  fi
-  ./build.sh
-  RET_CODE_CACHE="$?"
-  popd
-  check_return_code "$RET_CODE_CACHE"
-
   echo -e "===============================\nINSTALLING\n==============================="
-  #mvn $CLEAN install -rf :voice-example
   mvn $CLEAN install 
   check_return_code "$?"
   
