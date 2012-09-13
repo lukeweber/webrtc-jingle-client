@@ -157,6 +157,7 @@ public class VoiceClientActivity
                 break;
             case IN_PROGRESS:
                 callInProgress = true;
+                stopRinging();
                 setAudioForCall();
                 changeStatus( "call in progress" );
                 break;
