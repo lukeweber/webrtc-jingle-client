@@ -34,7 +34,7 @@
         <android.api.version>14</android.api.version>
         <android.version>4.0.1.2</android.version>
 
-        <android-maven-plugin.version>3.3.0</android-maven-plugin.version>
+        <android-maven-plugin.version>3.3.2</android-maven-plugin.version>
         <maven-compiler-plugin.version>2.3.2</maven-compiler-plugin.version>
         <maven-jarsigner-plugin.version>1.2</maven-jarsigner-plugin.version>
         <native-maven-plugin.version>1.0-alpha-7</native-maven-plugin.version>
@@ -83,12 +83,57 @@
                             <platform>${android.api.version}</platform>
                             <path>${env.ANDROID_HOME}</path>
                         </sdk>
-                        <apkDebug>true</apkDebug>
                         <undeployBeforeDeploy>true</undeployBeforeDeploy>
-                        <extractDuplicates>true</extractDuplicates>
+                        <nativeLibrariesDependenciesHardwareArchitectureOverrides>
+                            <nativeLibrariesDependenciesHardwareArchitectureOverride>
+                                armeabi
+                            </nativeLibrariesDependenciesHardwareArchitectureOverride>
+                            <nativeLibrariesDependenciesHardwareArchitectureOverride>
+                                armeabi-v7a
+                            </nativeLibrariesDependenciesHardwareArchitectureOverride>
+                        </nativeLibrariesDependenciesHardwareArchitectureOverrides>
                     </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
     </build>
+
+    <profiles>
+        <profile>
+            <id>standard-debug</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <android.apk.debug>true</android.apk.debug>
+                <android.makefile>jni/default_debug.mk</android.makefile>
+                <android.manifest.debuggable>true</android.manifest.debuggable>
+            </properties>
+        </profile>
+        <profile>
+            <id>standard-release</id>
+            <properties>
+                <android.apk.debug>false</android.apk.debug>
+                <android.makefile>jni/default_release.mk</android.makefile>
+                <android.manifest.debuggable>false</android.manifest.debuggable>
+            </properties>
+        </profile>
+        <profile>
+            <id>tuenti-debug</id>
+            <properties>
+                <android.apk.debug>true</android.apk.debug>
+                <android.makefile>jni/tuenti_debug.mk</android.makefile>
+                <android.manifest.debuggable>true</android.manifest.debuggable>
+            </properties>
+        </profile>
+        <profile>
+            <id>tuenti-release</id>
+            <properties>
+                <android.apk.debug>false</android.apk.debug>
+                <android.makefile>jni/tuenti_release.mk</android.makefile>
+                <android.manifest.debuggable>false</android.manifest.debuggable>
+            </properties>
+        </profile>
+    </profiles>
+
 </project>
