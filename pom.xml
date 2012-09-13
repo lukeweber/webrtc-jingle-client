@@ -83,6 +83,7 @@
                             <platform>${android.api.version}</platform>
                             <path>${env.ANDROID_HOME}</path>
                         </sdk>
+                        <ndkBuildAdditionalCommandline>-j2</ndkBuildAdditionalCommandline>
                         <undeployBeforeDeploy>true</undeployBeforeDeploy>
                         <nativeLibrariesDependenciesHardwareArchitectureOverrides>
                             <nativeLibrariesDependenciesHardwareArchitectureOverride>
