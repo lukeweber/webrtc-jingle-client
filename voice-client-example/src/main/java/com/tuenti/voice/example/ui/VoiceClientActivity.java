@@ -48,8 +48,6 @@ public class VoiceClientActivity
 
     private Vibrator mVibrator;
 
-    private MediaPlayer mMediaPlayer;
-
     private SharedPreferences mSettings;
 
     private long currentCallId = 0;
