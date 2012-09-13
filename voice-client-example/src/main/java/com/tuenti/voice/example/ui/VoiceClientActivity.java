@@ -10,6 +10,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
@@ -45,9 +46,15 @@ public class VoiceClientActivity
 
     private Ringtone mRingerPlayer;
 
+    private Vibrator mVibrator;
+
+    private MediaPlayer mMediaPlayer;
+
     private SharedPreferences mSettings;
-    
+
     private long currentCallId = 0;
+
+    private boolean callInProgress = false;
 
     private static String cleanJid( String jid )
     {
@@ -112,29 +119,44 @@ public class VoiceClientActivity
                 changeStatus( "call hang up" );
                 break;
             case RECEIVED_INITIATE:
-                currentCallId = callId;
-                displayIncomingCall( remoteJid, callId );
+                if( callInProgress ) {
+                    // Decline as busy, until we support UI to handle this case.
+                    mClient.declineCall(callId, true);
+                } else {
+                    currentCallId = callId;
+                    displayIncomingCall( remoteJid, callId );
+                }
                 break;
             case RECEIVED_ACCEPT:
                 currentCallId = callId;
                 stopRinging();
                 changeStatus( "call answered" );
+                playNotification();
                 break;
             case RECEIVED_REJECT:
+                callInProgress = false;
                 currentCallId = 0;
                 stopRinging();
                 changeStatus( "call rejected" );
+                //TODO(jreyes): Close the dialog if they haven't answered.
                 break;
             case RECEIVED_BUSY:
+                callInProgress = false;
                 currentCallId = 0;
                 stopRinging();
                 changeStatus( "user busy" );
+                //TODO(jreyes): Close the dialog if they haven't answered.
+                break;
             case RECEIVED_TERMINATE:
+                callInProgress = false;
                 currentCallId = 0;
                 stopRinging();
                 changeStatus( "other side hung up" );
+                playNotification();
+                //TODO(jreyes): Close the dialog if they haven't answered.
                 break;
             case IN_PROGRESS:
+                callInProgress = true;
                 setAudioForCall();
                 changeStatus( "call in progress" );
                 break;
@@ -201,7 +223,7 @@ public class VoiceClientActivity
                 break;
         }
     }
-    
+
     @Override
     public void handleBuddyListChanged( int state , String remoteJid)
     {
@@ -216,7 +238,7 @@ public class VoiceClientActivity
                 Log.v( TAG, "Reset buddy list" );
                 break;
         }
-        
+
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -290,7 +312,7 @@ public class VoiceClientActivity
         findViewById( R.id.place_call_btn ).setOnClickListener( this );
         findViewById( R.id.hang_up_btn ).setOnClickListener( this );
     }
-    
+
     private void initClient()
     {
         String stunServer = getStringPref( R.string.stunserver_key, R.string.stunserver_value );
@@ -312,12 +334,43 @@ public class VoiceClientActivity
         mAudioManager.setMode( AudioManager.MODE_NORMAL );
     }
 
-    private synchronized void ring( Uri uri )
+    private synchronized void ringIncoming( Uri uri )
     {
-        mAudioManager.requestAudioFocus( null, AudioManager.STREAM_RING, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT );
-        mAudioManager.setMode( AudioManager.MODE_RINGTONE );
-        mAudioManager.setSpeakerphoneOn( true );
+        int ringerMode = mAudioManager.getRingerMode();
+        mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        if( callInProgress ) {
+            // Notify with single vibrate.
+            mVibrator.vibrate((long)200);
+        } else {
+            if( AudioManager.RINGER_MODE_NORMAL == ringerMode) {
+                mAudioManager.setMode( AudioManager.MODE_RINGTONE );
+                ring(uri, AudioManager.STREAM_RING);
+            } else if( AudioManager.RINGER_MODE_VIBRATE == ringerMode) {
 
+                // Start immediately
+                //Vibrate 400, break 200, Vibrate 400, break 1000
+                long[] pattern = { 0, 400, 200, 400, 1000 };
+
+                // Vibrate until cancelled.
+                mVibrator.vibrate(pattern, 0);
+            }  // else RINGER_MODE_SILENT
+        }
+    }
+
+    private synchronized void ringOutgoing( Uri uri )
+    {
+        mAudioManager.setMode( AudioManager.MODE_NORMAL );
+        ring(uri, AudioManager.STREAM_VOICE_CALL);
+    }
+
+    private synchronized void playNotification()
+    {
+        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        ringOutgoing(notification);
+    }
+
+    private synchronized void ring( Uri uri, int streamType)
+    {
         try
         {
             if ( mRingerPlayer != null )
@@ -325,6 +378,7 @@ public class VoiceClientActivity
                 mRingerPlayer.stop();
             }
             mRingerPlayer = RingtoneManager.getRingtone( getApplicationContext(), uri );
+            mRingerPlayer.setStreamType(streamType);
             mRingerPlayer.play();
         }
         catch ( Exception e )
@@ -344,23 +398,28 @@ public class VoiceClientActivity
     private synchronized void startIncomingRinging()
     {
         Uri notification = RingtoneManager.getDefaultUri( RingtoneManager.TYPE_RINGTONE );
-        ring( notification );
+        ringIncoming( notification );
     }
 
     private synchronized void startOutgoingRinging()
     {
-        Uri notification = Uri.parse( "android.resource://com.tuenti.voice/raw/outgoing_call_ring" );
-        ring( notification );
+        Uri notification = Uri.parse( "android.resource://com.tuenti.voice.example/raw/outgoing_call_ring" );
+        ringOutgoing( notification );
     }
 
     private synchronized void stopRinging()
     {
         if ( mRingerPlayer != null )
         {
-            mAudioManager.abandonAudioFocus( null );
             mAudioManager.setMode( AudioManager.MODE_NORMAL );
             mRingerPlayer.stop();
             mRingerPlayer = null;
+        }
+
+        if( mVibrator != null )
+        {
+            mVibrator.cancel();
+            mVibrator = null;
         }
     }
 }
