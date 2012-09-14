@@ -5,9 +5,7 @@
 # tree. An additional intellectual property rights grant can be found
 # in the file PATENTS.  All contributing project authors may
 # be found in the AUTHORS file in the root of the source tree.
-
-# Build both ARMv5TE and ARMv7-A machine code.
-APP_ABI := armeabi
+APP_ABI := armeabi armeabi-v7a
 APP_PLATFORM := android-9
 APP_CPPFLAGS += -fno-rtti
 APP_CFLAGS += \
