@@ -9,7 +9,7 @@
 ##  -m             maven. do the maven build (this depends on the ndk build)
 ##  -c             clean. do a clean install
 ##  -s             sync. sync before doing the build
-##  -j             just processes. force the number of processes
+##  -j             jobs. force the number of processes
 #
 # default variables
 #
@@ -74,7 +74,7 @@ do
     s ) #sync
       SYNCREPOS="yes"
       ;;
-    j ) #justprocesses
+    j ) #jobs
       num_of_cores="${OPTARG}"
       export num_of_cores
       ;;
