@@ -1,3 +1,5 @@
+CURRENT_APP_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
 num_of_cores=1
 function usage {
     echo "usage:    build [filename|dr|dd|tr|td]"
@@ -70,6 +72,6 @@ case ${filename} in
                 ;;
 esac
 
-cmd="$ndk_build_exe NDK_APPLICATION_MK=jni/${filename} ${flags}"
+cmd="$ndk_build_exe -C $CURRENT_APP_DIR NDK_APPLICATION_MK=jni/${filename} ${flags}"
 echo ${cmd}
 ${cmd}

@@ -121,6 +121,7 @@ if [ "$BUILDSYSTEM" == "gyp" ]; then
   check_return_code "$?"
 elif [ "$BUILDSYSTEM" == "mvn" ]; then
   echo -e "===============================\nINSTALLING\n==============================="
+  $TRUNKDIR/voice-client-core/build.sh
   mvn $CLEAN install 
   check_return_code "$?"
   
