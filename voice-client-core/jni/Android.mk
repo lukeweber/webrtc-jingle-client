@@ -22,7 +22,14 @@ include $(MY_WEBRTC_PATH)/modules/audio_coding/codecs/g711/Android.mk
 include $(MY_WEBRTC_PATH)/modules/audio_coding/codecs/g722/Android.mk
 include $(MY_WEBRTC_PATH)/modules/audio_coding/codecs/pcm16b/Android.mk
 include $(MY_WEBRTC_PATH)/modules/audio_coding/codecs/ilbc/Android.mk
+
+#Fixed point ISAC for arm, else floating point
+ifeq ($(TARGET_ARCH),arm)
 include $(MY_WEBRTC_PATH)/modules/audio_coding/codecs/isac/fix/source/Android.mk
+else
+include $(MY_WEBRTC_PATH)/modules/audio_coding/codecs/isac/main/source/Android.mk
+endif
+
 include $(MY_WEBRTC_PATH)/modules/audio_coding/main/source/Android.mk
 include $(MY_WEBRTC_PATH)/modules/utility/source/Android.mk
 include $(MY_WEBRTC_PATH)/modules/audio_conference_mixer/source/Android.mk
@@ -82,6 +89,7 @@ LOCAL_WHOLE_STATIC_LIBRARIES := \
 	libwebrtc_utility \
 	libwebrtc_neteq \
 	libwebrtc_audio_conference_mixer \
+	libwebrtc_isac \
 	libwebrtc_isacfix \
 	libwebrtc_voe_core \
 	libwebrtc_g722 \
