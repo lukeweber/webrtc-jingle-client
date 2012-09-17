@@ -564,7 +564,11 @@ void ClientSignalingThread::LoginS() {
 void ClientSignalingThread::DisconnectS() {
   LOGI("ClientSignalingThread::DisconnectS");
   assert(talk_base::Thread::Current() == signal_thread_);
-  if (EndAllCalls()) {
+  if (call_) {
+    // TODO(Luke): Gate EndAllCalls whether this has already been called.
+    // On a shutdown, it should only be called once otherwise, you'll
+    // end up with asyncronous double deletes of call objects/SEGFAULT.
+    EndAllCalls();
     signal_thread_->PostDelayed(100, this, MSG_DISCONNECT);
   } else if (media_client_) {
     if (pump_->AllChildrenDone()) {
