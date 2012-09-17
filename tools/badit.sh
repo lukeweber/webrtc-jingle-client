@@ -9,6 +9,7 @@
 ##  -m             maven. do the maven build (this depends on the ndk build)
 ##  -c             clean. do a clean install
 ##  -s             sync. sync before doing the build
+##  -j             just processes. force the number of processes
 #
 # default variables
 #
@@ -35,7 +36,7 @@ OPENSSL_PATCH="--- a/third_party/openssl/openssl.gyp
 #
 print_usage(){
   echo "$1" >&2
-  echo -e "Usage: $0 [-h|-s|-g|]\n" >&2 
+  echo -e "Usage: $0 [-h|-s|-g|j]\n" >&2 
   sed -n '/^## /s/^## //p' $0 >&2
   exit 1
 }
@@ -55,7 +56,7 @@ validate_optarg(){
 
 
 
-while getopts "hgmcs" opt
+while getopts "hgmcsj:" opt
 do
   case $opt in
     h ) #help
@@ -72,6 +73,10 @@ do
       ;;
     s ) #sync
       SYNCREPOS="yes"
+      ;;
+    j ) #justprocesses
+      num_of_cores="${OPTARG}"
+      export num_of_cores
       ;;
     : )
       print_usage "Option -$OPTARG requires an argument."
