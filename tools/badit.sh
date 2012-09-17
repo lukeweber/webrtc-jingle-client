@@ -101,7 +101,7 @@ if [ "$SYNCREPOS" == "yes" ]; then
   check_return_code "$?"
 fi
 if [ "$BUILDSYSTEM" == "gyp" ]; then
-  echo -e "===============================\nRUNNING_HOOKS\n==============================="
+  echo -e "-------------------------------\nRUNNING_HOOKS\n-------------------------------"
   gclient runhooks;
   check_return_code "$?"
 
@@ -120,11 +120,21 @@ if [ "$BUILDSYSTEM" == "gyp" ]; then
   $TRUNKDIR/build/android/gdb_apk -p com.tuenti.voice -l out/Debug/obj.target/
   check_return_code "$?"
 elif [ "$BUILDSYSTEM" == "mvn" ]; then
-  echo -e "===============================\nINSTALLING\n==============================="
+  if [ "$CLEAN" == "clean" ]; then
+    echo -e "-------------------------------\nCLEANING\n-------------------------------"
+    mvn clean
+  fi
+  
+  echo -e "-------------------------------\nBUILDING\n-------------------------------"
+  $TRUNKDIR/voice-client-core/build.sh
+  RET_CODE_CACHE="$?"
+  check_return_code "$RET_CODE_CACHE"
+
+  echo -e "-------------------------------\nINSTALLING\n-------------------------------"
   mvn $CLEAN install 
   check_return_code "$?"
   
-  echo -e "===============================\nHEADERGEN\n==============================="
+  echo -e "-------------------------------\nHEADERGEN\n-------------------------------"
   CLASSESPATH="$TRUNKDIR/voice-client-core/target/classes"
   pushd $TRUNKDIR/voice-client-core/jni
   javah -classpath $CLASSESPATH com.tuenti.voice.core.VoiceClient
@@ -133,21 +143,21 @@ elif [ "$BUILDSYSTEM" == "mvn" ]; then
   check_return_code "$RET_CODE_CACHE"
   
 
-  echo -e "===============================\nUNINSTALLING\n==============================="
+  echo -e "-------------------------------\nUNINSTALLING\n-------------------------------"
   adb uninstall com.tuenti.voice.example
   check_return_code "$?"
 
-  echo -e "===============================\nDEPLOYING\n==============================="
+  echo -e "-------------------------------\nDEPLOYING\n-------------------------------"
   adb install $HOME/.m2/repository/com/tuenti/voice/voice-example/$SNAPSHOT_VERSION/voice-example-$SNAPSHOT_VERSION.apk
   #mvn -pl voice-client-example android:deploy
   check_return_code "$?"
 
-  echo -e "===============================\nRUNNING\n==============================="
+  echo -e "-------------------------------\nRUNNING\n-------------------------------"
   adb shell am start -a android.intent.action.VIEW  -n com.tuenti.voice.example/.ui.VoiceClientActivity
   #mvn -pl voice-client-example android:run
   check_return_code "$?"
 
-  echo -e "===============================\nDEBUGGING\n==============================="
+  echo -e "-------------------------------\nDEBUGGING\n-------------------------------"
   $TRUNKDIR/build/android/gdb_apk -p com.tuenti.voice.example -l voice-client-core/obj/local/armeabi-v7a/
   check_return_code "$?"
 else
