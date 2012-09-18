@@ -91,8 +91,8 @@ class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
   std::string stunserver_;
   std::string relayserver_;
   talk_base::Thread *signal_thread_;
-  StunConfig *stun_config_;
   tuenti::ClientSignalingThread *client_signaling_thread_;
+  StunConfig *stun_config_;
 };
 
 }  // namespace tuenti
