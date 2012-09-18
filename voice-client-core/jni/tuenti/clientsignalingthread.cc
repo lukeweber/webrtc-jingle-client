@@ -607,7 +607,7 @@ void ClientSignalingThread::CallS(const std::string &remoteJid) {
     LOGI("Found online friend '%s'", found_jid.Str().c_str());
     if (!call_) {
       call_ = media_client_->CreateCall();
-      call_->InitiateSession(found_jid, options);  // REQ_MAIN_THREAD
+      call_->InitiateSession(found_jid, media_client_->jid(), options);  // REQ_MAIN_THREAD
     }
     media_client_->SetFocus(call_);
   } else {
