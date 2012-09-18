@@ -4,16 +4,24 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.media.AudioManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.WindowManager.LayoutParams;
 import android.widget.TextView;
 import com.tuenti.voice.core.BuddyListState;
 import com.tuenti.voice.core.CallState;
@@ -27,7 +35,7 @@ import com.tuenti.voice.example.ui.dialog.IncomingCallDialog;
 
 public class VoiceClientActivity
     extends Activity
-    implements View.OnClickListener, VoiceClientEventCallback
+    implements View.OnClickListener, VoiceClientEventCallback, SensorEventListener
 {
 // ------------------------------ FIELDS ------------------------------
 
@@ -40,6 +48,9 @@ public class VoiceClientActivity
 
     private static final String MY_PASS = "pass";
 
+    private static final float ON_EAR_DISTANCE = 3.0f;
+
+    // Ringtones
     private AudioManager mAudioManager;
 
     private VoiceClient mClient;
@@ -47,6 +58,23 @@ public class VoiceClientActivity
     private Ringtone mRingerPlayer;
 
     private Vibrator mVibrator;
+
+    // Sensors
+    private SensorManager mSensorManager;
+
+    private Sensor mProximity;
+
+    private float mMaxRangeProximity;
+
+    // Wake lock
+    private PowerManager mPowerManager;
+
+    private WakeLock mWakeLock;
+
+    private int mWakeLockState;
+
+    // UI lock flag
+    private boolean mUILocked = false;
 
     private SharedPreferences mSettings;
 
@@ -75,6 +103,9 @@ public class VoiceClientActivity
 
     public void onClick( View view )
     {
+        if ( mUILocked ) {
+            return;
+        }
         switch ( view.getId() )
         {
             case R.id.init_btn:
@@ -108,11 +139,13 @@ public class VoiceClientActivity
         switch ( CallState.fromInteger( state ) )
         {
             case SENT_INITIATE:
+                onCallInProgress();
                 currentCallId = callId;
                 startOutgoingRinging();
                 changeStatus( "calling..." );
                 break;
             case SENT_TERMINATE:
+                onCallDestroy();
                 stopRinging();
                 changeStatus( "call hang up" );
                 break;
@@ -146,6 +179,7 @@ public class VoiceClientActivity
                 //TODO(jreyes): Close the dialog if they haven't answered.
                 break;
             case RECEIVED_TERMINATE:
+                onCallDestroy();
                 callInProgress = false;
                 currentCallId = 0;
                 stopRinging();
@@ -157,6 +191,7 @@ public class VoiceClientActivity
                 callInProgress = true;
                 stopRinging();
                 setAudioForCall();
+                onCallInProgress();
                 changeStatus( "call in progress" );
                 break;
             case DE_INIT:
@@ -164,6 +199,85 @@ public class VoiceClientActivity
                 break;
         }
     }
+
+    public void onCallInProgress(){
+        mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+        mProximity = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
+        mMaxRangeProximity = mProximity.getMaximumRange();
+        mSensorManager.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    public void onCallDestroy(){
+        mSensorManager.unregisterListener(this);
+        releaseWakeLock();
+        turnScreenOn(true);
+        mUILocked = false;
+    }
+
+    private void turnScreenOn(boolean on) {
+        WindowManager.LayoutParams params = getWindow().getAttributes();
+        params.flags |= LayoutParams.FLAG_KEEP_SCREEN_ON;
+        if ( on ) {
+            // less than 0 returns to default behavior.
+            params.screenBrightness = -1;
+        } else {
+            params.screenBrightness = 0;
+        }
+        getWindow().setAttributes(params);
+    }
+
+
+    /* Methods for SensorEventListener */
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy){
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        // Proximity Sensor Event returns cm from phone.
+        // Proximity in some devices is anything less than mMaxRangeProximity
+        // on my test phone 9.0f or 0.0f for the two states.
+        // Others might measure it more accurately.
+        // TODO(Luke): Headset case isn't covered here at all, in which case we probably
+        // want to probably do partial_wake_lock and not change the screen brightness.
+        if ( event.values[0] < mMaxRangeProximity && event.values[0] <= ON_EAR_DISTANCE) {
+            setWakeLockState(PowerManager.PARTIAL_WAKE_LOCK);
+            turnScreenOn(false);
+            mUILocked = true;
+        } else {
+            setWakeLockState(PowerManager.FULL_WAKE_LOCK);
+            turnScreenOn(true);
+            mUILocked = false;
+        }
+    }
+    /* End Methods for SensorEventListener */
+
+    /* Wake lock related logic */
+    private void initWakeLock(){
+        if ( mPowerManager == null ) {
+            mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        }
+    }
+
+    private void setWakeLockState(int newState){
+        if ( mWakeLockState != newState ) {
+            if ( mWakeLock != null) {
+                mWakeLock.release();
+                mWakeLock = null;
+            }
+            mWakeLockState = newState;
+            mWakeLock = mPowerManager.newWakeLock(newState, "In Call wake lock: " + newState);
+            mWakeLock.acquire();
+        }
+    }
+
+    private void releaseWakeLock(){
+        if ( mWakeLock != null ) {
+            mWakeLock.release();
+            mWakeLock = null;
+        }
+    }
+    /* End wake lock related logic */
 
     @Override
     public void handleXmppError( int error )
@@ -253,11 +367,13 @@ public class VoiceClientActivity
 
         initAudio();
         initClientWrapper();
+        initWakeLock();
     }
 
     @Override
     protected void onDestroy()
     {
+        releaseWakeLock();
         super.onDestroy();
         mClient.destroy();
     }
