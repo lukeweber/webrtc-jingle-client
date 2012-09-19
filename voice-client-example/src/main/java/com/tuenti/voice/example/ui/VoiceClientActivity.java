@@ -208,7 +208,9 @@ public class VoiceClientActivity
     }
 
     public void onCallDestroy(){
-        mSensorManager.unregisterListener(this);
+        if (mSensorManager != null) {
+            mSensorManager.unregisterListener(this);
+        }
         releaseWakeLock();
         turnScreenOn(true);
         mUILocked = false;
