@@ -145,9 +145,16 @@ public class VoiceClientActivity
                 changeStatus( "calling..." );
                 break;
             case SENT_TERMINATE:
+                callInProgress = false;
                 onCallDestroy();
                 stopRinging();
                 changeStatus( "call hang up" );
+                break;
+            case SENT_BUSY:
+                callInProgress = false;
+                onCallDestroy();
+                stopRinging();
+                changeStatus( "call hang up, busy" );
                 break;
             case RECEIVED_INITIATE:
                 if( callInProgress ) {
