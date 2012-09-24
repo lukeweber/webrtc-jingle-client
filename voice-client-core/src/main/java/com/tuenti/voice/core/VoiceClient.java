@@ -16,6 +16,7 @@
 package com.tuenti.voice.core;
 
 import android.os.Bundle;
+import android.os.Message;
 import android.util.Log;
 
 public class VoiceClient
@@ -39,7 +40,7 @@ public class VoiceClient
 
     private static final Object mutex = new Object();
 
-    private static IVoiceClientServiceInt service;
+    private static Handler mHandler;
 
     private boolean initialized;
 
@@ -58,14 +59,15 @@ public class VoiceClient
     private static void dispatchNativeEvent( int what, int code, String remoteJid, long callId )
     {
         VoiceClient client = getInstance();
-        if ( client != null && client.service != null )
+        if ( client != null && client.mHandler != null )
         {
+            Message msg = Message.obtain(client.mHandler, what);
             Bundle bundle = new Bundle();
-            bundle.putInt("what", what);
             bundle.putInt("code", code);
             bundle.putString( "remoteJid", remoteJid );
             bundle.putLong( "callId", callId );
-            service.sendBundle( bundle );
+            msg.setData(bundle);
+            msg.sendToTarget();
         }
     }
 
@@ -81,9 +83,9 @@ public class VoiceClient
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public void setService( IVoiceClientServiceInt service )
+    public void setHandler( Handler handler )
     {
-        this.service = service;
+        mHandler = handler;
     }
 
 // -------------------------- OTHER METHODS --------------------------
