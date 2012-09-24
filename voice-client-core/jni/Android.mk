@@ -33,7 +33,7 @@ endif
 include $(MY_WEBRTC_PATH)/modules/audio_coding/main/source/Android.mk
 include $(MY_WEBRTC_PATH)/modules/utility/source/Android.mk
 include $(MY_WEBRTC_PATH)/modules/audio_conference_mixer/source/Android.mk
-include $(MY_WEBRTC_PATH)/modules/audio_device/main/source/Android.mk
+include $(MY_WEBRTC_PATH)/modules/audio_device/Android.mk
 include $(MY_WEBRTC_PATH)/modules/audio_processing/aec/Android.mk
 include $(MY_WEBRTC_PATH)/modules/audio_processing/aecm/Android.mk
 include $(MY_WEBRTC_PATH)/modules/audio_processing/agc/Android.mk
