@@ -104,8 +104,16 @@ public class VoiceClientService
 
     public void callStarted( long callId ){
         callMap.get(Long(callId)).startCallTimer();
+        //start timer on method updateCallUI every second.
         //Intent call started,
         //Change notification to call in progress notification, that points to call in progress activity on click.
+    }
+
+    public void updateCallUI(){
+        if( currentCallId > 0 ){
+            //update duration of call in tray notification via changeData.
+            //send message to controller, in case there is one, to tell it to update call duration on the UI.
+        }
     }
 
     public void endCall( long callId, int Reason){

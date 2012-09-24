@@ -8,10 +8,6 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.media.AudioManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
@@ -19,15 +15,11 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.PowerManager;
-import android.os.PowerManager.WakeLock;
 import android.os.RemoteException;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
-import android.view.WindowManager.LayoutParams;
 import android.widget.TextView;
 
 import com.tuenti.voice.core.BuddyListState;
@@ -45,7 +37,7 @@ import com.tuenti.voice.example.service.CallIntent;
 
 public class VoiceClientActivity
     extends Activity
-    implements View.OnClickListener, SensorEventListener
+    implements View.OnClickListener
 {
 // ------------------------------ FIELDS ------------------------------
 
@@ -76,23 +68,6 @@ public class VoiceClientActivity
     private Ringtone mRingerPlayer;
 
     private Vibrator mVibrator;
-
-    // Sensors
-    private SensorManager mSensorManager;
-
-    private Sensor mProximity;
-
-    private float mMaxRangeProximity;
-
-    // Wake lock
-    private PowerManager mPowerManager;
-
-    private WakeLock mWakeLock;
-
-    private int mWakeLockState;
-
-    // UI lock flag
-    private boolean mUILocked = false;
 
     private SharedPreferences mSettings;
 
@@ -179,87 +154,6 @@ public class VoiceClientActivity
                 break;
         }
     }
-
-    public void onCallInProgress(){
-        mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
-        mProximity = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
-        mMaxRangeProximity = mProximity.getMaximumRange();
-        mSensorManager.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL);
-    }
-
-    public void onCallDestroy(){
-        if (mSensorManager != null) {
-            mSensorManager.unregisterListener(this);
-        }
-        releaseWakeLock();
-        turnScreenOn(true);
-        mUILocked = false;
-    }
-
-    private void turnScreenOn(boolean on) {
-        WindowManager.LayoutParams params = getWindow().getAttributes();
-        params.flags |= LayoutParams.FLAG_KEEP_SCREEN_ON;
-        if ( on ) {
-            // less than 0 returns to default behavior.
-            params.screenBrightness = -1;
-        } else {
-            params.screenBrightness = 0;
-        }
-        getWindow().setAttributes(params);
-    }
-
-
-    /* Methods for SensorEventListener */
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy){
-    }
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        // Proximity Sensor Event returns cm from phone.
-        // Proximity in some devices is anything less than mMaxRangeProximity
-        // on my test phone 9.0f or 0.0f for the two states.
-        // Others might measure it more accurately.
-        // TODO(Luke): Headset case isn't covered here at all, in which case we probably
-        // want to probably do partial_wake_lock and not change the screen brightness.
-        if ( event.values[0] < mMaxRangeProximity && event.values[0] <= ON_EAR_DISTANCE) {
-            setWakeLockState(PowerManager.PARTIAL_WAKE_LOCK);
-            turnScreenOn(false);
-            mUILocked = true;
-        } else {
-            setWakeLockState(PowerManager.FULL_WAKE_LOCK);
-            turnScreenOn(true);
-            mUILocked = false;
-        }
-    }
-    /* End Methods for SensorEventListener */
-
-    /* Wake lock related logic */
-    private void initWakeLock(){
-        if ( mPowerManager == null ) {
-            mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        }
-    }
-
-    private void setWakeLockState(int newState){
-        if ( mWakeLockState != newState ) {
-            if ( mWakeLock != null) {
-                mWakeLock.release();
-                mWakeLock = null;
-            }
-            mWakeLockState = newState;
-            mWakeLock = mPowerManager.newWakeLock(newState, "In Call wake lock: " + newState);
-            mWakeLock.acquire();
-        }
-    }
-
-    private void releaseWakeLock(){
-        if ( mWakeLock != null ) {
-            mWakeLock.release();
-            mWakeLock = null;
-        }
-    }
-    /* End wake lock related logic */
 
 // -------------------------- OTHER METHODS --------------------------
 
