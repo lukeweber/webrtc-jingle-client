@@ -26,17 +26,17 @@ public class VoiceClientEventHandler
         assert ( mCallback != null );
 
         Bundle bundle = msg.getData();
-        int code = msg.arg1;
+        int code = bundle.getInt("code");
 
         switch ( msg.what )
         {
             case VoiceClient.CALL_STATE_EVENT:
-                String remoteJid = bundle.getString( "str1" );
-                long callId = bundle.getLong( "long1" );
+                String remoteJid = bundle.getString( "remoteJid" );
+                long callId = bundle.getLong( "callId" );
                 mCallback.handleCallStateChanged( code, remoteJid, callId );
                 break;
             case VoiceClient.BUDDY_LIST_EVENT:
-                String remoteJidBuddy = bundle.getString( "str1" );
+                String remoteJidBuddy = bundle.getString( "remoteJid" );
                 mCallback.handleBuddyListChanged( code , remoteJidBuddy);
                 break;
             case VoiceClient.XMPP_STATE_EVENT:

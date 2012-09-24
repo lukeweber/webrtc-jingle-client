@@ -1,8 +1,12 @@
-package com.tuenti.voice.example.ui;
+package com.tuenti.voice.example.ui.activity;
 
+// android imports
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -14,8 +18,10 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.os.RemoteException;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -23,6 +29,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 import android.widget.TextView;
+
 import com.tuenti.voice.core.BuddyListState;
 import com.tuenti.voice.core.CallState;
 import com.tuenti.voice.core.VoiceClient;
@@ -32,28 +39,39 @@ import com.tuenti.voice.core.XmppError;
 import com.tuenti.voice.core.XmppState;
 import com.tuenti.voice.example.R;
 import com.tuenti.voice.example.ui.dialog.IncomingCallDialog;
+import com.tuenti.voice.example.VoiceClientApplication;
+import com.tuenti.voice.example.service.IVoiceClientService;
+import com.tuenti.voice.example.service.CallIntent;
 
 public class VoiceClientActivity
     extends Activity
-    implements View.OnClickListener, VoiceClientEventCallback, SensorEventListener
+    implements View.OnClickListener, SensorEventListener
 {
 // ------------------------------ FIELDS ------------------------------
 
     private static final String TAG = "VoiceClientActivity";
 
     // Template Google Settings
-    private static final String TO_USER = "user@gmail.com";
+    //private static final String TO_USER = "user@gmail.com";
 
-    private static final String MY_USER = "username@mydomain.com";
+    //private static final String MY_USER = "username@mydomain.com";
 
-    private static final String MY_PASS = "pass";
+    //private static final String MY_PASS = "pass";
+    private static final String TO_USER = "luke@tuenti.com";
+
+    private static final String MY_USER = "lukewebertest@gmail.com";
+
+    private static final String MY_PASS = "testtester";
 
     private static final float ON_EAR_DISTANCE = 3.0f;
 
+    // Service Related Methods.
+    IVoiceClientService mService = null;
+
+    private boolean mIsBound;
+
     // Ringtones
     private AudioManager mAudioManager;
-
-    private VoiceClient mClient;
 
     private Ringtone mRingerPlayer;
 
@@ -96,6 +114,7 @@ public class VoiceClientActivity
         }
         return jid;
     }
+    
 
 // ------------------------ INTERFACE METHODS ------------------------
 
@@ -103,106 +122,60 @@ public class VoiceClientActivity
 
     public void onClick( View view )
     {
+        if( mService == null ){
+           mService = VoiceClientApplication.getService(); 
+        }
+        
         if ( mUILocked ) {
             return;
         }
         switch ( view.getId() )
         {
             case R.id.init_btn:
-                initClient();
+                //sendBroadcast(new Intent(CallIntent.PLACE_CALL));
+                try {
+                    String stunServer = getStringPref( R.string.stunserver_key, R.string.stunserver_value );
+                    String relayServer = getStringPref( R.string.relayserver_key, R.string.relayserver_value );
+                    String turnServer = getStringPref( R.string.turnserver_key, R.string.turnserver_value );
+                    mService.init( stunServer, relayServer, relayServer, relayServer, turnServer );
+                } catch ( RemoteException $e ) {
+                }
                 break;
             case R.id.release_btn:
-                mClient.release();
+                try {
+                    mService.release();
+                } catch ( RemoteException $e ) {
+                }
                 break;
             case R.id.login_btn:
-                login();
+                try {
+                    String xmppHost = getStringPref( R.string.xmpp_host_key, R.string.xmpp_host_value );
+                    int xmppPort = getIntPref( R.string.xmpp_port_key, R.string.xmpp_port_value );
+                    boolean xmppUseSSL = getBooleanPref( R.string.xmpp_use_ssl_key, R.string.xmpp_use_ssl_value );
+                    mService.login( MY_USER, MY_PASS, xmppHost, xmppPort, xmppUseSSL);
+                } catch ( RemoteException $e ) {
+                }
                 break;
             case R.id.logout_btn:
-                mClient.logout();
+                try {
+                    mService.logout();
+                } catch ( RemoteException $e ) {
+                }
                 break;
             case R.id.place_call_btn:
-                mClient.call( TO_USER );
+                try {
+                    mService.call( TO_USER );
+                } catch ( RemoteException $e ) {
+                }
+                
                 break;
             case R.id.hang_up_btn:
-                if( currentCallId > 0){
-                   mClient.endCall(currentCallId);
-                }
-                break;
-        }
-    }
-
-// --------------------- Interface VoiceClientEventCallback ---------------------
-
-    @Override
-    public void handleCallStateChanged( int state, String remoteJid, long callId )
-    {
-        switch ( CallState.fromInteger( state ) )
-        {
-            case SENT_INITIATE:
-                onCallInProgress();
-                currentCallId = callId;
-                startOutgoingRinging();
-                changeStatus( "calling..." );
-                break;
-            case SENT_TERMINATE:
-                callInProgress = false;
-                onCallDestroy();
-                stopRinging();
-                changeStatus( "call hang up" );
-                break;
-            case SENT_BUSY:
-                callInProgress = false;
-                onCallDestroy();
-                stopRinging();
-                changeStatus( "call hang up, busy" );
-                break;
-            case RECEIVED_INITIATE:
-                if( callInProgress ) {
-                    // Decline as busy, until we support UI to handle this case.
-                    mClient.declineCall(callId, true);
-                } else {
-                    currentCallId = callId;
-                    displayIncomingCall( remoteJid, callId );
-                }
-                break;
-            case RECEIVED_ACCEPT:
-                currentCallId = callId;
-                stopRinging();
-                changeStatus( "call answered" );
-                playNotification();
-                break;
-            case RECEIVED_REJECT:
-                callInProgress = false;
-                currentCallId = 0;
-                stopRinging();
-                changeStatus( "call rejected" );
-                //TODO(jreyes): Close the dialog if they haven't answered.
-                break;
-            case RECEIVED_BUSY:
-                callInProgress = false;
-                currentCallId = 0;
-                stopRinging();
-                changeStatus( "user busy" );
-                //TODO(jreyes): Close the dialog if they haven't answered.
-                break;
-            case RECEIVED_TERMINATE:
-                onCallDestroy();
-                callInProgress = false;
-                currentCallId = 0;
-                stopRinging();
-                changeStatus( "other side hung up" );
-                playNotification();
-                //TODO(jreyes): Close the dialog if they haven't answered.
-                break;
-            case IN_PROGRESS:
-                callInProgress = true;
-                stopRinging();
-                setAudioForCall();
-                onCallInProgress();
-                changeStatus( "call in progress" );
-                break;
-            case DE_INIT:
-                resetAudio();
+                /*
+                Have to add a callid here.
+                try {
+                    mService.hangup();
+                } catch ( RemoteException $e ) {
+                }*/
                 break;
         }
     }
@@ -288,81 +261,6 @@ public class VoiceClientActivity
     }
     /* End wake lock related logic */
 
-    @Override
-    public void handleXmppError( int error )
-    {
-        switch ( XmppError.fromInteger( error ) )
-        {
-            case XML:
-                Log.e( TAG, "Malformed XML or encoding error" );
-                break;
-            case STREAM:
-                Log.e( TAG, "XMPP stream error" );
-                break;
-            case VERSION:
-                Log.e( TAG, "XMPP version error" );
-                break;
-            case UNAUTHORIZED:
-                Log.e( TAG, "User is not authorized (Check your username and password)" );
-                break;
-            case TLS:
-                Log.e( TAG, "TLS could not be negotiated" );
-                break;
-            case AUTH:
-                Log.e( TAG, "Authentication could not be negotiated" );
-                break;
-            case BIND:
-                Log.e( TAG, "Resource or session binding could not be negotiated" );
-                break;
-            case CONNECTION_CLOSED:
-                Log.e( TAG, "Connection closed by output handler." );
-                break;
-            case DOCUMENT_CLOSED:
-                Log.e( TAG, "Closed by </stream:stream>" );
-                break;
-            case SOCKET:
-                Log.e( TAG, "Socket error" );
-                break;
-        }
-    }
-
-    @Override
-    public void handleXmppStateChanged( int state )
-    {
-        switch ( XmppState.fromInteger( state ) )
-        {
-            case START:
-                changeStatus( "connecting..." );
-                break;
-            case OPENING:
-                changeStatus( "logging in..." );
-                break;
-            case OPEN:
-                changeStatus( "logged in..." );
-                break;
-            case CLOSED:
-                changeStatus( "logged out... " );
-                break;
-        }
-    }
-
-    @Override
-    public void handleBuddyListChanged( int state , String remoteJid)
-    {
-        switch ( BuddyListState.fromInteger( state ) ){
-            case ADD:
-                Log.v( TAG, "Adding buddy " + remoteJid );
-                break;
-            case REMOVE:
-                Log.v( TAG, "Removing buddy" + remoteJid );
-                break;
-            case RESET:
-                Log.v( TAG, "Reset buddy list" );
-                break;
-        }
-
-    }
-
 // -------------------------- OTHER METHODS --------------------------
 
     @Override
@@ -382,9 +280,8 @@ public class VoiceClientActivity
     @Override
     protected void onDestroy()
     {
-        releaseWakeLock();
         super.onDestroy();
-        mClient.destroy();
+        releaseWakeLock();
     }
 
     private void changeStatus( String status )
@@ -398,8 +295,8 @@ public class VoiceClientActivity
         startIncomingRinging();
 
         // and display the incoming call dialog
-        Dialog incomingCall = new IncomingCallDialog( this, mClient, cleanJid( remoteJid ), callId ).create();
-        incomingCall.show();
+        //Dialog incomingCall = new IncomingCallDialog( this, mClient, cleanJid( remoteJid ), callId ).create();
+        //incomingCall.show();
     }
 
     private boolean getBooleanPref( int key, int defaultValue )
@@ -424,33 +321,12 @@ public class VoiceClientActivity
 
     private void initClientWrapper()
     {
-        VoiceClientEventHandler handler = new VoiceClientEventHandler( this );
-
-        mClient = VoiceClient.getInstance();
-        mClient.setHandler( handler );
-
         findViewById( R.id.init_btn ).setOnClickListener( this );
         findViewById( R.id.release_btn ).setOnClickListener( this );
         findViewById( R.id.login_btn ).setOnClickListener( this );
         findViewById( R.id.logout_btn ).setOnClickListener( this );
         findViewById( R.id.place_call_btn ).setOnClickListener( this );
         findViewById( R.id.hang_up_btn ).setOnClickListener( this );
-    }
-
-    private void initClient()
-    {
-        String stunServer = getStringPref( R.string.stunserver_key, R.string.stunserver_value );
-        String relayServer = getStringPref( R.string.relayserver_key, R.string.relayserver_value );
-        String turnServer = getStringPref( R.string.turnserver_key, R.string.turnserver_value );
-        mClient.init( stunServer, relayServer, relayServer, relayServer, turnServer );
-    }
-
-    private void login()
-    {
-        String xmppHost = getStringPref( R.string.xmpp_host_key, R.string.xmpp_host_value );
-        int xmppPort = getIntPref( R.string.xmpp_port_key, R.string.xmpp_port_value );
-        boolean xmppUseSSL = getBooleanPref( R.string.xmpp_use_ssl_key, R.string.xmpp_use_ssl_value );
-        mClient.login( MY_USER, MY_PASS, xmppHost, xmppPort, xmppUseSSL);
     }
 
     private void resetAudio()

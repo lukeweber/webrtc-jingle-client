@@ -14,15 +14,46 @@
               android:targetSdkVersion="14"/>
 
     <application android:debuggable="true"
+                 android:name=".VoiceClientApplication"
                  android:label="@string/app_name">
-        <activity android:name=".ui.VoiceClientActivity"
+        <activity android:name=".ui.activity.VoiceClientActivity"
                   android:label="@string/app_name"
                   android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="com.tuenti.voice.example.service.intent.action.END_CALL"/>
             </intent-filter>
         </activity>
+        <activity android:name=".ui.activity.CallInProgress"
+                  android:label="@string/app_name"
+                  android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="com.tuenti.voice.example.service.intent.action.START_CALL"/>
+            </intent-filter>
+        </activity>
+        <service android:enabled="true"
+                 android:exported="false"
+                 android:label="TuentiVoiceService"
+                 android:process=":VoiceClientService"
+                 android:name=".service.VoiceClientService">
+            <intent-filter>
+                <action android:name="com.tuenti.voice.example.service.IVoiceClientService" />
+            </intent-filter>
+        </service>
+        <receiver android:name=".VoiceClientReceiver"
+                  android:exported="false">
+            <intent-filter>
+                <action android:name="com.tuenti.voice.example.service.intent.action.PLACE_CALL" />
+                <action android:name="com.tuenti.voice.example.service.intent.action.ACCEPT_CALL" />
+                <action android:name="com.tuenti.voice.example.service.intent.action.REJECT_CALL" />
+                <action android:name="com.tuenti.voice.example.service.intent.action.END_CALL" />
+                <action android:name="com.tuenti.voice.example.service.intent.action.HOLD_CALL" />
+                <action android:name="com.tuenti.voice.example.service.intent.action.MUTE_CALL" />
+                <action android:name="com.tuenti.voice.example.service.intent.action.LOGIN" />
+                <action android:name="com.tuenti.voice.example.service.intent.action.LOGOUT" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest> 

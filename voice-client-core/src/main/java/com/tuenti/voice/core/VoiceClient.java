@@ -16,8 +16,6 @@
 package com.tuenti.voice.core;
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 
 public class VoiceClient
@@ -41,7 +39,7 @@ public class VoiceClient
 
     private static final Object mutex = new Object();
 
-    private Handler handler;
+    private static IVoiceClientServiceInt service;
 
     private boolean initialized;
 
@@ -57,18 +55,17 @@ public class VoiceClient
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    private static void dispatchNativeEvent( int what, int code, String str1, long callId )
+    private static void dispatchNativeEvent( int what, int code, String remoteJid, long callId )
     {
         VoiceClient client = getInstance();
-        if ( client != null && client.handler != null )
+        if ( client != null && client.service != null )
         {
             Bundle bundle = new Bundle();
-            bundle.putString( "str1", str1 );
-            bundle.putLong( "long1", callId );
-
-            Message msg = client.handler.obtainMessage( what, code, -1 );
-            msg.setData( bundle );
-            client.handler.sendMessage( msg );
+            bundle.putInt("what", what);
+            bundle.putInt("code", code);
+            bundle.putString( "remoteJid", remoteJid );
+            bundle.putLong( "callId", callId );
+            service.sendBundle( bundle );
         }
     }
 
@@ -84,9 +81,9 @@ public class VoiceClient
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public void setHandler( VoiceClientEventHandler handler )
+    public void setService( IVoiceClientServiceInt service )
     {
-        this.handler = handler;
+        this.service = service;
     }
 
 // -------------------------- OTHER METHODS --------------------------

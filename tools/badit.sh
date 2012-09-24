@@ -158,7 +158,7 @@ elif [ "$BUILDSYSTEM" == "mvn" ]; then
   check_return_code "$?"
 
   echo -e "-------------------------------\nRUNNING\n-------------------------------"
-  adb shell am start -a android.intent.action.VIEW  -n com.tuenti.voice.example/.ui.VoiceClientActivity
+  adb shell am start -a android.intent.action.VIEW  -n com.tuenti.voice.example/.ui.activity.VoiceClientActivity
   #mvn -pl voice-client-example android:run
   check_return_code "$?"
 

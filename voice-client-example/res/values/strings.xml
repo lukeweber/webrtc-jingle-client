@@ -9,6 +9,8 @@
     <string name="logout">Logout</string>
     <string name="place_call">Place call</string>
     <string name="hang_up">Hang up</string>
+    <string name="hold">Hold</string>
+    <string name="mute">Mute</string>
 
     <string name="voice_chat_invite">Voice Chat Invite</string>
     <string name="accept_call">Accept</string>
