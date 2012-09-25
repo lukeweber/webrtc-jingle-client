@@ -13,7 +13,5 @@ public class VoiceClientReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         Log.i( TAG, "Received intent: " + intent.getAction());
         String intentString = intent.getAction();
-        if( CallIntent.PLACE_CALL == intentString ){
-        }
     }
 }

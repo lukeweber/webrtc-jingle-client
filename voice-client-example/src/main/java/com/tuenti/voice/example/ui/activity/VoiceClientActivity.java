@@ -101,9 +101,6 @@ public class VoiceClientActivity
            mService = VoiceClientApplication.getService(); 
         }
         
-        if ( mUILocked ) {
-            return;
-        }
         switch ( view.getId() )
         {
             case R.id.init_btn:
@@ -168,14 +165,12 @@ public class VoiceClientActivity
 
         initAudio();
         initClientWrapper();
-        initWakeLock();
     }
 
     @Override
     protected void onDestroy()
     {
         super.onDestroy();
-        releaseWakeLock();
     }
 
     private void changeStatus( String status )

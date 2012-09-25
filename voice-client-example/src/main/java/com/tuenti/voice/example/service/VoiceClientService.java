@@ -24,6 +24,8 @@ import com.tuenti.voice.example.data.Call;
 import com.tuenti.voice.example.service.IVoiceClientService;
 import com.tuenti.voice.example.service.IVoiceClientServiceCallback;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.lang.Long;
 
 public class VoiceClientService 
@@ -34,11 +36,13 @@ public class VoiceClientService
 
     private static final String TAG = "s-libjingle-webrtc";
     
-    private Map<Long, Call> callMap = new HashMap<Long, Call>;
+    private HashMap<Long, Call> callMap = new HashMap<Long, Call>();
     
     private boolean mCallInProgress = false;
 
     private long mCurrentCallId = 0;
+
+    private Handler mHandler;
 
     /**
      * This is a list of callbacks that have been registered with the
@@ -53,7 +57,6 @@ public class VoiceClientService
     public void onCreate() {
         super.onCreate();
         initClientWrapper();
-        
         // Set default preferences
         //mSettings = PreferenceManager.getDefaultSharedPreferences( this );
     }
@@ -75,18 +78,18 @@ public class VoiceClientService
     @Override
     public void onDestroy(){
         super.onDestroy();
-        mCallbakcks.kill();
-        mBuddyList.clear();
+        mCallbacks.kill();
+        //mBuddyList.clear();
         mClient = null;
     }
     
     public void initCallState( long callId){
         mCallInProgress = true;
         mCurrentCallId = callId;
-        callMap.put(Long(callId), new Call(callId));
+        callMap.put(new Long(callId), new Call(callId));
     }
 
-    public void outgoingCall( long CallId ){
+    public void outgoingCall( long callId ){
         initCallState( callId );
         //Intent call started, show call in progress activity
         //Ring in the headphone
@@ -103,27 +106,27 @@ public class VoiceClientService
     }
 
     public void callStarted( long callId ){
-        callMap.get(Long(callId)).startCallTimer();
+        callMap.get(new Long(callId)).startCallTimer();
         //start timer on method updateCallUI every second.
         //Intent call started,
         //Change notification to call in progress notification, that points to call in progress activity on click.
     }
 
     public void updateCallUI(){
-        if( currentCallId > 0 ){
+        if( mCurrentCallId > 0 ){
             //update duration of call in tray notification via changeData.
             //send message to controller, in case there is one, to tell it to update call duration on the UI.
         }
     }
 
-    public void endCall( long callId, int Reason){
+    public void endCall( long callId, int reason){
         // Makes sure we don't change state for calls
         // we decline as busy while in a call.
-        if (callMap.containsKey(Long(callId))) {
+        if (callMap.containsKey(new Long(callId))) {
             mCallInProgress = false;
             mCurrentCallId = 0;
-            Call call = callMap.get(Long(callId));
-            callMap.remove(Long(callId));
+            Call call = callMap.get(new Long(callId));
+            callMap.remove(new Long(callId));
             //Store reason in call history with jid.
             //Intent call ended, store in history, return call time
             //cancel ringer
@@ -131,11 +134,17 @@ public class VoiceClientService
             long callTime = call.getElapsedTime();
         }
     }
-    
+   
+    /*
+     * Only called on XMPP disconnect as a cleanup operation.
+     */
     public void endAllCalls(){
-        //iterate over hash map
-        //end all calls.
-        //we do this only on xmpp disconnect
+        Iterator iter = callMap.keySet().iterator();
+        while(iter.hasNext()) {
+            Long key = (Long) iter.next();
+            endCall( key, 0 );
+            //TODO(Luke): Add reason
+        }
     }
 // --------------------- Interface VoiceClientEventCallback ---------------------
     @Override
@@ -152,7 +161,7 @@ public class VoiceClientService
                 if( mCallInProgress == false ) {
                     incomingCall( callId );
                 } else {
-                    mClient.decline(callId, true);//Decline busy;
+                    mClient.declineCall(callId, true);//Decline busy;
                 }
                 break;
             case SENT_TERMINATE:
@@ -162,7 +171,7 @@ public class VoiceClientService
             case SENT_REJECT:
             case RECEIVED_REJECT:
                 Log.i(TAG, "Call ended");
-                endCall( callId );            
+                endCall( callId , 0 );//Add reason to end call.
                 break;
             case IN_PROGRESS:
             //case RECEIVED_ACCEPT:
@@ -259,8 +268,21 @@ public class VoiceClientService
                 break;
         }
     }
-
-    public void sendBundle(Bundle bundle){
+    
+    public void dispatchIntent( Intent intent ){
+        final int N = mCallbacks.beginBroadcast();
+        for (int i=0; i<N; i++) {
+            try {
+                mCallbacks.getBroadcastItem(i).dispatchIntent(intent);
+            } catch (RemoteException e) {
+                // The RemoteCallbackList will take care of removing
+                // the dead object for us.
+            }
+        }
+        mCallbacks.finishBroadcast();
+    }
+    
+    public void sendBundle( Bundle bundle ){
         final int N = mCallbacks.beginBroadcast();
         for (int i=0; i<N; i++) {
             try {
@@ -307,15 +329,15 @@ public class VoiceClientService
         public void release() throws RemoteException {
             mClient.release();
         }
-        public BuddyList getBuddyList() throws RemoteException {
+        /*public void getBuddyList() throws RemoteException {
             return mBuddyList;
             //Implement me.
-        }
-        public CallHistoryList getCallHistory() throws RemoteException {
+        }*/
+        /*public CallHistoryList getCallHistory() throws RemoteException {
             return mCallHistory;
             // Implement me., list of remoteJids with states, call duration.
             // Should probably be stored in phone storage.
-        }
+        }*/
         public void registerCallback(IVoiceClientServiceCallback cb) {
             if (cb != null) mCallbacks.register(cb);
         }
@@ -327,6 +349,7 @@ public class VoiceClientService
     private void initClientWrapper()
     {
         mClient = VoiceClient.getInstance();
-        mClient.setHandler( this );
+        mHandler = new VoiceClientEventHandler(this); 
+        mClient.setHandler( mHandler );
     }
 }

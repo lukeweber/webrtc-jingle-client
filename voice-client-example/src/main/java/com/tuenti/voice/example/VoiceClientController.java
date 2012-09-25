@@ -41,8 +41,6 @@ public class VoiceClientController
                 mConnection, Context.BIND_AUTO_CREATE);
         mIsBound = true;
     }
-
-// --------------------- Interface VoiceClientEventCallback ---------------------
  
     /**
      * Class for interacting with the main interface of the service.
@@ -97,6 +95,11 @@ public class VoiceClientController
             msg.setData(bundle);
             mHandler.sendMessage(msg);*/
             //Implement me for intent or whatever we do here.
+        }
+
+        public void dispatchIntent( Intent intent ){
+            Intent newIntent = intent.cloneFilter();
+            mContext.startActivity(newIntent);
         }
     };
     

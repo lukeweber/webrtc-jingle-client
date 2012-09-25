@@ -6,7 +6,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
-import com.tuenti.voice.example.ui.activity.CallInProgress;
+import com.tuenti.voice.example.ui.activity.CallInProgressActivity;
 
 public class ProximitySensor 
     implements SensorEventListener 
@@ -22,12 +22,12 @@ public class ProximitySensor
 
     private Context mContext;
 
-    private CallInProgress mCallInProgress;
+    private CallInProgressActivity mCallInProgressCallback;
     
-    public ProximitySensor(CallInProgress callInProgress)
+    public ProximitySensor(CallInProgressActivity callInProgress)
     {
         mContext = (Context)callInProgress;
-        mcallInProgress = callInProgress;
+        mCallInProgressCallback = callInProgress;
         mSensorManager = (SensorManager)mContext.getSystemService(Context.SENSOR_SERVICE);
         mProximity = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
         if(mProximity != null) {
@@ -51,9 +51,9 @@ public class ProximitySensor
         // TODO(Luke): Headset case isn't covered here at all, in which case we probably
         // want to probably do partial_wake_lock and not change the screen brightness.
         if ( event.values[0] < mMaxRangeProximity && event.values[0] <= ON_EAR_DISTANCE) {
-            mCallInProgress.onProximity()
+            mCallInProgressCallback.onProximity();
         } else {
-            mCallInProgress.onUnProximity();
+            mCallInProgressCallback.onUnProximity();
         }
     }
 

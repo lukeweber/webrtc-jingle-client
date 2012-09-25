@@ -17,6 +17,7 @@ package com.tuenti.voice.core;
 
 import android.os.Bundle;
 import android.os.Message;
+import android.os.Handler;
 import android.util.Log;
 
 public class VoiceClient

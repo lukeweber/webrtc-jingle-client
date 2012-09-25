@@ -7,8 +7,8 @@ public class Call {
     private long mCallId;
     private long mTime;
 
-    public call(long callId){
-        this.callId = callId;
+    public Call(long callId){
+        mCallId = callId;
     }
 
     public void set(String remoteJid) {
@@ -16,10 +16,10 @@ public class Call {
     }
 
     public void startCallTimer(){
-        mTime = elapsedRealtime();
+        mTime = SystemClock.elapsedRealtime();
     }
 
     public long getElapsedTime(){
-        return (currentTimeMillis() - mTime) / 1000;
+        return (SystemClock.elapsedRealtime() - mTime) / 1000;
     }
 }

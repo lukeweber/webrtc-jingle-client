@@ -39,7 +39,7 @@ public class CallInProgressActivity
         initWakeLock();
     }
 
-    @Overide
+    @Override
     protected void onStop(){
         super.onStop();
         mProximitySensor.destroy();
@@ -98,7 +98,6 @@ public class CallInProgressActivity
         }
     }
     /* End wake lock related logic */
-
     
     @Override
     public void onClick( View view ) {
