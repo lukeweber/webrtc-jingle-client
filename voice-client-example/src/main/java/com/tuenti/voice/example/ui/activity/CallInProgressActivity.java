@@ -9,8 +9,12 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
-import com.tuenti.voice.example.ProximitySensor;
+import android.widget.TextView;
 import com.tuenti.voice.example.R;
+
+import android.content.Intent;
+import com.tuenti.voice.example.util.ProximitySensor;
+import com.tuenti.voice.example.service.CallIntent;
 
 public class CallInProgressActivity
     extends Activity
@@ -29,14 +33,34 @@ public class CallInProgressActivity
 
     private int mWakeLockState;
 
+    private long mCallId;
+    private String mRemoteJid;
+    private boolean mMute;
+    private boolean mHold;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         Log.e(TAG, "onCreate - CallInProgressActivity");
-        setContentView( R.layout.callinprogress );
+        
+        Intent intent = getIntent();
+        mCallId = intent.getLongExtra("callId", 0);
+        mRemoteJid = intent.getStringExtra("remoteJid");
+        mMute = intent.getBooleanExtra("isMuted", false);
+        mHold = intent.getBooleanExtra("isHeld", false);
+
         mProximitySensor = new ProximitySensor(this);
         initWakeLock();
+        setContentView( R.layout.callinprogress );
+        initClickListeners();
+
+        changeStatus("Talking to " + mRemoteJid);
+    }
+
+    public void initClickListeners() {
+        findViewById( R.id.hang_up_btn ).setOnClickListener( this );
+        findViewById( R.id.mute_btn ).setOnClickListener( this );
+        findViewById( R.id.hold_btn ).setOnClickListener( this );
     }
 
     @Override
@@ -52,6 +76,11 @@ public class CallInProgressActivity
         mUILocked = true;
         turnScreenOn(false);
         setWakeLockState(PowerManager.PARTIAL_WAKE_LOCK);
+    }
+    
+    private void changeStatus( String status )
+    {
+        ( (TextView) findViewById( R.id.status_view ) ).setText( status );
     }
 
     public void onUnProximity(){
@@ -102,7 +131,26 @@ public class CallInProgressActivity
     @Override
     public void onClick( View view ) {
         if( mUILocked == false ) {
-            //handle button clicks
+            Intent intent;
+            switch ( view.getId() )
+            {
+                case R.id.hang_up_btn:
+                    intent = new Intent(CallIntent.END_CALL);
+                    intent.putExtra("callId", mCallId);
+                    sendBroadcast( intent );
+                    finish();
+                    break;
+                case R.id.mute_btn:
+                    intent = new Intent(CallIntent.MUTE_CALL);
+                    intent.putExtra("callId", mCallId);
+                    sendBroadcast( intent );
+                    break;
+                case R.id.hold_btn:
+                    intent = new Intent(CallIntent.HOLD_CALL);
+                    intent.putExtra("callId", mCallId);
+                    sendBroadcast( intent );
+                    break;
+            }
         }
     }
 }

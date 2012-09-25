@@ -51,12 +51,4 @@
         android:layout_height="wrap_content"
         android:text="@string/place_call" >
     </Button>
-
-    <Button
-        android:id="@+id/hang_up_btn"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/hang_up" >
-    </Button>
-
 </LinearLayout>

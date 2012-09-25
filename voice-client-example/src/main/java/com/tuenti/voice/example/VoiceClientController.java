@@ -98,7 +98,9 @@ public class VoiceClientController
         }
 
         public void dispatchIntent( Intent intent ){
-            Intent newIntent = intent.cloneFilter();
+            Log.i(TAG, "Received action: " + intent.getAction());
+            Intent newIntent = (Intent)intent.clone();
+            newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_NO_HISTORY);
             mContext.startActivity(newIntent);
         }
     };

@@ -9,8 +9,9 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
-
 import android.util.Log;
+import android.media.AudioManager;
+import android.content.Context;
 
 import com.tuenti.voice.core.BuddyListState;
 import com.tuenti.voice.core.CallState;
@@ -23,10 +24,12 @@ import com.tuenti.voice.core.IVoiceClientServiceInt;
 import com.tuenti.voice.example.data.Call;
 import com.tuenti.voice.example.service.IVoiceClientService;
 import com.tuenti.voice.example.service.IVoiceClientServiceCallback;
+import com.tuenti.voice.example.util.RingManager;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.lang.Long;
+import android.os.Build;
 
 public class VoiceClientService 
     extends Service
@@ -36,13 +39,17 @@ public class VoiceClientService
 
     private static final String TAG = "s-libjingle-webrtc";
     
-    private HashMap<Long, Call> callMap = new HashMap<Long, Call>();
+    private HashMap<Long, Call> mCallMap = new HashMap<Long, Call>();
     
     private boolean mCallInProgress = false;
 
     private long mCurrentCallId = 0;
 
     private Handler mHandler;
+    
+    private AudioManager mAudioManager;
+
+    private RingManager mRingManager;
 
     /**
      * This is a list of callbacks that have been registered with the
@@ -57,6 +64,7 @@ public class VoiceClientService
     public void onCreate() {
         super.onCreate();
         initClientWrapper();
+        initAudio();
         // Set default preferences
         //mSettings = PreferenceManager.getDefaultSharedPreferences( this );
     }
@@ -83,20 +91,69 @@ public class VoiceClientService
         mClient = null;
     }
     
-    public void initCallState( long callId){
-        mCallInProgress = true;
-        mCurrentCallId = callId;
-        callMap.put(new Long(callId), new Call(callId));
+    
+    private static String cleanJid( String jid )
+    {
+        if ( jid == null )
+        {
+            return "";
+        }
+
+        int index = jid.indexOf( '/' );
+        if ( index > 0 )
+        {
+            return jid.substring( 0, index );
+        }
+        return jid;
+    }
+   
+    
+    private void initAudio()
+    {
+        mAudioManager = (AudioManager) getSystemService( Context.AUDIO_SERVICE );
     }
 
-    public void outgoingCall( long callId ){
-        initCallState( callId );
+    private void setAudioForCall()
+    {
+        mAudioManager.setMode( ( Build.VERSION.SDK_INT < 11 )
+                                   ? AudioManager.MODE_IN_CALL
+                                   : AudioManager.MODE_IN_COMMUNICATION );
+        mAudioManager.requestAudioFocus( null, AudioManager.STREAM_VOICE_CALL, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT );
+    }
+
+    private void resetAudio()
+    {
+        mAudioManager.setMode(AudioManager.MODE_NORMAL);
+        mAudioManager.abandonAudioFocus(null);
+    }
+    
+    public Intent getCallIntent(String intentString, long callId, String remoteJid){
+        Intent intent = new Intent(intentString);
+        intent.putExtra("callId", callId);
+        intent.putExtra("remoteJid", remoteJid);
+        Call call = mCallMap.get(new Long(callId));
+        intent.putExtra("isHeld", call.isHeld());
+        intent.putExtra("isMuted", call.isMuted());
+        return intent;
+    }
+    
+    public void initCallState( long callId, String remoteJid ){
+        mCallInProgress = true;
+        mCurrentCallId = callId;
+        mCallMap.put(new Long(callId), new Call(callId, remoteJid ));
+    }
+
+    public void outgoingCall( long callId, String remoteJid ){
+        initCallState( callId, remoteJid );
+        dispatchIntent(getCallIntent(CallUIIntent.CALL_IN_PROGRESS, callId, remoteJid));
+        startRing(false, false);
         //Intent call started, show call in progress activity
         //Ring in the headphone
     }
 
-    public void incomingCall( long callId ){
-        initCallState( callId );
+    public void incomingCall( long callId, String remoteJid ){
+        initCallState( callId, remoteJid );
+        startRing(true, false);
         //show alert pop up for incoming call + tray notification
         // Ringer.
     }
@@ -106,9 +163,14 @@ public class VoiceClientService
     }
 
     public void callStarted( long callId ){
-        callMap.get(new Long(callId)).startCallTimer();
+        Log.i("TAG", "call started-----");
+        stopRing();
+        Call call = mCallMap.get(new Long(callId));
+        call.startCallTimer();
+        String remoteJid = call.getRemoteJid();
+        setAudioForCall();
+        //Intent call started
         //start timer on method updateCallUI every second.
-        //Intent call started,
         //Change notification to call in progress notification, that points to call in progress activity on click.
     }
 
@@ -122,11 +184,14 @@ public class VoiceClientService
     public void endCall( long callId, int reason){
         // Makes sure we don't change state for calls
         // we decline as busy while in a call.
-        if (callMap.containsKey(new Long(callId))) {
+        if (mCallMap.containsKey(new Long(callId))) {
             mCallInProgress = false;
             mCurrentCallId = 0;
-            Call call = callMap.get(new Long(callId));
-            callMap.remove(new Long(callId));
+            Call call = mCallMap.get(new Long(callId));
+            mCallMap.remove(new Long(callId));
+            stopRing();
+            resetAudio();
+            //dispatchIntent(getCallIntent(CallUIIntent.CALL_ENDED, callId, remoteJid));
             //Store reason in call history with jid.
             //Intent call ended, store in history, return call time
             //cancel ringer
@@ -134,32 +199,51 @@ public class VoiceClientService
             long callTime = call.getElapsedTime();
         }
     }
-   
+
+    public void acceptCall(long callId, String remoteJid ){
+        dispatchIntent(getCallIntent(CallUIIntent.CALL_IN_PROGRESS, callId, remoteJid));
+    }
+    
     /*
      * Only called on XMPP disconnect as a cleanup operation.
      */
     public void endAllCalls(){
-        Iterator iter = callMap.keySet().iterator();
+        Iterator iter = mCallMap.keySet().iterator();
         while(iter.hasNext()) {
             Long key = (Long) iter.next();
             endCall( key, 0 );
             //TODO(Luke): Add reason
         }
     }
+    
+    public void startRing( boolean isIncoming, boolean callInProgress ){
+        stopRing();
+        mRingManager = new RingManager(getApplicationContext(), isIncoming, callInProgress);
+    }
+
+    public void stopRing(){
+        if(mRingManager != null){
+            mRingManager.stop();
+            mRingManager = null;
+        }
+    }
+
+   
 // --------------------- Interface VoiceClientEventCallback ---------------------
     @Override
     public void handleCallStateChanged( int state, String remoteJid, long callId )
     {
+        remoteJid = cleanJid(remoteJid);
         switch ( CallState.fromInteger( state ) )
         {
             case SENT_INITIATE:
                 Log.i(TAG, "Outgoing call");
-                outgoingCall( callId );
+                outgoingCall( callId, remoteJid );
                 break;
             case RECEIVED_INITIATE:
                 Log.i(TAG, "Incoming call");
                 if( mCallInProgress == false ) {
-                    incomingCall( callId );
+                    incomingCall( callId, remoteJid );
                 } else {
                     mClient.declineCall(callId, true);//Decline busy;
                 }
@@ -173,8 +257,10 @@ public class VoiceClientService
                 Log.i(TAG, "Call ended");
                 endCall( callId , 0 );//Add reason to end call.
                 break;
+            case RECEIVED_ACCEPT:
+                Log.i(TAG, "Call accepted");
+                acceptCall( callId, remoteJid );
             case IN_PROGRESS:
-            //case RECEIVED_ACCEPT:
                 Log.i(TAG, "IN_PROGRESS");
                 callStarted( callId );
                 break;
@@ -308,11 +394,19 @@ public class VoiceClientService
         public void declineCall( long callId, boolean busy ) throws RemoteException {
             mClient.declineCall( callId, busy );
         }
-        public void muteCall( long callId, boolean mute ) throws RemoteException {
-            mClient.muteCall( callId, mute );
+        public void toggleMute( long callId ) throws RemoteException {
+            Call call = mCallMap.get(new Long(callId));
+            if( call != null ){
+                call.setMute( call.isMuted() );
+                mClient.muteCall( callId, call.isMuted() );
+            }
         }
-        public void holdCall( long callId, boolean hold ) throws RemoteException {
-            mClient.holdCall( callId, hold );
+        public void toggleHold( long callId ) throws RemoteException {
+            Call call = mCallMap.get(new Long(callId));
+            if( call != null ){
+                call.setHold( call.isHeld() );
+                mClient.holdCall( callId, call.isHeld() );
+            }
         }
         public void endCall( long callId ) throws RemoteException {
             mClient.endCall( callId );

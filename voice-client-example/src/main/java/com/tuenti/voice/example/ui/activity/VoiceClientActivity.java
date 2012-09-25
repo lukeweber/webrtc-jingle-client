@@ -8,15 +8,10 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.media.AudioManager;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
@@ -62,34 +57,11 @@ public class VoiceClientActivity
 
     private boolean mIsBound;
 
-    // Ringtones
-    private AudioManager mAudioManager;
-
-    private Ringtone mRingerPlayer;
-
-    private Vibrator mVibrator;
-
     private SharedPreferences mSettings;
 
     private long currentCallId = 0;
 
     private boolean callInProgress = false;
-
-    private static String cleanJid( String jid )
-    {
-        if ( jid == null )
-        {
-            return "";
-        }
-
-        int index = jid.indexOf( '/' );
-        if ( index > 0 )
-        {
-            return jid.substring( 0, index );
-        }
-        return jid;
-    }
-    
 
 // ------------------------ INTERFACE METHODS ------------------------
 
@@ -100,12 +72,11 @@ public class VoiceClientActivity
         if( mService == null ){
            mService = VoiceClientApplication.getService(); 
         }
-        
+        Intent intent;
         switch ( view.getId() )
         {
             case R.id.init_btn:
-                //sendBroadcast(new Intent(CallIntent.PLACE_CALL));
-                try {
+                try{
                     String stunServer = getStringPref( R.string.stunserver_key, R.string.stunserver_value );
                     String relayServer = getStringPref( R.string.relayserver_key, R.string.relayserver_value );
                     String turnServer = getStringPref( R.string.turnserver_key, R.string.turnserver_value );
@@ -129,25 +100,13 @@ public class VoiceClientActivity
                 }
                 break;
             case R.id.logout_btn:
-                try {
-                    mService.logout();
-                } catch ( RemoteException $e ) {
-                }
+                    intent = new Intent(CallIntent.LOGOUT);
+                    sendBroadcast(intent);
                 break;
             case R.id.place_call_btn:
-                try {
-                    mService.call( TO_USER );
-                } catch ( RemoteException $e ) {
-                }
-                
-                break;
-            case R.id.hang_up_btn:
-                /*
-                Have to add a callid here.
-                try {
-                    mService.hangup();
-                } catch ( RemoteException $e ) {
-                }*/
+                    intent = new Intent(CallIntent.PLACE_CALL);
+                    intent.putExtra("remoteJid", TO_USER);
+                    sendBroadcast(intent);
                 break;
         }
     }
@@ -163,7 +122,6 @@ public class VoiceClientActivity
         // Set default preferences
         mSettings = PreferenceManager.getDefaultSharedPreferences( this );
 
-        initAudio();
         initClientWrapper();
     }
 
@@ -181,7 +139,7 @@ public class VoiceClientActivity
     private void displayIncomingCall( String remoteJid, long callId )
     {
         // start ringing
-        startIncomingRinging();
+        //startIncomingRinging();
 
         // and display the incoming call dialog
         //Dialog incomingCall = new IncomingCallDialog( this, mClient, cleanJid( remoteJid ), callId ).create();
@@ -203,11 +161,6 @@ public class VoiceClientActivity
         return mSettings.getString( getString( key ), getString( defaultValue ) );
     }
 
-    private void initAudio()
-    {
-        mAudioManager = (AudioManager) getSystemService( Context.AUDIO_SERVICE );
-    }
-
     private void initClientWrapper()
     {
         findViewById( R.id.init_btn ).setOnClickListener( this );
@@ -215,100 +168,5 @@ public class VoiceClientActivity
         findViewById( R.id.login_btn ).setOnClickListener( this );
         findViewById( R.id.logout_btn ).setOnClickListener( this );
         findViewById( R.id.place_call_btn ).setOnClickListener( this );
-        findViewById( R.id.hang_up_btn ).setOnClickListener( this );
-    }
-
-    private void resetAudio()
-    {
-        mAudioManager.setMode( AudioManager.MODE_NORMAL );
-    }
-
-    private synchronized void ringIncoming( Uri uri )
-    {
-        int ringerMode = mAudioManager.getRingerMode();
-        mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        if( callInProgress ) {
-            // Notify with single vibrate.
-            mVibrator.vibrate((long)200);
-        } else {
-            if( AudioManager.RINGER_MODE_NORMAL == ringerMode) {
-                mAudioManager.setMode( AudioManager.MODE_RINGTONE );
-                ring(uri, AudioManager.STREAM_RING);
-            } else if( AudioManager.RINGER_MODE_VIBRATE == ringerMode) {
-
-                // Start immediately
-                //Vibrate 400, break 200, Vibrate 400, break 1000
-                long[] pattern = { 0, 400, 200, 400, 1000 };
-
-                // Vibrate until cancelled.
-                mVibrator.vibrate(pattern, 0);
-            }  // else RINGER_MODE_SILENT
-        }
-    }
-
-    private synchronized void ringOutgoing( Uri uri )
-    {
-        mAudioManager.setMode( AudioManager.MODE_NORMAL );
-        ring(uri, AudioManager.STREAM_VOICE_CALL);
-    }
-
-    private synchronized void playNotification()
-    {
-        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        ringOutgoing(notification);
-    }
-
-    private synchronized void ring( Uri uri, int streamType)
-    {
-        try
-        {
-            if ( mRingerPlayer != null )
-            {
-                mRingerPlayer.stop();
-            }
-            mRingerPlayer = RingtoneManager.getRingtone( getApplicationContext(), uri );
-            mRingerPlayer.setStreamType(streamType);
-            mRingerPlayer.play();
-        }
-        catch ( Exception e )
-        {
-            Log.e( TAG, "error ringing", e );
-        }
-    }
-
-    private void setAudioForCall()
-    {
-        mAudioManager.setMode( ( Build.VERSION.SDK_INT < 11 )
-                                   ? AudioManager.MODE_IN_CALL
-                                   : AudioManager.MODE_IN_COMMUNICATION );
-        mAudioManager.requestAudioFocus( null, AudioManager.STREAM_VOICE_CALL, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT );
-    }
-
-    private synchronized void startIncomingRinging()
-    {
-        Uri notification = RingtoneManager.getDefaultUri( RingtoneManager.TYPE_RINGTONE );
-        ringIncoming( notification );
-    }
-
-    private synchronized void startOutgoingRinging()
-    {
-        Uri notification = Uri.parse( "android.resource://com.tuenti.voice.example/raw/outgoing_call_ring" );
-        ringOutgoing( notification );
-    }
-
-    private synchronized void stopRinging()
-    {
-        if ( mRingerPlayer != null )
-        {
-            mAudioManager.setMode( AudioManager.MODE_NORMAL );
-            mRingerPlayer.stop();
-            mRingerPlayer = null;
-        }
-
-        if( mVibrator != null )
-        {
-            mVibrator.cancel();
-            mVibrator = null;
-        }
     }
 }

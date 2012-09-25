@@ -1,4 +1,4 @@
-package com.tuenti.voice.example;
+package com.tuenti.voice.example.util;
 
 import android.content.Context;
 import android.hardware.Sensor;
