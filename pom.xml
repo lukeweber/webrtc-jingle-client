@@ -34,7 +34,7 @@
         <android.api.version>14</android.api.version>
         <android.version>4.0.1.2</android.version>
 
-        <android-maven-plugin.version>3.3.2</android-maven-plugin.version>
+        <android-maven-plugin.version>3.3.3-SNAPSHOT</android-maven-plugin.version>
         <maven-compiler-plugin.version>2.3.2</maven-compiler-plugin.version>
         <maven-jarsigner-plugin.version>1.2</maven-jarsigner-plugin.version>
         <native-maven-plugin.version>1.0-alpha-7</native-maven-plugin.version>
@@ -83,7 +83,6 @@
                             <platform>${android.api.version}</platform>
                             <path>${env.ANDROID_HOME}</path>
                         </sdk>
-                        <ndkBuildAdditionalCommandline>-j2 NDK_APPLICATION_MK=${android.ndkappfile}</ndkBuildAdditionalCommandline>
                         <undeployBeforeDeploy>true</undeployBeforeDeploy>
                         <nativeLibrariesDependenciesHardwareArchitectureOverrides>
                             <nativeLibrariesDependenciesHardwareArchitectureOverride>
