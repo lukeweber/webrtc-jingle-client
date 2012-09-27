@@ -18,20 +18,6 @@
         android:layout_height="wrap_content" />
 
     <Button
-        android:id="@+id/init_btn"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/init_client" >
-    </Button>
-
-    <Button
-        android:id="@+id/release_btn"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/release_client" >
-    </Button>
-
-    <Button
         android:id="@+id/login_btn"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"

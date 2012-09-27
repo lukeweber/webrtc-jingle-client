@@ -1,11 +1,15 @@
 package com.tuenti.voice.example;
 
+import android.app.Application;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 
 import android.os.Bundle;
+import android.os.Process;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
@@ -20,8 +24,11 @@ import com.tuenti.voice.core.XmppError;
 import com.tuenti.voice.core.XmppState;
 
 import com.tuenti.voice.example.service.VoiceClientService;
+import com.tuenti.voice.example.service.CallIntent;
 import com.tuenti.voice.example.service.IVoiceClientService;
 import com.tuenti.voice.example.service.IVoiceClientServiceCallback;
+
+import android.support.v4.content.LocalBroadcastManager;
 
 public class VoiceClientController
 {
@@ -32,8 +39,67 @@ public class VoiceClientController
 
     private boolean mIsBound = false;
     
+    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i( TAG, "Received intent: " + intent.getAction());
+            String intentString = intent.getAction();
+            long callId = intent.getLongExtra("callId", 0);
+            if( intentString.equals(CallIntent.HOLD_CALL)) {
+                try{
+                    mService.toggleHold( callId );
+                } catch( RemoteException e ){}
+            } else if( intentString.equals(CallIntent.MUTE_CALL)) {
+                try{
+                    mService.toggleMute( callId );
+                } catch( RemoteException e ){}
+            } else if(intentString.equals(CallIntent.END_CALL) ) {
+                try{
+                    mService.endCall( callId );
+                } catch( RemoteException e ){}
+            } else if( intentString.equals(CallIntent.PLACE_CALL) ) {
+                String remoteJid = intent.getStringExtra("remoteJid");
+                try{
+                    mService.call( remoteJid );
+                } catch( RemoteException e ){}
+            } else if( intentString.equals(CallIntent.ACCEPT_CALL)){
+                try{
+                    mService.acceptCall( callId );
+                } catch( RemoteException e ){}
+            } else if( intentString.equals(CallIntent.REJECT_CALL)){
+                try{
+                    mService.declineCall( callId, true );
+                } catch( RemoteException e ){}
+            } else if( intentString.equals(CallIntent.LOGIN)){
+                try{
+                    String username = intent.getStringExtra("username");
+                    String password = intent.getStringExtra("password");
+                    String xmppHost = intent.getStringExtra("xmppHost");
+                    int xmppPort = intent.getIntExtra("xmppPort", 0);
+                    boolean xmppUseSSl = intent.getBooleanExtra("xmppUseSSL", false);
+                    mService.login(username, password, xmppHost, xmppPort, xmppUseSSl);
+                } catch( RemoteException e ){}
+            } else if( intentString.equals(CallIntent.LOGOUT)){
+                try{
+                    mService.logout();
+                } catch( RemoteException e ){}
+            }
+        }
+    };
+    
     public VoiceClientController(Context context){
         mContext = context;
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(CallIntent.PLACE_CALL);
+        intentFilter.addAction(CallIntent.ACCEPT_CALL);
+        intentFilter.addAction(CallIntent.REJECT_CALL);
+        intentFilter.addAction(CallIntent.END_CALL);
+        intentFilter.addAction(CallIntent.MUTE_CALL);
+        intentFilter.addAction(CallIntent.HOLD_CALL);
+        intentFilter.addAction(CallIntent.LOGIN);
+        intentFilter.addAction(CallIntent.LOGOUT);
+        LocalBroadcastManager.getInstance(mContext).registerReceiver(mBroadcastReceiver, intentFilter);
     }
     
     public void bind() {
@@ -96,18 +162,17 @@ public class VoiceClientController
             mHandler.sendMessage(msg);*/
             //Implement me for intent or whatever we do here.
         }
-
-        public void dispatchIntent( Intent intent ){
-            Log.i(TAG, "Received action: " + intent.getAction());
+        
+        public void dispatchLocalIntent( Intent intent ){  
             Intent newIntent = (Intent)intent.clone();
-            newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_NO_HISTORY);
-            mContext.startActivity(newIntent);
+            LocalBroadcastManager.getInstance(mContext).sendBroadcast(newIntent);
         }
     };
     
     public void onDestroy(){
         if( mIsBound ){
             mContext.unbindService(mConnection);
+            LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mBroadcastReceiver);
             mIsBound = false;
         }
     }

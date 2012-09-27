@@ -2,6 +2,7 @@ package com.tuenti.voice.example.service;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -9,6 +10,7 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.media.AudioManager;
 import android.content.Context;
@@ -21,15 +23,17 @@ import com.tuenti.voice.core.VoiceClientEventHandler;
 import com.tuenti.voice.core.XmppError;
 import com.tuenti.voice.core.XmppState;
 import com.tuenti.voice.core.IVoiceClientServiceInt;
+import com.tuenti.voice.example.R;
 import com.tuenti.voice.example.data.Call;
-import com.tuenti.voice.example.service.IVoiceClientService;
-import com.tuenti.voice.example.service.IVoiceClientServiceCallback;
 import com.tuenti.voice.example.util.RingManager;
+import com.tuenti.voice.example.ui.dialog.IncomingCallDialog;
+import com.tuenti.voice.example.ui.activity.CallInProgressActivity;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.lang.Long;
 import android.os.Build;
+import android.preference.PreferenceManager;
 
 public class VoiceClientService 
     extends Service
@@ -50,6 +54,8 @@ public class VoiceClientService
     private AudioManager mAudioManager;
 
     private RingManager mRingManager;
+    
+    private SharedPreferences mSettings;
 
     /**
      * This is a list of callbacks that have been registered with the
@@ -63,6 +69,8 @@ public class VoiceClientService
     @Override
     public void onCreate() {
         super.onCreate();
+        // Set default preferences
+        mSettings = PreferenceManager.getDefaultSharedPreferences( this );
         initClientWrapper();
         initAudio();
         // Set default preferences
@@ -145,8 +153,14 @@ public class VoiceClientService
 
     public void outgoingCall( long callId, String remoteJid ){
         initCallState( callId, remoteJid );
-        dispatchIntent(getCallIntent(CallUIIntent.CALL_IN_PROGRESS, callId, remoteJid));
+        
+        Intent dialogIntent = new Intent(getBaseContext(), CallInProgressActivity.class);
+        dialogIntent.putExtra("callId", callId);
+        dialogIntent.putExtra("remoteJid", remoteJid);
+        dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        getApplication().startActivity(dialogIntent);
         startRing(false, false);
+        
         //Intent call started, show call in progress activity
         //Ring in the headphone
     }
@@ -154,6 +168,7 @@ public class VoiceClientService
     public void incomingCall( long callId, String remoteJid ){
         initCallState( callId, remoteJid );
         startRing(true, false);
+        startIncomingCallDialog( callId, remoteJid );
         //show alert pop up for incoming call + tray notification
         // Ringer.
     }
@@ -169,6 +184,8 @@ public class VoiceClientService
         call.startCallTimer();
         String remoteJid = call.getRemoteJid();
         setAudioForCall();
+        startCallInProgressActivity( callId, remoteJid );
+        dispatchCallState(CallUIIntent.CALL_STARTED, callId, call.getRemoteJid());
         //Intent call started
         //start timer on method updateCallUI every second.
         //Change notification to call in progress notification, that points to call in progress activity on click.
@@ -191,17 +208,15 @@ public class VoiceClientService
             mCallMap.remove(new Long(callId));
             stopRing();
             resetAudio();
-            //dispatchIntent(getCallIntent(CallUIIntent.CALL_ENDED, callId, remoteJid));
             //Store reason in call history with jid.
             //Intent call ended, store in history, return call time
-            //cancel ringer
             //cancel notification
             long callTime = call.getElapsedTime();
         }
     }
 
     public void acceptCall(long callId, String remoteJid ){
-        dispatchIntent(getCallIntent(CallUIIntent.CALL_IN_PROGRESS, callId, remoteJid));
+        //dispatchIntent(getCallIntent(CallUIIntent.CALL_PROGRESS, callId, remoteJid));
     }
     
     /*
@@ -214,6 +229,29 @@ public class VoiceClientService
             endCall( key, 0 );
             //TODO(Luke): Add reason
         }
+    }
+    
+    public void startCallInProgressActivity( long callId, String remoteJid ){
+        Intent dialogIntent = new Intent(getBaseContext(), CallInProgressActivity.class);
+        dialogIntent.putExtra("callId", callId);
+        dialogIntent.putExtra("remoteJid", remoteJid);
+        dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        getApplication().startActivity(dialogIntent);
+    }
+
+    public void startIncomingCallDialog( long callId, String remoteJid ){
+        Intent dialogIntent = new Intent(getBaseContext(), IncomingCallDialog.class);
+        dialogIntent.putExtra("callId", callId);
+        dialogIntent.putExtra("remoteJid", remoteJid);
+        dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        getApplication().startActivity(dialogIntent);
+    }
+
+    public void dispatchCallState(String callState, long callId, String remoteJid ){
+        Intent intent = new Intent(callState);
+        intent.putExtra("callId", callId);
+        intent.putExtra("remoteJid", remoteJid);
+        dispatchLocalIntent(intent);
     }
     
     public void startRing( boolean isIncoming, boolean callInProgress ){
@@ -250,6 +288,7 @@ public class VoiceClientService
                 break;
             case SENT_TERMINATE:
             case RECEIVED_TERMINATE:
+                dispatchCallState(CallUIIntent.CALL_ENDED, callId, remoteJid);
             case SENT_BUSY:
             case RECEIVED_BUSY:
             case SENT_REJECT:
@@ -268,6 +307,7 @@ public class VoiceClientService
                 Log.i(TAG, "DE_INIT");
                 break;
         }
+        Log.i(TAG, "call state ------------------" + state);
     }
 
     @Override
@@ -311,6 +351,7 @@ public class VoiceClientService
     @Override
     public void handleXmppStateChanged( int state )
     {
+        Intent intent;
         switch ( XmppState.fromInteger( state ) )
         {
             case START:
@@ -320,10 +361,14 @@ public class VoiceClientService
                 // changeStatus( "logging in..." );
                 break;
             case OPEN:
-                // changeStatus( "logged in..." );
+                intent = new Intent(CallUIIntent.LOGGED_IN);
+                dispatchLocalIntent(intent);
                 break;
             case CLOSED:
+                intent = new Intent(CallUIIntent.LOGGED_OUT);
+                dispatchLocalIntent(intent);
                 endAllCalls();
+                mClient.release();
                 //Intent disconnected.
                 // - Connection listener can handle this event.
                 // - When we have a connection, it will try to
@@ -355,11 +400,11 @@ public class VoiceClientService
         }
     }
     
-    public void dispatchIntent( Intent intent ){
+    public void dispatchLocalIntent( Intent intent ){
         final int N = mCallbacks.beginBroadcast();
         for (int i=0; i<N; i++) {
             try {
-                mCallbacks.getBroadcastItem(i).dispatchIntent(intent);
+                mCallbacks.getBroadcastItem(i).dispatchLocalIntent(intent);
             } catch (RemoteException e) {
                 // The RemoteCallbackList will take care of removing
                 // the dead object for us.
@@ -411,17 +456,15 @@ public class VoiceClientService
         public void endCall( long callId ) throws RemoteException {
             mClient.endCall( callId );
         }
-        public void init( String stunServer, String relayServerUdp, String relayServerTcp, String relayServerSsl, String turnServer ) throws RemoteException {
-            mClient.init( stunServer, relayServerUdp, relayServerTcp, relayServerSsl, turnServer );
-        }
         public void login( String username, String password, String xmppHost, int xmppPort, boolean xmppUseSsl ) throws RemoteException {
+            String stunServer = getStringPref( R.string.stunserver_key, R.string.stunserver_value );
+            String relayServer = getStringPref( R.string.relayserver_key, R.string.relayserver_value );
+            String turnServer = getStringPref( R.string.turnserver_key, R.string.turnserver_value );
+            mClient.init( stunServer, relayServer, relayServer, relayServer, turnServer );
             mClient.login( username, password, xmppHost, xmppPort, xmppUseSsl);
         }
         public void logout() throws RemoteException {
             mClient.logout();
-        }
-        public void release() throws RemoteException {
-            mClient.release();
         }
         /*public void getBuddyList() throws RemoteException {
             return mBuddyList;
@@ -445,5 +488,20 @@ public class VoiceClientService
         mClient = VoiceClient.getInstance();
         mHandler = new VoiceClientEventHandler(this); 
         mClient.setHandler( mHandler );
+    }
+    
+    private boolean getBooleanPref( int key, int defaultValue )
+    {
+        return Boolean.valueOf( getStringPref( key, defaultValue ) );
+    }
+
+    private int getIntPref( int key, int defaultValue )
+    {
+        return Integer.valueOf( getStringPref( key, defaultValue ) );
+    }
+
+    private String getStringPref( int key, int defaultValue )
+    {
+        return mSettings.getString( getString( key ), getString( defaultValue ) );
     }
 }

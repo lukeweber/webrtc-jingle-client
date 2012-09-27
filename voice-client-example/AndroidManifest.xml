@@ -26,12 +26,11 @@
         </activity>
         <activity android:name=".ui.activity.CallInProgressActivity"
                   android:label="@string/app_name"
-                  android:screenOrientation="portrait">
-            <intent-filter>
-                <action android:name="com.tuenti.voice.example.service.intent.action.CALL_IN_PROGRESS"/>
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
+                  android:screenOrientation="portrait"/>
+        <activity android:label="@string/app_name"
+                  android:name=".ui.dialog.IncomingCallDialog" 
+                  android:theme="@android:style/Theme.Dialog" 
+                  android:screenOrientation="portrait"/>
         <service android:enabled="true"
                  android:exported="false"
                  android:label="TuentiVoiceService"
@@ -41,19 +40,6 @@
                 <action android:name="com.tuenti.voice.example.service.IVoiceClientService" />
             </intent-filter>
         </service>
-        <receiver android:name=".VoiceClientReceiver"
-                  android:exported="false">
-            <intent-filter>
-                <action android:name="com.tuenti.voice.example.service.intent.action.PLACE_CALL" />
-                <action android:name="com.tuenti.voice.example.service.intent.action.ACCEPT_CALL" />
-                <action android:name="com.tuenti.voice.example.service.intent.action.REJECT_CALL" />
-                <action android:name="com.tuenti.voice.example.service.intent.action.END_CALL" />
-                <action android:name="com.tuenti.voice.example.service.intent.action.HOLD_CALL" />
-                <action android:name="com.tuenti.voice.example.service.intent.action.MUTE_CALL" />
-                <action android:name="com.tuenti.voice.example.service.intent.action.LOGIN" />
-                <action android:name="com.tuenti.voice.example.service.intent.action.LOGOUT" />
-            </intent-filter>
-        </receiver>
     </application>
 
 </manifest> 

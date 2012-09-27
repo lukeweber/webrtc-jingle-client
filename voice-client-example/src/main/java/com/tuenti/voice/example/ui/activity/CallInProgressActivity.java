@@ -15,6 +15,10 @@ import com.tuenti.voice.example.R;
 import android.content.Intent;
 import com.tuenti.voice.example.util.ProximitySensor;
 import com.tuenti.voice.example.service.CallIntent;
+import com.tuenti.voice.example.service.CallUIIntent;
+import android.support.v4.content.LocalBroadcastManager;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
 
 public class CallInProgressActivity
     extends Activity
@@ -37,24 +41,46 @@ public class CallInProgressActivity
     private String mRemoteJid;
     private boolean mMute;
     private boolean mHold;
+    
+    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent){
+            if (intent.getAction().equals(CallUIIntent.LOGGED_OUT) 
+                || intent.getAction().equals(CallUIIntent.CALL_ENDED)) {
+                finish();
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
+        setContentView( R.layout.callinprogress );
+        initClickListeners();
+    }
+    
+    @Override
+    protected void onResume(){
+        super.onResume();
         Log.e(TAG, "onCreate - CallInProgressActivity");
-        
         Intent intent = getIntent();
         mCallId = intent.getLongExtra("callId", 0);
         mRemoteJid = intent.getStringExtra("remoteJid");
         mMute = intent.getBooleanExtra("isMuted", false);
         mHold = intent.getBooleanExtra("isHeld", false);
-
         mProximitySensor = new ProximitySensor(this);
         initWakeLock();
-        setContentView( R.layout.callinprogress );
-        initClickListeners();
-
+        setupReceiver();
         changeStatus("Talking to " + mRemoteJid);
+    }
+
+    private void setupReceiver(){
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(CallUIIntent.CALL_STARTED);
+        intentFilter.addAction(CallUIIntent.CALL_PROGRESS);
+        intentFilter.addAction(CallUIIntent.CALL_ENDED);
+        intentFilter.addAction(CallUIIntent.LOGGED_OUT);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, intentFilter);
     }
 
     public void initClickListeners() {
@@ -64,12 +90,13 @@ public class CallInProgressActivity
     }
 
     @Override
-    protected void onStop(){
-        super.onStop();
+    protected void onPause(){
+        super.onPause();
         mProximitySensor.destroy();
         mProximitySensor = null;
         onUnProximity();
         releaseWakeLock();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
     }
 
     public void onProximity(){
@@ -137,18 +164,18 @@ public class CallInProgressActivity
                 case R.id.hang_up_btn:
                     intent = new Intent(CallIntent.END_CALL);
                     intent.putExtra("callId", mCallId);
-                    sendBroadcast( intent );
+                    LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast( intent );
                     finish();
                     break;
                 case R.id.mute_btn:
                     intent = new Intent(CallIntent.MUTE_CALL);
                     intent.putExtra("callId", mCallId);
-                    sendBroadcast( intent );
+                    LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast( intent );
                     break;
                 case R.id.hold_btn:
                     intent = new Intent(CallIntent.HOLD_CALL);
                     intent.putExtra("callId", mCallId);
-                    sendBroadcast( intent );
+                    LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast( intent );
                     break;
             }
         }

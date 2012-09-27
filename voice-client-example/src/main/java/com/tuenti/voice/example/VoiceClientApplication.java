@@ -18,15 +18,10 @@ public class VoiceClientApplication extends Application {
         mVoiceClientController.bind();
     }
  
-    //Figure out how we should clean up this binding...
+    //TODO(LUKE): Figure out how we should clean up this binding
     //@Override
     //public void onDestroy() {
 
     //    mVoiceClientController.onDestroy();
     //}
-    
-    // TODO(LUKE): Temporary remove me.
-    public static IVoiceClientService getService() {
-        return mVoiceClientController.mService;
-    }
 }

@@ -3,9 +3,11 @@ package com.tuenti.voice.example.ui.activity;
 // android imports
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Build;
@@ -13,6 +15,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -29,6 +32,7 @@ import com.tuenti.voice.example.ui.dialog.IncomingCallDialog;
 import com.tuenti.voice.example.VoiceClientApplication;
 import com.tuenti.voice.example.service.IVoiceClientService;
 import com.tuenti.voice.example.service.CallIntent;
+import com.tuenti.voice.example.service.CallUIIntent;
 
 public class VoiceClientActivity
     extends Activity
@@ -52,9 +56,6 @@ public class VoiceClientActivity
 
     private static final float ON_EAR_DISTANCE = 3.0f;
 
-    // Service Related Methods.
-    IVoiceClientService mService = null;
-
     private boolean mIsBound;
 
     private SharedPreferences mSettings;
@@ -62,6 +63,20 @@ public class VoiceClientActivity
     private long currentCallId = 0;
 
     private boolean callInProgress = false;
+    
+    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        
+        @Override
+        public void onReceive(Context context, Intent intent){
+            Log.i("libjingle", "libjingle local receiver: " + intent.getAction());
+            if (intent.getAction().equals(CallUIIntent.LOGGED_OUT))
+            {
+                changeStatus("Logged out");
+            } else if (intent.getAction().equals(CallUIIntent.LOGGED_IN)){
+                changeStatus("Logged in");
+            }
+        }
+    };
 
 // ------------------------ INTERFACE METHODS ------------------------
 
@@ -69,44 +84,28 @@ public class VoiceClientActivity
 
     public void onClick( View view )
     {
-        if( mService == null ){
-           mService = VoiceClientApplication.getService(); 
-        }
         Intent intent;
+        
         switch ( view.getId() )
         {
-            case R.id.init_btn:
-                try{
-                    String stunServer = getStringPref( R.string.stunserver_key, R.string.stunserver_value );
-                    String relayServer = getStringPref( R.string.relayserver_key, R.string.relayserver_value );
-                    String turnServer = getStringPref( R.string.turnserver_key, R.string.turnserver_value );
-                    mService.init( stunServer, relayServer, relayServer, relayServer, turnServer );
-                } catch ( RemoteException $e ) {
-                }
-                break;
-            case R.id.release_btn:
-                try {
-                    mService.release();
-                } catch ( RemoteException $e ) {
-                }
-                break;
             case R.id.login_btn:
-                try {
-                    String xmppHost = getStringPref( R.string.xmpp_host_key, R.string.xmpp_host_value );
-                    int xmppPort = getIntPref( R.string.xmpp_port_key, R.string.xmpp_port_value );
-                    boolean xmppUseSSL = getBooleanPref( R.string.xmpp_use_ssl_key, R.string.xmpp_use_ssl_value );
-                    mService.login( MY_USER, MY_PASS, xmppHost, xmppPort, xmppUseSSL);
-                } catch ( RemoteException $e ) {
-                }
+                    intent = new Intent(CallIntent.LOGIN);
+                    changeStatus("Logging in");
+                    intent.putExtra("username", MY_USER);
+                    intent.putExtra("password", MY_PASS);
+                    intent.putExtra("xmppHost", getStringPref( R.string.xmpp_host_key, R.string.xmpp_host_value ));
+                    intent.putExtra("xmppPort", getIntPref( R.string.xmpp_port_key, R.string.xmpp_port_value ));
+                    intent.putExtra("xmppUseSSL", getBooleanPref( R.string.xmpp_use_ssl_key, R.string.xmpp_use_ssl_value ));
+                    LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(intent);
                 break;
             case R.id.logout_btn:
                     intent = new Intent(CallIntent.LOGOUT);
-                    sendBroadcast(intent);
+                    LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(intent);
                 break;
             case R.id.place_call_btn:
                     intent = new Intent(CallIntent.PLACE_CALL);
                     intent.putExtra("remoteJid", TO_USER);
-                    sendBroadcast(intent);
+                    LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(intent);
                 break;
         }
     }
@@ -124,26 +123,22 @@ public class VoiceClientActivity
 
         initClientWrapper();
     }
-
+    
     @Override
-    protected void onDestroy()
-    {
-        super.onDestroy();
+    public void onResume(){
+        super.onResume();
+        setupReceiver();
+    }
+    
+    @Override
+    public void onPause(){
+       super.onPause();
+       LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(mReceiver);
     }
 
     private void changeStatus( String status )
     {
         ( (TextView) findViewById( R.id.status_view ) ).setText( status );
-    }
-
-    private void displayIncomingCall( String remoteJid, long callId )
-    {
-        // start ringing
-        //startIncomingRinging();
-
-        // and display the incoming call dialog
-        //Dialog incomingCall = new IncomingCallDialog( this, mClient, cleanJid( remoteJid ), callId ).create();
-        //incomingCall.show();
     }
 
     private boolean getBooleanPref( int key, int defaultValue )
@@ -163,10 +158,16 @@ public class VoiceClientActivity
 
     private void initClientWrapper()
     {
-        findViewById( R.id.init_btn ).setOnClickListener( this );
-        findViewById( R.id.release_btn ).setOnClickListener( this );
         findViewById( R.id.login_btn ).setOnClickListener( this );
         findViewById( R.id.logout_btn ).setOnClickListener( this );
         findViewById( R.id.place_call_btn ).setOnClickListener( this );
+    }
+    
+    
+    private void setupReceiver(){
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(CallUIIntent.LOGGED_IN);
+        intentFilter.addAction(CallUIIntent.LOGGED_OUT);
+        LocalBroadcastManager.getInstance(getBaseContext()).registerReceiver(mReceiver, intentFilter);
     }
 }

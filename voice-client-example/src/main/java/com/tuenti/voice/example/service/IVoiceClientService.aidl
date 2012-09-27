@@ -9,10 +9,8 @@ interface IVoiceClientService {
     void toggleMute( long callId );
     void toggleHold( long callId );
     void endCall( long callId );
-    void init( String stunServer, String relayServerUdp, String relayServerTcp, String relayServerSsl, String turnServer );
     void login( String username, String password, String xmppHost, int xmppPort, boolean xmppUseSSl );
     void logout();
-    void release();
     void registerCallback( IVoiceClientServiceCallback cb );
     void unregisterCallback( IVoiceClientServiceCallback cb );
 }

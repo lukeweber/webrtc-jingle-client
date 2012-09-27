@@ -3,6 +3,6 @@ import android.os.Bundle;
 import android.content.Intent;
 
 oneway interface IVoiceClientServiceCallback {
-    void sendBundle( out Bundle bundle );
-    void dispatchIntent( out Intent intent );
+    void sendBundle( in Bundle bundle );
+    void dispatchLocalIntent( in Intent intent );
 }
