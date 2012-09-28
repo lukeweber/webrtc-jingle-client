@@ -727,7 +727,7 @@ void ClientSignalingThread::InitPing() {
   LOGI("ClientSignalingThread::InitPing");
   assert(talk_base::Thread::Current() == signal_thread_);
   ping_ = new buzz::PingTask(pump_->client(), talk_base::Thread::Current(),
-      10000, 10000);
+      540000, 5000);//Every 9 minutes, 2 second timeout
   ping_->SignalTimeout.connect(this, &ClientSignalingThread::OnPingTimeout);
   ping_->Start();
 }

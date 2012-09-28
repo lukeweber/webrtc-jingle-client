@@ -30,65 +30,74 @@ import com.tuenti.voice.example.service.IVoiceClientServiceCallback;
 
 import android.support.v4.content.LocalBroadcastManager;
 
-public class VoiceClientController
-{
+public class VoiceClientController {
     IVoiceClientService mService;
     private Context mContext;
-    
+
     private static final String TAG = "controller-libjingle-webrtc";
 
     private boolean mIsBound = false;
-    
+
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.i( TAG, "Received intent: " + intent.getAction());
+            Log.i(TAG, "Received intent: " + intent.getAction());
             String intentString = intent.getAction();
             long callId = intent.getLongExtra("callId", 0);
-            if( intentString.equals(CallIntent.HOLD_CALL)) {
-                try{
-                    mService.toggleHold( callId );
-                } catch( RemoteException e ){}
-            } else if( intentString.equals(CallIntent.MUTE_CALL)) {
-                try{
-                    mService.toggleMute( callId );
-                } catch( RemoteException e ){}
-            } else if(intentString.equals(CallIntent.END_CALL) ) {
-                try{
-                    mService.endCall( callId );
-                } catch( RemoteException e ){}
-            } else if( intentString.equals(CallIntent.PLACE_CALL) ) {
+            if (intentString.equals(CallIntent.HOLD_CALL)) {
+                try {
+                    mService.toggleHold(callId);
+                } catch (RemoteException e) {
+                }
+            } else if (intentString.equals(CallIntent.MUTE_CALL)) {
+                try {
+                    mService.toggleMute(callId);
+                } catch (RemoteException e) {
+                }
+            } else if (intentString.equals(CallIntent.END_CALL)) {
+                try {
+                    mService.endCall(callId);
+                } catch (RemoteException e) {
+                }
+            } else if (intentString.equals(CallIntent.PLACE_CALL)) {
                 String remoteJid = intent.getStringExtra("remoteJid");
-                try{
-                    mService.call( remoteJid );
-                } catch( RemoteException e ){}
-            } else if( intentString.equals(CallIntent.ACCEPT_CALL)){
-                try{
-                    mService.acceptCall( callId );
-                } catch( RemoteException e ){}
-            } else if( intentString.equals(CallIntent.REJECT_CALL)){
-                try{
-                    mService.declineCall( callId, true );
-                } catch( RemoteException e ){}
-            } else if( intentString.equals(CallIntent.LOGIN)){
-                try{
+                try {
+                    mService.call(remoteJid);
+                } catch (RemoteException e) {
+                }
+            } else if (intentString.equals(CallIntent.ACCEPT_CALL)) {
+                try {
+                    mService.acceptCall(callId);
+                } catch (RemoteException e) {
+                }
+            } else if (intentString.equals(CallIntent.REJECT_CALL)) {
+                try {
+                    mService.declineCall(callId, true);
+                } catch (RemoteException e) {
+                }
+            } else if (intentString.equals(CallIntent.LOGIN)) {
+                try {
                     String username = intent.getStringExtra("username");
                     String password = intent.getStringExtra("password");
                     String xmppHost = intent.getStringExtra("xmppHost");
                     int xmppPort = intent.getIntExtra("xmppPort", 0);
-                    boolean xmppUseSSl = intent.getBooleanExtra("xmppUseSSL", false);
-                    mService.login(username, password, xmppHost, xmppPort, xmppUseSSl);
-                } catch( RemoteException e ){}
-            } else if( intentString.equals(CallIntent.LOGOUT)){
-                try{
+                    boolean xmppUseSSl = intent.getBooleanExtra("xmppUseSSL",
+                            false);
+                    mService.login(username, password, xmppHost, xmppPort,
+                            xmppUseSSl);
+                } catch (RemoteException e) {
+                }
+            } else if (intentString.equals(CallIntent.LOGOUT)) {
+                try {
                     mService.logout();
-                } catch( RemoteException e ){}
+                } catch (RemoteException e) {
+                }
             }
         }
     };
-    
-    public VoiceClientController(Context context){
+
+    public VoiceClientController(Context context) {
         mContext = context;
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(CallIntent.PLACE_CALL);
@@ -99,80 +108,81 @@ public class VoiceClientController
         intentFilter.addAction(CallIntent.HOLD_CALL);
         intentFilter.addAction(CallIntent.LOGIN);
         intentFilter.addAction(CallIntent.LOGOUT);
-        LocalBroadcastManager.getInstance(mContext).registerReceiver(mBroadcastReceiver, intentFilter);
+        LocalBroadcastManager.getInstance(mContext).registerReceiver(
+                mBroadcastReceiver, intentFilter);
     }
-    
+
     public void bind() {
         mContext.bindService(new Intent(IVoiceClientService.class.getName()),
                 mConnection, Context.BIND_AUTO_CREATE);
         mIsBound = true;
     }
- 
+
     /**
      * Class for interacting with the main interface of the service.
      */
     private ServiceConnection mConnection = new ServiceConnection() {
-        public void onServiceConnected(ComponentName className,
-                IBinder service) {
+        public void onServiceConnected(ComponentName className, IBinder service) {
             // This is called when the connection with the service has been
             // established, giving us the service object we can use to
-            // interact with the service.  We are communicating with our
+            // interact with the service. We are communicating with our
             // service through an IDL interface, so get a client-side
             // representation of that from the raw service object.
             mService = IVoiceClientService.Stub.asInterface(service);
             try {
                 mService.registerCallback(mCallback);
-            } catch ( RemoteException $e ) {
+            } catch (RemoteException $e) {
 
             }
             // We want to monitor the service for as long as we are
             // connected to it.
-            Log.i( TAG, "Connected to service" );
+            Log.i(TAG, "Connected to service");
         }
 
         public void onServiceDisconnected(ComponentName className) {
             try {
                 mService.unregisterCallback(mCallback);
-            } catch ( RemoteException $e ) {
+            } catch (RemoteException $e) {
 
             }
             // This is called when the connection with the service has been
             // unexpectedly disconnected -- that is, its process crashed.
             mService = null;
-            Log.i( TAG, "Disconnected from service" );
+            Log.i(TAG, "Disconnected from service");
         }
     };
 
     /**
-     * This implementation is used to receive callbacks from the remote
-     * service.
+     * This implementation is used to receive callbacks from the remote service.
      */
     private IVoiceClientServiceCallback mCallback = new IVoiceClientServiceCallback.Stub() {
         /**
-         * This is called by the remote service regularly to tell us about
-         * new values.  Note that IPC calls are dispatched through a thread
-         * pool running in each process, so the code executing here will
-         * NOT be running in our main thread like most other things -- so,
-         * to update the UI, we need to use a Handler to hop over there.
+         * This is called by the remote service regularly to tell us about new
+         * values. Note that IPC calls are dispatched through a thread pool
+         * running in each process, so the code executing here will NOT be
+         * running in our main thread like most other things -- so, to update
+         * the UI, we need to use a Handler to hop over there.
          */
-        public void sendBundle( Bundle bundle ){
-            /*Message msg = Message.obtain();
-            msg.what = bundle.getInt("what");
-            msg.setData(bundle);
-            mHandler.sendMessage(msg);*/
-            //Implement me for intent or whatever we do here.
+        public void sendBundle(Bundle bundle) {
+            /*
+             * Message msg = Message.obtain(); msg.what = bundle.getInt("what");
+             * msg.setData(bundle); mHandler.sendMessage(msg);
+             */
+            // Implement me for intent or whatever we do here.
         }
-        
-        public void dispatchLocalIntent( Intent intent ){  
-            Intent newIntent = (Intent)intent.clone();
-            LocalBroadcastManager.getInstance(mContext).sendBroadcast(newIntent);
+
+        public void dispatchLocalIntent(Intent intent) {
+            Intent newIntent = (Intent) intent.clone();
+            LocalBroadcastManager.getInstance(mContext)
+                    .sendBroadcast(newIntent);
         }
     };
-    
-    public void onDestroy(){
-        if( mIsBound ){
+
+    public void onDestroy() {
+        if (mIsBound) {
             mContext.unbindService(mConnection);
-            LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mBroadcastReceiver);
+            LocalBroadcastManager.getInstance(mContext).unregisterReceiver(
+                    mBroadcastReceiver);
             mIsBound = false;
         }
     }

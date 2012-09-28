@@ -9,38 +9,38 @@ public class Call {
     private boolean mMute;
     private boolean mHold;
 
-    public Call(long callId, String remoteJid){
+    public Call(long callId, String remoteJid) {
         mCallId = callId;
         mRemoteJid = remoteJid;
         mHold = false;
         mMute = false;
     }
 
-    public void startCallTimer(){
+    public void startCallTimer() {
         mTime = SystemClock.elapsedRealtime();
     }
 
-    public long getElapsedTime(){
+    public long getElapsedTime() {
         return (SystemClock.elapsedRealtime() - mTime) / 1000;
     }
 
-    public String getRemoteJid(){
+    public String getRemoteJid() {
         return mRemoteJid;
     }
 
-    public boolean isHeld(){
+    public boolean isHeld() {
         return mHold;
     }
 
-    public boolean isMuted(){
+    public boolean isMuted() {
         return mMute;
     }
 
-    public void setHold(boolean isHeld){
+    public void setHold(boolean isHeld) {
         mHold = isHeld;
     }
 
-    public void setMute(boolean isMuted){
+    public void setMute(boolean isMuted) {
         mMute = isMuted;
     }
 }

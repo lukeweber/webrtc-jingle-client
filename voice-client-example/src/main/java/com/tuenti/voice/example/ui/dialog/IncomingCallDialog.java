@@ -18,87 +18,89 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
 
-public class IncomingCallDialog
-    extends Activity
-    implements View.OnClickListener
-{
+public class IncomingCallDialog extends Activity implements
+        View.OnClickListener {
 
-// ------------------------------ FIELDS ------------------------------
+    // ------------------------------ FIELDS ------------------------------
 
     private long mCallId;
     private String mRemoteJid;
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        
+
         @Override
-        public void onReceive(Context context, Intent intent){
-            Log.i("libjingle", "libjingle local receiver: " + intent.getAction());
+        public void onReceive(Context context, Intent intent) {
+            Log.i("libjingle",
+                    "libjingle local receiver: " + intent.getAction());
             if (intent.getAction().equals(CallUIIntent.CALL_PROGRESS)
-                || intent.getAction().equals(CallUIIntent.CALL_ENDED)
-                || intent.getAction().equals(CallUIIntent.LOGGED_OUT))
-            {
+                    || intent.getAction().equals(CallUIIntent.CALL_ENDED)
+                    || intent.getAction().equals(CallUIIntent.LOGGED_OUT)) {
                 finish();
             }
         }
     };
 
     @Override
-    public void onCreate(Bundle savedInstanceState){
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
 
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
         Intent intent = getIntent();
         mCallId = intent.getLongExtra("callId", 0);
         mRemoteJid = intent.getStringExtra("remoteJid");
 
-        setContentView( R.layout.incomingcalldialog );
+        setContentView(R.layout.incomingcalldialog);
         initOnClickListeners();
 
-        ( (TextView) findViewById( R.id.title ) ).setText( "Incoming call from " + mRemoteJid );
+        ((TextView) findViewById(R.id.title)).setText("Incoming call from "
+                + mRemoteJid);
         setupReceiver();
     }
-    
-    private void initOnClickListeners(){
-        findViewById( R.id.accept_call_btn ).setOnClickListener( this );
-        findViewById( R.id.decline_call_btn ).setOnClickListener( this );
+
+    private void initOnClickListeners() {
+        findViewById(R.id.accept_call_btn).setOnClickListener(this);
+        findViewById(R.id.decline_call_btn).setOnClickListener(this);
     }
-    
-    private void setupReceiver(){
+
+    private void setupReceiver() {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(CallUIIntent.CALL_PROGRESS);
         intentFilter.addAction(CallUIIntent.CALL_ENDED);
         intentFilter.addAction(CallUIIntent.LOGGED_OUT);
-        LocalBroadcastManager.getInstance(getBaseContext()).registerReceiver(mReceiver, intentFilter);
+        LocalBroadcastManager.getInstance(getBaseContext()).registerReceiver(
+                mReceiver, intentFilter);
     }
-// ------------------------ INTERFACE METHODS ------------------------
-// --------------------- Interface OnClickListener ---------------------
-    
-    public void onClick( View view )
-    {
+
+    // ------------------------ INTERFACE METHODS ------------------------
+    // --------------------- Interface OnClickListener ---------------------
+
+    public void onClick(View view) {
         Intent intent;
-        switch ( view.getId() )
-        {
-            case R.id.accept_call_btn:
-                intent = new Intent(CallIntent.ACCEPT_CALL);
-                intent.putExtra("callId", mCallId);
-                LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast( intent );
-                //intent call in progress start
-                break;
-            case R.id.decline_call_btn:
-                intent = new Intent(CallIntent.REJECT_CALL);
-                intent.putExtra("callId", mCallId);
-                LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast( intent );
-                break;
+        switch (view.getId()) {
+        case R.id.accept_call_btn:
+            intent = new Intent(CallIntent.ACCEPT_CALL);
+            intent.putExtra("callId", mCallId);
+            LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(
+                    intent);
+            // intent call in progress start
+            break;
+        case R.id.decline_call_btn:
+            intent = new Intent(CallIntent.REJECT_CALL);
+            intent.putExtra("callId", mCallId);
+            LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(
+                    intent);
+            break;
         }
         finish();
     }
 
     @Override
-    public void onPause(){
+    public void onPause() {
         super.onPause();
-        LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(mReceiver);
+        LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(
+                mReceiver);
     }
 }

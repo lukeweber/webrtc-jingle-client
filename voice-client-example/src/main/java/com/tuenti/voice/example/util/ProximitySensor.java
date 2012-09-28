@@ -8,9 +8,7 @@ import android.hardware.SensorManager;
 
 import com.tuenti.voice.example.ui.activity.CallInProgressActivity;
 
-public class ProximitySensor 
-    implements SensorEventListener 
-{
+public class ProximitySensor implements SensorEventListener {
     private static final float ON_EAR_DISTANCE = 3.0f;
 
     // Proximity Sensor
@@ -23,23 +21,24 @@ public class ProximitySensor
     private Context mContext;
 
     private CallInProgressActivity mCallInProgressCallback;
-    
-    public ProximitySensor(CallInProgressActivity callInProgress)
-    {
-        mContext = (Context)callInProgress;
+
+    public ProximitySensor(CallInProgressActivity callInProgress) {
+        mContext = (Context) callInProgress;
         mCallInProgressCallback = callInProgress;
-        mSensorManager = (SensorManager)mContext.getSystemService(Context.SENSOR_SERVICE);
+        mSensorManager = (SensorManager) mContext
+                .getSystemService(Context.SENSOR_SERVICE);
         mProximity = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
-        if(mProximity != null) {
+        if (mProximity != null) {
             mMaxRangeProximity = mProximity.getMaximumRange();
-            mSensorManager.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL);
+            mSensorManager.registerListener(this, mProximity,
+                    SensorManager.SENSOR_DELAY_NORMAL);
         } else {
             mMaxRangeProximity = 10;
         }
     }
 
     @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy){
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
     }
 
     @Override
@@ -48,17 +47,20 @@ public class ProximitySensor
         // Proximity in some devices is anything less than mMaxRangeProximity
         // on my test phone 9.0f or 0.0f for the two states.
         // Others might measure it more accurately.
-        // TODO(Luke): Headset case isn't covered here at all, in which case we probably
-        // want to probably do partial_wake_lock and not change the screen brightness.
-        if ( event.values[0] < mMaxRangeProximity && event.values[0] <= ON_EAR_DISTANCE) {
+        // TODO(Luke): Headset case isn't covered here at all, in which case we
+        // probably
+        // want to probably do partial_wake_lock and not change the screen
+        // brightness.
+        if (event.values[0] < mMaxRangeProximity
+                && event.values[0] <= ON_EAR_DISTANCE) {
             mCallInProgressCallback.onProximity();
         } else {
             mCallInProgressCallback.onUnProximity();
         }
     }
 
-    public void destroy(){
-        if( mProximity != null ){
+    public void destroy() {
+        if (mProximity != null) {
             mSensorManager.unregisterListener(this);
         }
     }

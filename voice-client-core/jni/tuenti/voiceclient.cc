@@ -95,6 +95,9 @@ void VoiceClient::InitializeS() {
             "client_signaling_thread_@(0x%x)",
             reinterpret_cast<int>(client_signaling_thread_));
     client_signaling_thread_->Start();
+
+    //We know the client is alive when we get this state.
+    notify_->OnXmppStateChange(buzz::XmppEngine::STATE_NONE);
   }
 }
 void VoiceClient::DestroyS() {
