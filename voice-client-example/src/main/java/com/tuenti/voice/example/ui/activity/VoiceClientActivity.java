@@ -41,21 +41,14 @@ public class VoiceClientActivity extends Activity implements
     private static final String TAG = "VoiceClientActivity";
 
     // Template Google Settings
+
     private static final String TO_USER = "user@gmail.com";
 
     private static final String MY_USER = "username@mydomain.com";
 
     private static final String MY_PASS = "pass";
-    
-    private static final float ON_EAR_DISTANCE = 3.0f;
-
-    private boolean mIsBound;
 
     private SharedPreferences mSettings;
-
-    private long currentCallId = 0;
-
-    private boolean callInProgress = false;
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
 

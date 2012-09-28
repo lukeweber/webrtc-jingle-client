@@ -2,9 +2,8 @@ package com.tuenti.voice.example;
 
 import android.app.Application;
 import android.content.Intent;
-import com.tuenti.voice.example.service.IVoiceClientService;
+
 import com.tuenti.voice.example.service.VoiceClientService;
-import com.tuenti.voice.example.VoiceClientController;
 
 public class VoiceClientApplication extends Application {
 
