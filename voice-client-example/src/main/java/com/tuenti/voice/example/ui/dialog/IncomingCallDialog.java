@@ -1,19 +1,24 @@
 package com.tuenti.voice.example.ui.dialog;
 
 import android.app.Activity;
+import android.app.KeyguardManager;
+import android.app.KeyguardManager.KeyguardLock;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.tuenti.voice.example.R;
 import com.tuenti.voice.example.service.CallIntent;
 import com.tuenti.voice.example.service.CallUIIntent;
+import com.tuenti.voice.example.util.WakeLockManager;
 
 public class IncomingCallDialog extends Activity implements
         View.OnClickListener {
@@ -22,6 +27,8 @@ public class IncomingCallDialog extends Activity implements
 
     private long mCallId;
     private String mRemoteJid;
+    private WakeLockManager mWakeLock;
+    private KeyguardLock mKeyguardLock;
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
 
@@ -38,20 +45,28 @@ public class IncomingCallDialog extends Activity implements
     };
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mWakeLock = new WakeLockManager(getBaseContext());
+        mWakeLock.setWakeLockState(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP);
+        this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD | 
+                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED | 
+                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        setContentView(R.layout.incomingcalldialog);
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        KeyguardManager mKeyGuardManager = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
+        mKeyguardLock = mKeyGuardManager.newKeyguardLock("screenunlock");
+        mKeyguardLock.disableKeyguard();
+        
         Intent intent = getIntent();
         mCallId = intent.getLongExtra("callId", 0);
         mRemoteJid = intent.getStringExtra("remoteJid");
-
-        setContentView(R.layout.incomingcalldialog);
+        
         initOnClickListeners();
-
         ((TextView) findViewById(R.id.title)).setText("Incoming call from "
                 + mRemoteJid);
         setupReceiver();
@@ -97,6 +112,9 @@ public class IncomingCallDialog extends Activity implements
     @Override
     public void onPause() {
         super.onPause();
+        if (mKeyguardLock != null){
+            mKeyguardLock.reenableKeyguard();
+        }
         LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(
                 mReceiver);
     }

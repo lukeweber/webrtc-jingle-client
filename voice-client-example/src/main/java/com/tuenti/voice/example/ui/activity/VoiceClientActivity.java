@@ -22,8 +22,6 @@ public class VoiceClientActivity extends Activity implements
         View.OnClickListener {
     // ------------------------------ FIELDS ------------------------------
 
-    private static final String TAG = "VoiceClientActivity";
-
     // Template Google Settings
 
     private static final String TO_USER = "user@gmail.com";

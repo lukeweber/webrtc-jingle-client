@@ -1,24 +1,25 @@
 package com.tuenti.voice.example.ui.activity;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 import android.widget.TextView;
-import com.tuenti.voice.example.R;
 
-import android.content.Intent;
-import com.tuenti.voice.example.util.ProximitySensor;
+import com.tuenti.voice.example.R;
 import com.tuenti.voice.example.service.CallIntent;
 import com.tuenti.voice.example.service.CallUIIntent;
-import android.support.v4.content.LocalBroadcastManager;
-import android.content.BroadcastReceiver;
-import android.content.IntentFilter;
+import com.tuenti.voice.example.util.ProximitySensor;
+import com.tuenti.voice.example.util.WakeLockManager;
 
 public class CallInProgressActivity extends Activity implements
         View.OnClickListener {
@@ -27,13 +28,7 @@ public class CallInProgressActivity extends Activity implements
 
     private final String TAG = "s-libjingle-webrtc";
     private ProximitySensor mProximitySensor;
-
-    // Wake lock
-    private PowerManager mPowerManager;
-
-    private WakeLock mWakeLock;
-
-    private int mWakeLockState;
+    private WakeLockManager mWakeLock;
 
     private long mCallId;
     private String mRemoteJid;
@@ -54,6 +49,7 @@ public class CallInProgressActivity extends Activity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.callinprogress);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
         initClickListeners();
     }
 
@@ -67,7 +63,7 @@ public class CallInProgressActivity extends Activity implements
         mMute = intent.getBooleanExtra("isMuted", false);
         mHold = intent.getBooleanExtra("isHeld", false);
         mProximitySensor = new ProximitySensor(this);
-        initWakeLock();
+        mWakeLock = new WakeLockManager(getBaseContext());
         setupReceiver();
         changeStatus("Talking to " + mRemoteJid);
     }
@@ -78,7 +74,7 @@ public class CallInProgressActivity extends Activity implements
         intentFilter.addAction(CallUIIntent.CALL_PROGRESS);
         intentFilter.addAction(CallUIIntent.CALL_ENDED);
         intentFilter.addAction(CallUIIntent.LOGGED_OUT);
-        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,
+        LocalBroadcastManager.getInstance(getBaseContext()).registerReceiver(mReceiver,
                 intentFilter);
     }
 
@@ -94,14 +90,20 @@ public class CallInProgressActivity extends Activity implements
         mProximitySensor.destroy();
         mProximitySensor = null;
         onUnProximity();
-        releaseWakeLock();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
+        mWakeLock.releaseWakeLock();
+        LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(mReceiver);
+    }
+    
+    @Override 
+    protected void onStop() {
+        super.onStop();
+        mWakeLock.releaseWakeLock();
     }
 
     public void onProximity() {
         mUILocked = true;
         turnScreenOn(false);
-        setWakeLockState(PowerManager.PARTIAL_WAKE_LOCK);
+        mWakeLock.setWakeLockState(PowerManager.PARTIAL_WAKE_LOCK);
     }
 
     private void changeStatus(String status) {
@@ -109,7 +111,7 @@ public class CallInProgressActivity extends Activity implements
     }
 
     public void onUnProximity() {
-        setWakeLockState(PowerManager.FULL_WAKE_LOCK);
+        mWakeLock.setWakeLockState(PowerManager.FULL_WAKE_LOCK);
         mUILocked = false;
         turnScreenOn(true);
     }
@@ -125,35 +127,6 @@ public class CallInProgressActivity extends Activity implements
         }
         getWindow().setAttributes(params);
     }
-
-    /* Wake lock related logic */
-    private void initWakeLock() {
-        if (mPowerManager == null) {
-            mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        }
-    }
-
-    private void setWakeLockState(int newState) {
-        if (mWakeLockState != newState) {
-            if (mWakeLock != null) {
-                mWakeLock.release();
-                mWakeLock = null;
-            }
-            mWakeLockState = newState;
-            mWakeLock = mPowerManager.newWakeLock(newState,
-                    "In Call wake lock: " + newState);
-            mWakeLock.acquire();
-        }
-    }
-
-    private void releaseWakeLock() {
-        if (mWakeLock != null) {
-            mWakeLock.release();
-            mWakeLock = null;
-        }
-    }
-
-    /* End wake lock related logic */
 
     @Override
     public void onClick(View view) {
