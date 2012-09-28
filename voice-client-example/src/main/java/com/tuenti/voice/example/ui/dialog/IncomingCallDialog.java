@@ -1,22 +1,19 @@
 package com.tuenti.voice.example.ui.dialog;
 
-import android.util.Log;
-
-import android.app.AlertDialog;
-import android.content.Context;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
-import android.content.DialogInterface;
-import com.tuenti.voice.core.VoiceClient;
-import com.tuenti.voice.example.R;
-import android.view.View;
-import android.widget.TextView;
-import com.tuenti.voice.example.service.CallIntent;
-import com.tuenti.voice.example.service.CallUIIntent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
-import android.content.BroadcastReceiver;
-import android.content.IntentFilter;
+import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
+
+import com.tuenti.voice.example.R;
+import com.tuenti.voice.example.service.CallIntent;
+import com.tuenti.voice.example.service.CallUIIntent;
 
 public class IncomingCallDialog extends Activity implements
         View.OnClickListener {

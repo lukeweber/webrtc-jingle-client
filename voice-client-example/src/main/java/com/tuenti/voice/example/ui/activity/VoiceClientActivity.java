@@ -2,35 +2,19 @@ package com.tuenti.voice.example.ui.activity;
 
 // android imports
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import com.tuenti.voice.core.BuddyListState;
-import com.tuenti.voice.core.CallState;
-import com.tuenti.voice.core.VoiceClient;
-import com.tuenti.voice.core.VoiceClientEventCallback;
-import com.tuenti.voice.core.VoiceClientEventHandler;
-import com.tuenti.voice.core.XmppError;
-import com.tuenti.voice.core.XmppState;
 import com.tuenti.voice.example.R;
-import com.tuenti.voice.example.ui.dialog.IncomingCallDialog;
-import com.tuenti.voice.example.VoiceClientApplication;
-import com.tuenti.voice.example.service.IVoiceClientService;
 import com.tuenti.voice.example.service.CallIntent;
 import com.tuenti.voice.example.service.CallUIIntent;
 
