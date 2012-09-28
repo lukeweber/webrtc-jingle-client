@@ -55,6 +55,8 @@ public class VoiceClientService extends Service implements
 
     private SharedPreferences mSettings;
     
+    private boolean mClientInited = false;
+    
     //Pending login values
     private String mUsername;
     private String mPassword;
@@ -100,8 +102,14 @@ public class VoiceClientService extends Service implements
     public void onDestroy() {
         super.onDestroy();
         mCallbacks.kill();
+        mClient.destroy();
         // mBuddyList.clear();
         mClient = null;
+    }
+    
+    public void releaseClient(){
+        mClient.release();
+        mClientInited = false;
     }
 
     private static String cleanJid(String jid) {
@@ -353,21 +361,27 @@ public class VoiceClientService extends Service implements
             break;
         }
     }
+    
+    public void runPendingLogin(){
+        if (mUsername != null){
+            mClient.login(mUsername, mPassword, mXmppHost, mXmppPort, mXmppUseSsl);
+            mUsername = null;
+            mPassword = null;
+            mXmppHost = null;
+            mXmppPort = 0;
+            mXmppUseSsl = false;
+        }
+    }
 
     @Override
     public void handleXmppStateChanged(int state) {
         Intent intent;
         switch (XmppState.fromInteger(state)) {
         case NONE:
+            mClientInited = true;
             Log.e(TAG, "xmpp None state");
-            if (mUsername != null){
-                mClient.login(mUsername, mPassword, mXmppHost, mXmppPort, mXmppUseSsl);
-                mUsername = null;
-                mPassword = null;
-                mXmppHost = null;
-                mXmppPort = 0;
-                mXmppUseSsl = false;
-            }
+            runPendingLogin();
+            break;
         case START:
             // changeStatus( "connecting..." );
             break;
@@ -382,7 +396,7 @@ public class VoiceClientService extends Service implements
             intent = new Intent(CallUIIntent.LOGGED_OUT);
             dispatchLocalIntent(intent);
             endAllCalls();
-            mClient.release();
+            releaseClient();
             // Intent disconnected.
             // - Connection listener can handle this event.
             // - When we have a connection, it will try to
@@ -476,24 +490,32 @@ public class VoiceClientService extends Service implements
         }
 
         public void login(String username, String password, String xmppHost,
-                int xmppPort, boolean xmppUseSsl) throws RemoteException {
-            String stunServer = getStringPref(R.string.stunserver_key,
-                    R.string.stunserver_value);
-            String relayServer = getStringPref(R.string.relayserver_key,
-                    R.string.relayserver_value);
-            String turnServer = getStringPref(R.string.turnserver_key,
-                    R.string.turnserver_value);
-            mClient.init(stunServer, relayServer, relayServer, relayServer,
-                    turnServer);
+                int xmppPort, boolean xmppUseSsl) throws RemoteException {       
             mUsername = username;
             mPassword = password;
             mXmppHost = xmppHost;
             mXmppPort = xmppPort;
             mXmppUseSsl = xmppUseSsl;
+            if (mClientInited) {
+                runPendingLogin();
+            } else {//We run login after xmpp_none event, meaning our client is initialized
+                String stunServer = getStringPref(R.string.stunserver_key,
+                        R.string.stunserver_value);
+                String relayServer = getStringPref(R.string.relayserver_key,
+                        R.string.relayserver_value);
+                String turnServer = getStringPref(R.string.turnserver_key,
+                        R.string.turnserver_value);
+                mClient.init(stunServer, relayServer, relayServer, relayServer,
+                        turnServer);
+            } 
         }
 
         public void logout() throws RemoteException {
             mClient.logout();
+        }
+        
+        public void release() throws RemoteException {
+            releaseClient();
         }
 
         /*

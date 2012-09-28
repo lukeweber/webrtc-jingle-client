@@ -95,11 +95,6 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeDeclineCall(
   }
 }
 
-JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeDestroy(
-    JNIEnv *env, jobject object) {
-    Java_com_tuenti_voice_core_VoiceClient_nativeRelease(env, object);
-}
-
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeEndCall(
     JNIEnv *env, jobject object, jlong call_id) {
   if (client_) {

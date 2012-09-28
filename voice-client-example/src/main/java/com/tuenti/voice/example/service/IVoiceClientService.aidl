@@ -10,6 +10,7 @@ interface IVoiceClientService {
     void toggleHold( long callId );
     void endCall( long callId );
     void login( String username, String password, String xmppHost, int xmppPort, boolean xmppUseSSl );
+    void release();
     void logout();
     void registerCallback( IVoiceClientServiceCallback cb );
     void unregisterCallback( IVoiceClientServiceCallback cb );
