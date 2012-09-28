@@ -1,34 +1,20 @@
 package com.tuenti.voice.example;
 
-import android.app.Application;
 import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-
 import android.os.Bundle;
-import android.os.Process;
 import android.os.IBinder;
-import android.os.Message;
 import android.os.RemoteException;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.tuenti.voice.core.BuddyListState;
-import com.tuenti.voice.core.CallState;
-import com.tuenti.voice.core.VoiceClient;
-import com.tuenti.voice.core.VoiceClientEventCallback;
-import com.tuenti.voice.core.VoiceClientEventHandler;
-import com.tuenti.voice.core.XmppError;
-import com.tuenti.voice.core.XmppState;
-
-import com.tuenti.voice.example.service.VoiceClientService;
 import com.tuenti.voice.example.service.CallIntent;
 import com.tuenti.voice.example.service.IVoiceClientService;
 import com.tuenti.voice.example.service.IVoiceClientServiceCallback;
-
-import android.support.v4.content.LocalBroadcastManager;
 
 public class VoiceClientController {
     IVoiceClientService mService;

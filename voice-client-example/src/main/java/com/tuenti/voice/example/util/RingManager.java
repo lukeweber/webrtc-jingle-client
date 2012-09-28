@@ -1,12 +1,11 @@
 package com.tuenti.voice.example.util;
 
+import android.content.Context;
 import android.media.AudioManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
-import android.os.Vibrator;
 import android.net.Uri;
-import android.content.Context;
-
+import android.os.Vibrator;
 import android.util.Log;
 
 public class RingManager {
