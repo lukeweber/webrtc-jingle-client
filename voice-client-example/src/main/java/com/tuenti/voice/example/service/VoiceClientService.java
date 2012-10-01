@@ -185,7 +185,7 @@ public class VoiceClientService extends Service implements
                 CallInProgressActivity.class);
         dialogIntent.putExtra("callId", callId);
         dialogIntent.putExtra("remoteJid", remoteJid);
-        dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY);
+        dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_FROM_BACKGROUND);
         getApplication().startActivity(dialogIntent);
         startRing(false, false);
         
