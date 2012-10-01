@@ -56,9 +56,7 @@ public class IncomingCallDialog extends Activity implements
         mCallId = intent.getLongExtra("callId", 0);
         mRemoteJid = intent.getStringExtra("remoteJid");
 
-        mWakeLock = new WakeLockManager(getBaseContext());
-        mWakeLock.setWakeLockState(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP);
-        this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD | 
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD | 
                 WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED | 
                 WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
         
@@ -80,6 +78,10 @@ public class IncomingCallDialog extends Activity implements
         KeyguardManager mKeyGuardManager = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
         mKeyguardLock = mKeyGuardManager.newKeyguardLock("screenunlock");
         mKeyguardLock.disableKeyguard();
+        
+        mWakeLock = new WakeLockManager(getBaseContext());
+        mWakeLock.setWakeLockState(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP);
+        
         setupReceiver();
     }
 
@@ -124,6 +126,11 @@ public class IncomingCallDialog extends Activity implements
         if (mKeyguardLock != null){
             mKeyguardLock.reenableKeyguard();
         }
+        
+        if(mWakeLock != null) {
+        	mWakeLock.releaseWakeLock();
+        }
+        
         LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(
                 mReceiver);
     }

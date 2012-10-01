@@ -82,7 +82,8 @@ public class CallInProgressActivity extends Activity implements
     @Override
     protected void onResume() {
         super.onResume();
-        Log.e(TAG, "onCreate - CallInProgressActivity");
+        Log.e(TAG, "onResume()");
+        
         Intent intent = getIntent();
         mCallId = intent.getLongExtra("callId", 0);
         mRemoteJid = intent.getStringExtra("remoteJid");
@@ -125,7 +126,7 @@ public class CallInProgressActivity extends Activity implements
         super.onStop();
         mWakeLock.releaseWakeLock();
     }
-
+    
     public void onProximity() {
         mUILocked = true;
         turnScreenOn(false);
