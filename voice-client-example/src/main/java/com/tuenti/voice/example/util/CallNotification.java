@@ -56,7 +56,7 @@ public class CallNotification {
 	private void sendNotification(int iconId, String message,
 			int notificationId, Intent intent) {
 		Notification notification = null;
-		
+
 		// @TargetApi(11)
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
 			notification = createNotificationLegacy(iconId, message, intent);
@@ -109,7 +109,8 @@ public class CallNotification {
 				.setContentText(message)
 				.setTicker(message)
 				.setContentIntent(
-						PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT))
+						PendingIntent.getActivity(context, 0, intent,
+								PendingIntent.FLAG_CANCEL_CURRENT))
 				.setSmallIcon(iconId).getNotification();
 	}
 
