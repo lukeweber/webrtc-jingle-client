@@ -4,8 +4,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.os.Build;
@@ -42,6 +44,8 @@ public class VoiceClientService extends Service implements
 
     private HashMap<Long, Call> mCallMap = new HashMap<Long, Call>();
 
+    private boolean mIncomingCall = false;
+
     private boolean mCallInProgress = false;
 
     private long mCurrentCallId = 0;
@@ -54,14 +58,14 @@ public class VoiceClientService extends Service implements
     private AudioManager mAudioManager;
 
     private RingManager mRingManager;
-    
+
     private CallNotification mNotificationManager;
 
     private SharedPreferences mSettings;
-    
+
     private boolean mClientInited = false;
-    
-    //Pending login values
+
+    // Pending login values
     private String mUsername;
     private String mPassword;
     private String mXmppHost;
@@ -75,16 +79,35 @@ public class VoiceClientService extends Service implements
      */
     final RemoteCallbackList<IVoiceClientServiceCallback> mCallbacks = new RemoteCallbackList<IVoiceClientServiceCallback>();
 
+    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i(TAG, "Received intent: " + intent.getAction());
+            String intentString = intent.getAction();
+            if (intentString.equals(Intent.ACTION_SCREEN_ON) && mIncomingCall) {
+                Call call = mCallMap.get(Long.valueOf(mCurrentCallId));
+                String remoteJid = call.getRemoteJid();
+                startIncomingCallDialog(mCurrentCallId, remoteJid);
+                Log.e(TAG, "Received ACTION_SCREEN_ON");
+            }
+        }
+    };
+
     // --------------------- Service Methods
     // ---------------------------------------
     @Override
     public void onCreate() {
         super.onCreate();
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(Intent.ACTION_SCREEN_ON);
+        registerReceiver(mBroadcastReceiver, intentFilter);
+
         // Set default preferences
         mSettings = PreferenceManager.getDefaultSharedPreferences(this);
-        
+
         mNotificationManager = new CallNotification(this);
-        
+
         initClientWrapper();
         initAudio();
         initCallDurationTask();
@@ -136,8 +159,8 @@ public class VoiceClientService extends Service implements
         // mBuddyList.clear();
         mClient = null;
     }
-    
-    public void releaseClient(){
+
+    public void releaseClient() {
         mClient.release();
         mClientInited = false;
     }
@@ -170,7 +193,7 @@ public class VoiceClientService extends Service implements
         mAudioManager.setMode(AudioManager.MODE_NORMAL);
         mAudioManager.abandonAudioFocus(null);
     }
-    
+
     /**
      * Sends an incoming call notification.
      * 
@@ -194,7 +217,7 @@ public class VoiceClientService extends Service implements
     	
     	mNotificationManager.sendCallNotification(message, intent);
     }
-    
+
     /**
      * Sends a call progress (duration) notification.
      * 
@@ -265,20 +288,24 @@ public class VoiceClientService extends Service implements
                 CallInProgressActivity.class);
         dialogIntent.putExtra("callId", callId);
         dialogIntent.putExtra("remoteJid", remoteJid);
-        dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_FROM_BACKGROUND);
+        dialogIntent
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                        | Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        | Intent.FLAG_FROM_BACKGROUND);
         
         // Intent call started, show call in progress activity
         getApplication().startActivity(dialogIntent);
         
         // Ring in the headphone
         startRing(false, false);
-        
+
         // Show notification
         sendOutgoingCallNotification(remoteJid);
 
     }
 
     public void incomingCall(long callId, String remoteJid) {
+        mIncomingCall = true;
         initCallState(callId, remoteJid);
        
         // Ringer.
@@ -289,12 +316,12 @@ public class VoiceClientService extends Service implements
         sendIncomingCallNotification(remoteJid);
     }
 
-	public void rejectCall(long callId) {
+    public void rejectCall(long callId) {
         // Cancel notification alert for incoming call + tray
     }
 
     public void callStarted(long callId) {
-        Log.i("TAG", "call started-----");
+        mIncomingCall = false;
         stopRing();
         Call call = mCallMap.get(Long.valueOf(callId));
         call.startCallTimer();
@@ -304,7 +331,7 @@ public class VoiceClientService extends Service implements
         dispatchCallState(CallUIIntent.CALL_STARTED, callId,
                 call.getRemoteJid());
         // Intent call started
-        
+
         // Change notification to call in progress notification, that points to
         // call in progress activity on click.
         sendCallInProgressNotification(remoteJid, 0);
@@ -327,6 +354,7 @@ public class VoiceClientService extends Service implements
         // we decline as busy while in a call.
         if (mCallMap.containsKey(Long.valueOf(callId))) {
             mCallInProgress = false;
+            mIncomingCall = false;
             mCurrentCallId = 0;
             Call call = mCallMap.get(Long.valueOf(callId));
             mCallMap.remove(Long.valueOf(callId));
@@ -341,7 +369,7 @@ public class VoiceClientService extends Service implements
             
             // Cancel notification
             mNotificationManager.cancelCallNotification();
-            
+
             long callTime = call.getElapsedTime();
         }
     }
@@ -368,7 +396,10 @@ public class VoiceClientService extends Service implements
                 CallInProgressActivity.class);
         dialogIntent.putExtra("callId", callId);
         dialogIntent.putExtra("remoteJid", remoteJid);
-        dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY);
+        dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_NO_HISTORY);
+
         getApplication().startActivity(dialogIntent);
     }
 
@@ -377,8 +408,9 @@ public class VoiceClientService extends Service implements
                 IncomingCallDialog.class);
         dialogIntent.putExtra("callId", callId);
         dialogIntent.putExtra("remoteJid", remoteJid);
-        dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | 
-                Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);
+        dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_NO_HISTORY);
         getApplication().startActivity(dialogIntent);
     }
 
@@ -487,10 +519,11 @@ public class VoiceClientService extends Service implements
             break;
         }
     }
-    
-    public void runPendingLogin(){
-        if (mUsername != null){
-            mClient.login(mUsername, mPassword, mXmppHost, mXmppPort, mXmppUseSsl);
+
+    public void runPendingLogin() {
+        if (mUsername != null) {
+            mClient.login(mUsername, mPassword, mXmppHost, mXmppPort,
+                    mXmppUseSsl);
             mUsername = null;
             mPassword = null;
             mXmppHost = null;
@@ -616,7 +649,7 @@ public class VoiceClientService extends Service implements
         }
 
         public void login(String username, String password, String xmppHost,
-                int xmppPort, boolean xmppUseSsl) throws RemoteException {       
+                int xmppPort, boolean xmppUseSsl) throws RemoteException {
             mUsername = username;
             mPassword = password;
             mXmppHost = xmppHost;
@@ -624,7 +657,8 @@ public class VoiceClientService extends Service implements
             mXmppUseSsl = xmppUseSsl;
             if (mClientInited) {
                 runPendingLogin();
-            } else {//We run login after xmpp_none event, meaning our client is initialized
+            } else {// We run login after xmpp_none event, meaning our client is
+                    // initialized
                 String stunServer = getStringPref(R.string.stunserver_key,
                         R.string.stunserver_value);
                 String relayServer = getStringPref(R.string.relayserver_key,
@@ -633,13 +667,13 @@ public class VoiceClientService extends Service implements
                         R.string.turnserver_value);
                 mClient.init(stunServer, relayServer, relayServer, relayServer,
                         turnServer);
-            } 
+            }
         }
 
         public void logout() throws RemoteException {
             mClient.logout();
         }
-        
+
         public void release() throws RemoteException {
             releaseClient();
         }
