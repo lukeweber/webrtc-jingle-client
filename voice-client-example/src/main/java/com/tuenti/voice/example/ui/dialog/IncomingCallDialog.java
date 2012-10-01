@@ -83,9 +83,10 @@ public class IncomingCallDialog extends Activity implements
         mWakeLock.setWakeLockState(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP);
         
         setupReceiver();
+        checkIntentAction();
     }
 
-    private void setupReceiver() {
+	private void setupReceiver() {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(CallUIIntent.CALL_PROGRESS);
         intentFilter.addAction(CallUIIntent.CALL_ENDED);
@@ -93,6 +94,18 @@ public class IncomingCallDialog extends Activity implements
         LocalBroadcastManager.getInstance(getBaseContext()).registerReceiver(
                 mReceiver, intentFilter);
     }
+	
+	private void checkIntentAction() {
+		Intent intent = getIntent();
+		if(intent != null) {
+			String action = intent.getAction();
+			
+			if(action != null && action.equals(CallIntent.ACCEPT_CALL)) {
+				// When coming from the Notification, auto accept the call.
+				onClick(null, DialogInterface.BUTTON_POSITIVE);
+			}
+		}
+	}
 
     // ------------------------ INTERFACE METHODS ------------------------
     // --------------------- Interface OnClickListener ---------------------

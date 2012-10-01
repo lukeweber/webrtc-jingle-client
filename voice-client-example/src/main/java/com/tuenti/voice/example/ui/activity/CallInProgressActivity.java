@@ -82,7 +82,7 @@ public class CallInProgressActivity extends Activity implements
     @Override
     protected void onResume() {
         super.onResume();
-        Log.e(TAG, "onResume()");
+        Log.v(TAG, "onResume()");
         
         Intent intent = getIntent();
         mCallId = intent.getLongExtra("callId", 0);

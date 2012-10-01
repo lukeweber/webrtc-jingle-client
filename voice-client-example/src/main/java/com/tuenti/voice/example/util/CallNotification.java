@@ -56,6 +56,7 @@ public class CallNotification {
 	private void sendNotification(int iconId, String message,
 			int notificationId, Intent intent) {
 		Notification notification = null;
+		
 		// @TargetApi(11)
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
 			notification = createNotificationLegacy(iconId, message, intent);
@@ -83,7 +84,7 @@ public class CallNotification {
 		notification.defaults = Notification.FLAG_AUTO_CANCEL;
 
 		PendingIntent pendingIntent = PendingIntent.getActivity(context, 0,
-				intent, 0);
+				intent, PendingIntent.FLAG_CANCEL_CURRENT);
 		notification.setLatestEventInfo(context,
 				context.getString(R.string.app_name), message, pendingIntent);
 
@@ -108,7 +109,7 @@ public class CallNotification {
 				.setContentText(message)
 				.setTicker(message)
 				.setContentIntent(
-						PendingIntent.getActivity(context, 0, intent, 0))
+						PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT))
 				.setSmallIcon(iconId).getNotification();
 	}
 
@@ -118,8 +119,6 @@ public class CallNotification {
 	 * @param message
 	 */
 	public void sendCallNotification(String message, Intent intent) {
-		Log.v(LOG_TAG, "sendCallNotification(): " + message);
-
 		sendNotification(R.drawable.notification_generic, message,
 				VOIP_INCOMING_CALL_ID, intent);
 	}

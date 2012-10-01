@@ -178,31 +178,37 @@ public class VoiceClientService extends Service implements
      */
     private void sendIncomingCallNotification(String remoteJid) {
     	String message = String.format(getString(R.string.notification_incoming_call), remoteJid);
-    	mNotificationManager.sendCallNotification(message, new Intent(CallIntent.ACCEPT_CALL));
+    	Intent intent = getNotificationIntent(remoteJid, CallIntent.ACCEPT_CALL, IncomingCallDialog.class);
+    	
+    	mNotificationManager.sendCallNotification(message, intent);
 	}
     
-    /**
+	/**
      * Sends an outgoing call notification.
      * 
      * @param remoteJid The user that is being called.
      */
     private void sendOutgoingCallNotification(String remoteJid) {
     	String message = String.format(getString(R.string.notification_outgoing_call), remoteJid);
-    	mNotificationManager.sendCallNotification(message, new Intent(CallIntent.ACCEPT_CALL));
+    	Intent intent = getNotificationIntent(remoteJid, CallUIIntent.CALL_PROGRESS, CallInProgressActivity.class);
+    	
+    	mNotificationManager.sendCallNotification(message, intent);
     }
     
     /**
      * Sends a call progress (duration) notification.
      * 
-     * @param remoteJid
-     * @param duration
+     * @param remoteJid The remote party.
+     * @param duration Call duration.
      */
     private void sendCallInProgressNotification(String remoteJid, long duration) {
     	long minutes = duration / 60;
     	long seconds = duration % 60;
     	String formattedDuration = String.format("%02d:%02d", minutes, seconds);
     	String message = String.format(getString(R.string.notification_during_call), remoteJid, formattedDuration);
-    	mNotificationManager.sendCallNotification(message, new Intent(CallUIIntent.CALL_PROGRESS));
+    	Intent intent = getNotificationIntent(remoteJid, CallUIIntent.CALL_PROGRESS, CallInProgressActivity.class);
+    	
+    	mNotificationManager.sendCallNotification(message, intent);
 	}
     
     /**
@@ -218,6 +224,21 @@ public class VoiceClientService extends Service implements
      */
     private void stopCallProgressTimer() {
     	callProgressHandler.removeCallbacks(updateCallDurationTask);
+    }
+    
+    /**
+     * Generates an Intent to send with a Notification.
+     * 
+     * @param remoteJid The remote party.
+     * @param action The action to pass to the Intent.
+     * @param context The context (i.e. class) to start with this intent.
+     */
+    private Intent getNotificationIntent(String remoteJid, String action, Class<?> context) {
+    	Intent intent = getCallIntent(action, mCurrentCallId, remoteJid);
+    	intent.setClass(this, context);
+    	intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+    	
+    	return intent;
     }
 
     public Intent getCallIntent(String intentString, long callId,
