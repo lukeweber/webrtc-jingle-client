@@ -36,7 +36,9 @@ public class VoiceClientService extends Service implements
         IVoiceClientServiceInt, VoiceClientEventCallback {
     private VoiceClient mClient;
 
-    private static final String TAG = "s-libjingle-webrtc";
+    private static final String TAG = "VoiceClientService";
+
+	private static final int CALL_UPDATE_INTERVAL = 1000;
 
     private HashMap<Long, Call> mCallMap = new HashMap<Long, Call>();
 
@@ -45,6 +47,9 @@ public class VoiceClientService extends Service implements
     private long mCurrentCallId = 0;
 
     private Handler mHandler;
+    
+    private Handler callProgressHandler;
+    private Runnable updateCallDurationTask;
 
     private AudioManager mAudioManager;
 
@@ -82,11 +87,34 @@ public class VoiceClientService extends Service implements
         
         initClientWrapper();
         initAudio();
+        initCallDurationTask();
         // Set default preferences
         // mSettings = PreferenceManager.getDefaultSharedPreferences( this );
     }
 
-    @Override
+    private void initCallDurationTask() {
+    	callProgressHandler = new Handler();
+    	
+    	updateCallDurationTask = new Runnable() {
+
+			@Override
+			public void run() {
+				Call currentCall = mCallMap.get(mCurrentCallId);
+				
+				// Send Intent.
+				dispatchCallState(CallUIIntent.CALL_PROGRESS, mCurrentCallId, currentCall.getRemoteJid(), currentCall.getElapsedTime());
+				
+				// Send Notification.
+				sendCallInProgressNotification(currentCall.getRemoteJid(), currentCall.getElapsedTime());
+				
+				// Add another call for update.
+				callProgressHandler.postDelayed(this, CALL_UPDATE_INTERVAL);
+			}
+    		
+    	};
+	}
+    
+	@Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(TAG, "Received start id " + startId + ": " + intent);
         // We want this service to continue running until it is explicitly
@@ -143,23 +171,54 @@ public class VoiceClientService extends Service implements
         mAudioManager.abandonAudioFocus(null);
     }
     
+    /**
+     * Sends an incoming call notification.
+     * 
+     * @param remoteJid The user that is calling.
+     */
     private void sendIncomingCallNotification(String remoteJid) {
     	String message = String.format(getString(R.string.notification_incoming_call), remoteJid);
     	mNotificationManager.sendCallNotification(message, new Intent(CallIntent.ACCEPT_CALL));
 	}
     
+    /**
+     * Sends an outgoing call notification.
+     * 
+     * @param remoteJid The user that is being called.
+     */
     private void sendOutgoingCallNotification(String remoteJid) {
     	String message = String.format(getString(R.string.notification_outgoing_call), remoteJid);
     	mNotificationManager.sendCallNotification(message, new Intent(CallIntent.ACCEPT_CALL));
     }
     
-    private void sendCallInProgressNotification(String remoteJid, int duration) {
-    	int minutes = duration / 60;
-    	int seconds = duration % 60;
+    /**
+     * Sends a call progress (duration) notification.
+     * 
+     * @param remoteJid
+     * @param duration
+     */
+    private void sendCallInProgressNotification(String remoteJid, long duration) {
+    	long minutes = duration / 60;
+    	long seconds = duration % 60;
     	String formattedDuration = String.format("%02d:%02d", minutes, seconds);
     	String message = String.format(getString(R.string.notification_during_call), remoteJid, formattedDuration);
     	mNotificationManager.sendCallNotification(message, new Intent(CallUIIntent.CALL_PROGRESS));
 	}
+    
+    /**
+     * Starts the call progress update timer.
+     */
+    private void startCallProgressTimer() {
+    	callProgressHandler.removeCallbacks(updateCallDurationTask);
+    	callProgressHandler.postDelayed(updateCallDurationTask, CALL_UPDATE_INTERVAL);
+    }
+    
+    /**
+     * Stops the call progress update timer.
+     */
+    private void stopCallProgressTimer() {
+    	callProgressHandler.removeCallbacks(updateCallDurationTask);
+    }
 
     public Intent getCallIntent(String intentString, long callId,
             String remoteJid) {
@@ -186,23 +245,27 @@ public class VoiceClientService extends Service implements
         dialogIntent.putExtra("callId", callId);
         dialogIntent.putExtra("remoteJid", remoteJid);
         dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY);
+        
+        // Intent call started, show call in progress activity
         getApplication().startActivity(dialogIntent);
+        
+        // Ring in the headphone
         startRing(false, false);
         
         // Show notification
         sendOutgoingCallNotification(remoteJid);
 
-        // Intent call started, show call in progress activity
-        // Ring in the headphone
     }
 
     public void incomingCall(long callId, String remoteJid) {
         initCallState(callId, remoteJid);
+       
+        // Ringer.
         startRing(true, false);
+        
+        // show alert pop up for incoming call + tray notification
         startIncomingCallDialog(callId, remoteJid);
         sendIncomingCallNotification(remoteJid);
-        // show alert pop up for incoming call + tray notification
-        // Ringer.
     }
 
 	public void rejectCall(long callId) {
@@ -220,11 +283,14 @@ public class VoiceClientService extends Service implements
         dispatchCallState(CallUIIntent.CALL_STARTED, callId,
                 call.getRemoteJid());
         // Intent call started
-        // start timer on method updateCallUI every second.
         
         // Change notification to call in progress notification, that points to
         // call in progress activity on click.
         sendCallInProgressNotification(remoteJid, 0);
+        dispatchCallState(CallUIIntent.CALL_PROGRESS, mCurrentCallId, call.getRemoteJid(), call.getElapsedTime());
+        
+        // start timer on method updateCallUI every second.
+        startCallProgressTimer();
     }
 
     public void updateCallUI() {
@@ -248,7 +314,9 @@ public class VoiceClientService extends Service implements
             dispatchCallState(CallUIIntent.CALL_ENDED, callId,
                     call.getRemoteJid());
             // Store reason in call history with jid.
+            
             // Intent call ended, store in history, return call time
+            stopCallProgressTimer();
             
             // Cancel notification
             mNotificationManager.cancelCallNotification();
@@ -294,11 +362,18 @@ public class VoiceClientService extends Service implements
     }
 
     public void dispatchCallState(String callState, long callId,
-            String remoteJid) {
+            String remoteJid, long duration) {
         Intent intent = new Intent(callState);
+        // TODO: Stick these extra values in some constants!
         intent.putExtra("callId", callId);
         intent.putExtra("remoteJid", remoteJid);
+        intent.putExtra("duration", duration);
         dispatchLocalIntent(intent);
+    }
+    
+    public void dispatchCallState(String callState, long callId,
+            String remoteJid) {
+    	dispatchCallState(callState, callId, remoteJid, -1);
     }
 
     public void startRing(boolean isIncoming, boolean callInProgress) {
@@ -318,7 +393,7 @@ public class VoiceClientService extends Service implements
     // ---------------------
     @Override
     public void handleCallStateChanged(int state, String remoteJid, long callId) {
-        remoteJid = cleanJid(remoteJid);
+    	remoteJid = cleanJid(remoteJid);
         switch (CallState.fromInteger(state)) {
         case SENT_INITIATE:
             Log.i(TAG, "Outgoing call");
@@ -357,7 +432,7 @@ public class VoiceClientService extends Service implements
 
     @Override
     public void handleXmppError(int error) {
-        switch (XmppError.fromInteger(error)) {
+    	switch (XmppError.fromInteger(error)) {
         case XML:
             Log.e(TAG, "Malformed XML or encoding error");
             break;
@@ -405,7 +480,7 @@ public class VoiceClientService extends Service implements
 
     @Override
     public void handleXmppStateChanged(int state) {
-        Intent intent;
+    	Intent intent;
         switch (XmppState.fromInteger(state)) {
         case NONE:
             mClientInited = true;
@@ -437,7 +512,7 @@ public class VoiceClientService extends Service implements
 
     @Override
     public void handleBuddyListChanged(int state, String remoteJid) {
-        switch (BuddyListState.fromInteger(state)) {
+    	switch (BuddyListState.fromInteger(state)) {
         case ADD:
             Log.v(TAG, "Adding buddy " + remoteJid);
             // Intent add buddy

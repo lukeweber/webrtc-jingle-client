@@ -11,6 +11,7 @@
     <string name="hang_up">Hang up</string>
     <string name="hold">Hold</string>
     <string name="mute">Mute</string>
+    <string name="duration">Call duration:</string>
 
     <string name="voice_chat_invite">Voice Chat Invite</string>
     <string name="accept_call">Accept</string>

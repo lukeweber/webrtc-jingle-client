@@ -26,7 +26,7 @@ public class CallInProgressActivity extends Activity implements
     // UI lock flag
     private boolean mUILocked = false;
 
-    private final String TAG = "s-libjingle-webrtc";
+    private final String TAG = "CallInProgressActivity";
     private ProximitySensor mProximitySensor;
     private WakeLockManager mWakeLock;
 
@@ -34,22 +34,48 @@ public class CallInProgressActivity extends Activity implements
     private String mRemoteJid;
     private boolean mMute;
     private boolean mHold;
+    
+    private TextView durationTextView;
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(CallUIIntent.LOGGED_OUT)
-                    || intent.getAction().equals(CallUIIntent.CALL_ENDED)) {
+            String action = intent.getAction();
+        	
+        	if (action.equals(CallUIIntent.LOGGED_OUT)
+                    || action.equals(CallUIIntent.CALL_ENDED)) {
                 finish();
+            } else if(action.equals(CallUIIntent.CALL_PROGRESS)) {
+            	updateCallDuration(intent.getLongExtra("duration", -1));
             }
+            
         }
     };
+    
+    /**
+     * Updates the call duration TextView with the new duration.
+     * 
+     * @param duration The new duration to display.
+     */
+    private void updateCallDuration(long duration) {
+		if(duration >= 0) {
+	    	long minutes = duration / 60;
+	    	long seconds = duration % 60;
+	    	String formattedDuration = String.format("%02d:%02d", minutes, seconds);
+			
+	    	durationTextView.setText(formattedDuration);
+		}
+	}
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.callinprogress);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+        
+        durationTextView = (TextView) findViewById(R.id.duration_textview);
+        updateCallDuration(0);
+        
         initClickListeners();
     }
 
@@ -138,6 +164,7 @@ public class CallInProgressActivity extends Activity implements
                 intent.putExtra("callId", mCallId);
                 LocalBroadcastManager.getInstance(getBaseContext())
                         .sendBroadcast(intent);
+                updateCallDuration(0);
                 finish();
                 break;
             case R.id.mute_btn:
