@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
+import android.widget.RemoteViews;
 
 import com.tuenti.voice.example.R;
 
@@ -73,9 +74,9 @@ public class CallNotification {
 	 * 
 	 * NOTE: Sucks that we use deprecated methods, but we're supporting API 8+.
 	 * 
-	 * @param iconId
-	 * @param message
-	 * @return
+	 * @param iconId The icon to show with the notification (in the status bar).
+	 * @param message The message to show.
+	 * @param intent The Intent to execute when the Notification is clicked. 
 	 */
 	private Notification createNotificationLegacy(int iconId, String message,
 			Intent intent) {
@@ -88,16 +89,18 @@ public class CallNotification {
 		notification.setLatestEventInfo(context,
 				context.getString(R.string.app_name), message, pendingIntent);
 
+		notification.contentView = getCustomNotificationView(
+				context.getString(R.string.app_name), message);
+
 		return notification;
 	}
 
 	/**
 	 * Creates a Notification the new (aka >= Honeycomb) way.
 	 * 
-	 * @param iconId
-	 * @param message
-	 * @param intent
-	 * @return
+	 * @param iconId The icon to show with the notification (in the status bar).
+	 * @param message The message to show.
+	 * @param intent The Intent to execute when the Notification is clicked. 
 	 */
 	@TargetApi(11)
 	private Notification createNotificationHoneycomb(int iconId,
@@ -111,7 +114,29 @@ public class CallNotification {
 				.setContentIntent(
 						PendingIntent.getActivity(context, 0, intent,
 								PendingIntent.FLAG_CANCEL_CURRENT))
-				.setSmallIcon(iconId).getNotification();
+				.setContent(
+						getCustomNotificationView(
+								context.getString(R.string.app_name), message))
+				.setSmallIcon(iconId)
+				.getNotification();
+	}
+
+	/**
+	 * Creates a custom notification display.
+	 * 
+	 * @param title The title to display.
+	 * @param body The body text.
+	 */
+	private RemoteViews getCustomNotificationView(String title, String body) {
+		RemoteViews customView = new RemoteViews(context.getPackageName(),
+				R.layout.voip_notification);
+		customView.setTextViewText(R.id.title, title);
+		customView.setTextViewText(R.id.body_text, body);
+		// TODO: Set profile image.
+		// TODO: Button image.
+		// TODO: Button click handler.
+
+		return customView;
 	}
 
 	/**
