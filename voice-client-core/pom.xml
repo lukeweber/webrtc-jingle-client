@@ -49,10 +49,11 @@
                 <extensions>true</extensions>
                 <configuration>
                     <apkDebug>false</apkDebug>
-                    <makefile>jni/Android.mk</makefile>
                     <target>all</target>
+                    <maxJobs>true</maxJobs>
+                    <applicationMakefile>${android.ndkappfile}</applicationMakefile>
                 </configuration>
-                <!--<executions>
+                <executions>
                     <execution>
                         <id>executeNdk</id>
                         <phase>prepare-package</phase>
@@ -61,7 +62,6 @@
                         </goals>
                     </execution>
                 </executions>
-                -->
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
