@@ -100,7 +100,9 @@ public class CallNotification {
 				context.getString(R.string.app_name), message, pendingIntent);
 
 		notification.contentView = getCustomNotificationView(
-				context.getString(R.string.app_name), message, cancelAction);
+				context.getString(R.string.app_name), message, cancelAction,
+				// TODO: Replace with constant.
+				intent.getLongExtra("callId", 0));
 
 		return notification;
 	}
@@ -131,7 +133,9 @@ public class CallNotification {
 				.setContent(
 						getCustomNotificationView(
 								context.getString(R.string.app_name), message,
-								cancelAction)).setSmallIcon(iconId)
+								// TODO: Replace with constant.
+								cancelAction, intent.getLongExtra("callId", 0)))
+				.setSmallIcon(iconId)
 				.getNotification();
 	}
 
@@ -144,13 +148,16 @@ public class CallNotification {
 	 *            The body text.
 	 */
 	private RemoteViews getCustomNotificationView(String title, String body,
-			String cancelAction) {
+			String cancelAction, long callId) {
 		RemoteViews customView = new RemoteViews(context.getPackageName(),
 				R.layout.voip_notification);
 
 		// Add button click handler.
 		if (cancelAction != null) {
 			Intent cancelIntent = new Intent(cancelAction);
+			// TODO: Replace with constant.
+			cancelIntent.putExtra("callId", callId);
+			
 			customView.setOnClickPendingIntent(R.id.cancel_button,
 					PendingIntent.getBroadcast(context, 0, cancelIntent,
 							PendingIntent.FLAG_CANCEL_CURRENT));

@@ -89,19 +89,7 @@ public class VoiceClientService extends Service implements
 				String remoteJid = call.getRemoteJid();
 				startIncomingCallDialog(mCurrentCallId, remoteJid);
 				Log.v(TAG, "Received ACTION_SCREEN_ON");
-			} else if (intentString.equals(CallIntent.END_CALL)) {
-				Log.v(TAG, "Received END_CALL from notification.");
-
-				// TODO: Should this go through the Controller?
-				mClient.endCall(mCurrentCallId);
-				endCall(mCurrentCallId, 0);
-			} else if (intentString.equals(CallIntent.REJECT_CALL)) {
-				Log.v(TAG, "Received REJECT_CALL from notification.");
-
-				// TODO: Should this go through the Controller?
-				mClient.declineCall(mCurrentCallId, true);
-				endCall(mCurrentCallId, 0);
-			}
+			} 
 		}
 	};
 
@@ -113,8 +101,6 @@ public class VoiceClientService extends Service implements
 
 		IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(Intent.ACTION_SCREEN_ON);
-		intentFilter.addAction(CallIntent.END_CALL);
-		intentFilter.addAction(CallIntent.REJECT_CALL);
 		registerReceiver(mBroadcastReceiver, intentFilter);
 
 		// Set default preferences
