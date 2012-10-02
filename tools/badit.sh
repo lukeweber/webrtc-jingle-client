@@ -130,12 +130,7 @@ elif [ "$BUILDSYSTEM" == "mvn" ]; then
     mvn clean
   fi
   
-  echo -e "-------------------------------\nBUILDING\n-------------------------------"
-  $TRUNKDIR/voice-client-core/build.sh
-  RET_CODE_CACHE="$?"
-  check_return_code "$RET_CODE_CACHE"
-
-  echo -e "-------------------------------\nINSTALLING\n-------------------------------"
+  echo -e "-------------------------------\nBUILDING/INSTALLING\n---------------------"
   mvn $CLEAN install 
   check_return_code "$?"
   
