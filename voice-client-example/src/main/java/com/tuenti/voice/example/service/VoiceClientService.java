@@ -79,29 +79,11 @@ public class VoiceClientService extends Service implements
 	 */
 	final RemoteCallbackList<IVoiceClientServiceCallback> mCallbacks = new RemoteCallbackList<IVoiceClientServiceCallback>();
 
-	private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			Log.i(TAG, "Received intent: " + intent.getAction());
-			String intentString = intent.getAction();
-			if (intentString.equals(Intent.ACTION_SCREEN_ON) && mIncomingCall) {
-				Call call = mCallMap.get(Long.valueOf(mCurrentCallId));
-				String remoteJid = call.getRemoteJid();
-				startIncomingCallDialog(mCurrentCallId, remoteJid);
-				Log.e(TAG, "Received ACTION_SCREEN_ON");
-			}
-		}
-	};
-
 	// --------------------- Service Methods
 	// ---------------------------------------
 	@Override
 	public void onCreate() {
 		super.onCreate();
-
-		IntentFilter intentFilter = new IntentFilter();
-		intentFilter.addAction(Intent.ACTION_SCREEN_ON);
-		registerReceiver(mBroadcastReceiver, intentFilter);
 
 		// Set default preferences
 		mSettings = PreferenceManager.getDefaultSharedPreferences(this);
@@ -418,8 +400,7 @@ public class VoiceClientService extends Service implements
 		dialogIntent.putExtra("callId", callId);
 		dialogIntent.putExtra("remoteJid", remoteJid);
 		dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-				| Intent.FLAG_ACTIVITY_CLEAR_TOP
-				| Intent.FLAG_ACTIVITY_NO_HISTORY);
+				| Intent.FLAG_ACTIVITY_CLEAR_TOP );
 
 		getApplication().startActivity(dialogIntent);
 	}
@@ -430,8 +411,7 @@ public class VoiceClientService extends Service implements
 		dialogIntent.putExtra("callId", callId);
 		dialogIntent.putExtra("remoteJid", remoteJid);
 		dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-				| Intent.FLAG_ACTIVITY_CLEAR_TOP
-				| Intent.FLAG_ACTIVITY_NO_HISTORY);
+				| Intent.FLAG_ACTIVITY_CLEAR_TOP );
 		getApplication().startActivity(dialogIntent);
 	}
 

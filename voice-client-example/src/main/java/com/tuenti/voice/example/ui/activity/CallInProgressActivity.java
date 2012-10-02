@@ -79,6 +79,7 @@ public class CallInProgressActivity extends Activity implements
 		updateCallDuration(0);
 
 		initClickListeners();
+		setupReceiver();
 	}
 
 	@Override
@@ -93,7 +94,6 @@ public class CallInProgressActivity extends Activity implements
 		mHold = intent.getBooleanExtra("isHeld", false);
 		mProximitySensor = new ProximitySensor(this);
 		mWakeLock = new WakeLockManager(getBaseContext());
-		setupReceiver();
 		changeStatus("Talking to " + mRemoteJid);
 	}
 
@@ -120,14 +120,19 @@ public class CallInProgressActivity extends Activity implements
 		mProximitySensor = null;
 		onUnProximity();
 		mWakeLock.releaseWakeLock();
-		LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(
-				mReceiver);
 	}
 
 	@Override
 	protected void onStop() {
 		super.onStop();
 		mWakeLock.releaseWakeLock();
+	}
+	
+	@Override
+	protected void onDestroy() {
+	    LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(
+                mReceiver);
+	    super.onDestroy();
 	}
 
 	public void onProximity() {

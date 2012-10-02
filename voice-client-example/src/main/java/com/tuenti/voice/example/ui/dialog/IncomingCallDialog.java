@@ -71,6 +71,7 @@ public class IncomingCallDialog extends Activity implements
 
 		mAlertDialog = alertDialogBuilder.create();
 		mAlertDialog.show();
+		setupReceiver();
 	}
 
 	@Override
@@ -84,7 +85,6 @@ public class IncomingCallDialog extends Activity implements
 		mWakeLock.setWakeLockState(PowerManager.FULL_WAKE_LOCK
 				| PowerManager.ACQUIRE_CAUSES_WAKEUP);
 
-		setupReceiver();
 		checkIntentAction();
 	}
 
@@ -145,8 +145,12 @@ public class IncomingCallDialog extends Activity implements
 		if (mWakeLock != null) {
 			mWakeLock.releaseWakeLock();
 		}
-
-		LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(
-				mReceiver);
+	}
+	
+	@Override
+	protected void onDestroy() {
+        LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(
+                mReceiver);
+        super.onDestroy();
 	}
 }
