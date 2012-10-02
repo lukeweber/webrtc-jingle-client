@@ -632,7 +632,7 @@ public class VoiceClientService extends Service implements
 		public void toggleMute(long callId) throws RemoteException {
 			Call call = mCallMap.get(Long.valueOf(callId));
 			if (call != null) {
-				call.setMute(call.isMuted());
+				call.setMute(!call.isMuted());
 				mClient.muteCall(callId, call.isMuted());
 			}
 		}
@@ -640,7 +640,7 @@ public class VoiceClientService extends Service implements
 		public void toggleHold(long callId) throws RemoteException {
 			Call call = mCallMap.get(Long.valueOf(callId));
 			if (call != null) {
-				call.setHold(call.isHeld());
+				call.setHold(!call.isHeld());
 				mClient.holdCall(callId, call.isHeld());
 			}
 		}
