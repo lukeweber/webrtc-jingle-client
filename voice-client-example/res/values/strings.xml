@@ -17,9 +17,12 @@
     <string name="accept_call">Accept</string>
     <string name="decline_call">Decline</string>
     
+    <string name="notification_profile_image">Profile image</string>
+    <string name="notification_cancel_action">Cancel action</string>
     <string name="notification_outgoing_call">Calling %1$s.</string>
     <string name="notification_incoming_call">%1$s is calling you.</string>
-    <string name="notification_during_call">In a call with %1$s - %2$s.</string>
+    <string name="notification_during_call_ticker">In a call with %1$s.</string>
+    <string name="notification_during_call">%1$s In a call with %2$s.</string>
     <string name="notification_missed_call">Missed call from %1$s.</string>
 
     <string name="xmpp_server_properties">Xmpp Server Properties</string>

@@ -88,7 +88,19 @@ public class VoiceClientService extends Service implements
 				Call call = mCallMap.get(Long.valueOf(mCurrentCallId));
 				String remoteJid = call.getRemoteJid();
 				startIncomingCallDialog(mCurrentCallId, remoteJid);
-				Log.e(TAG, "Received ACTION_SCREEN_ON");
+				Log.v(TAG, "Received ACTION_SCREEN_ON");
+			} else if (intentString.equals(CallIntent.END_CALL)) {
+				Log.v(TAG, "Received END_CALL from notification.");
+
+				// TODO: Should this go through the Controller?
+				mClient.endCall(mCurrentCallId);
+				endCall(mCurrentCallId, 0);
+			} else if (intentString.equals(CallIntent.REJECT_CALL)) {
+				Log.v(TAG, "Received REJECT_CALL from notification.");
+
+				// TODO: Should this go through the Controller?
+				mClient.declineCall(mCurrentCallId, true);
+				endCall(mCurrentCallId, 0);
 			}
 		}
 	};
@@ -101,6 +113,8 @@ public class VoiceClientService extends Service implements
 
 		IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(Intent.ACTION_SCREEN_ON);
+		intentFilter.addAction(CallIntent.END_CALL);
+		intentFilter.addAction(CallIntent.REJECT_CALL);
 		registerReceiver(mBroadcastReceiver, intentFilter);
 
 		// Set default preferences
@@ -206,10 +220,11 @@ public class VoiceClientService extends Service implements
 	private void sendIncomingCallNotification(String remoteJid) {
 		String message = String.format(
 				getString(R.string.notification_incoming_call), remoteJid);
-		Intent intent = getNotificationIntent(remoteJid,
-				CallIntent.ACCEPT_CALL, IncomingCallDialog.class);
+		Intent intent = getNotificationIntent(remoteJid, "",
+				IncomingCallDialog.class);
 
-		mNotificationManager.sendCallNotification(message, intent);
+		mNotificationManager.sendCallNotification(message, message, intent,
+				CallIntent.REJECT_CALL);
 	}
 
 	/**
@@ -224,7 +239,8 @@ public class VoiceClientService extends Service implements
 		Intent intent = getNotificationIntent(remoteJid,
 				CallUIIntent.CALL_PROGRESS, CallInProgressActivity.class);
 
-		mNotificationManager.sendCallNotification(message, intent);
+		mNotificationManager.sendCallNotification(message, message, intent,
+				CallIntent.END_CALL);
 	}
 
 	/**
@@ -240,12 +256,16 @@ public class VoiceClientService extends Service implements
 		long seconds = duration % 60;
 		String formattedDuration = String.format("%02d:%02d", minutes, seconds);
 		String message = String.format(
-				getString(R.string.notification_during_call), remoteJid,
-				formattedDuration);
+				getString(R.string.notification_during_call),
+				formattedDuration, remoteJid);
+		String tickerText = String.format(
+				getString(R.string.notification_during_call_ticker), remoteJid);
+
 		Intent intent = getNotificationIntent(remoteJid,
 				CallUIIntent.CALL_PROGRESS, CallInProgressActivity.class);
 
-		mNotificationManager.sendCallNotification(message, intent);
+		mNotificationManager.sendCallNotification(tickerText, message, intent,
+				CallIntent.END_CALL);
 	}
 
 	/**

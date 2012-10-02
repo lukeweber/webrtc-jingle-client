@@ -85,7 +85,6 @@ public class IncomingCallDialog extends Activity implements
 				| PowerManager.ACQUIRE_CAUSES_WAKEUP);
 
 		setupReceiver();
-		checkIntentAction();
 	}
 
 	private void setupReceiver() {
@@ -95,18 +94,6 @@ public class IncomingCallDialog extends Activity implements
 		intentFilter.addAction(CallUIIntent.LOGGED_OUT);
 		LocalBroadcastManager.getInstance(getBaseContext()).registerReceiver(
 				mReceiver, intentFilter);
-	}
-
-	private void checkIntentAction() {
-		Intent intent = getIntent();
-		if (intent != null) {
-			String action = intent.getAction();
-
-			if (action != null && action.equals(CallIntent.ACCEPT_CALL)) {
-				// When coming from the Notification, auto accept the call.
-				onClick(null, DialogInterface.BUTTON_POSITIVE);
-			}
-		}
 	}
 
 	// ------------------------ INTERFACE METHODS ------------------------

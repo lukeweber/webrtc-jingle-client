@@ -10,6 +10,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.RelativeLayout;
 import android.widget.RemoteViews;
 
 import com.tuenti.voice.example.R;
@@ -54,15 +57,18 @@ public class CallNotification {
 	 * @param message
 	 * @param notificationId
 	 */
-	private void sendNotification(int iconId, String message,
-			int notificationId, Intent intent) {
+	private void sendNotification(int iconId, String tickerText,
+			String message, int notificationId, Intent intent,
+			String cancelAction) {
 		Notification notification = null;
 
 		// @TargetApi(11)
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-			notification = createNotificationLegacy(iconId, message, intent);
+			notification = createNotificationLegacy(iconId, tickerText,
+					message, intent, cancelAction);
 		} else {
-			notification = createNotificationHoneycomb(iconId, message, intent);
+			notification = createNotificationHoneycomb(iconId, tickerText,
+					message, intent, cancelAction);
 		}
 
 		notificationManager.notify(VOIP_CALL_NOTIFICATION_TAG, notificationId,
@@ -74,13 +80,17 @@ public class CallNotification {
 	 * 
 	 * NOTE: Sucks that we use deprecated methods, but we're supporting API 8+.
 	 * 
-	 * @param iconId The icon to show with the notification (in the status bar).
-	 * @param message The message to show.
-	 * @param intent The Intent to execute when the Notification is clicked. 
+	 * @param iconId
+	 *            The icon to show with the notification (in the status bar).
+	 * @param message
+	 *            The message to show.
+	 * @param intent
+	 *            The Intent to execute when the Notification is clicked.
 	 */
-	private Notification createNotificationLegacy(int iconId, String message,
-			Intent intent) {
-		Notification notification = new Notification(iconId, message,
+	private Notification createNotificationLegacy(int iconId,
+			String tickerText, String message, Intent intent,
+			String cancelAction) {
+		Notification notification = new Notification(iconId, tickerText,
 				System.currentTimeMillis());
 		notification.defaults = Notification.FLAG_AUTO_CANCEL;
 
@@ -90,7 +100,7 @@ public class CallNotification {
 				context.getString(R.string.app_name), message, pendingIntent);
 
 		notification.contentView = getCustomNotificationView(
-				context.getString(R.string.app_name), message);
+				context.getString(R.string.app_name), message, cancelAction);
 
 		return notification;
 	}
@@ -98,43 +108,57 @@ public class CallNotification {
 	/**
 	 * Creates a Notification the new (aka >= Honeycomb) way.
 	 * 
-	 * @param iconId The icon to show with the notification (in the status bar).
-	 * @param message The message to show.
-	 * @param intent The Intent to execute when the Notification is clicked. 
+	 * @param iconId
+	 *            The icon to show with the notification (in the status bar).
+	 * @param message
+	 *            The message to show.
+	 * @param intent
+	 *            The Intent to execute when the Notification is clicked.
 	 */
 	@TargetApi(11)
 	private Notification createNotificationHoneycomb(int iconId,
-			String message, Intent intent) {
+			String tickerText, String message, Intent intent,
+			String cancelAction) {
 		return new Notification.Builder(context)
 				.setWhen(System.currentTimeMillis())
 				.setAutoCancel(true)
 				.setContentTitle(context.getString(R.string.app_name))
 				.setContentText(message)
-				.setTicker(message)
+				.setTicker(tickerText)
 				.setContentIntent(
 						PendingIntent.getActivity(context, 0, intent,
 								PendingIntent.FLAG_CANCEL_CURRENT))
 				.setContent(
 						getCustomNotificationView(
-								context.getString(R.string.app_name), message))
-				.setSmallIcon(iconId)
+								context.getString(R.string.app_name), message,
+								cancelAction)).setSmallIcon(iconId)
 				.getNotification();
 	}
 
 	/**
 	 * Creates a custom notification display.
 	 * 
-	 * @param title The title to display.
-	 * @param body The body text.
+	 * @param title
+	 *            The title to display.
+	 * @param body
+	 *            The body text.
 	 */
-	private RemoteViews getCustomNotificationView(String title, String body) {
+	private RemoteViews getCustomNotificationView(String title, String body,
+			String cancelAction) {
 		RemoteViews customView = new RemoteViews(context.getPackageName(),
 				R.layout.voip_notification);
+
+		// Add button click handler.
+		if (cancelAction != null) {
+			Intent cancelIntent = new Intent(cancelAction);
+			customView.setOnClickPendingIntent(R.id.cancel_button,
+					PendingIntent.getBroadcast(context, 0, cancelIntent,
+							PendingIntent.FLAG_CANCEL_CURRENT));
+		}
+
+		// Set all other props.
 		customView.setTextViewText(R.id.title, title);
 		customView.setTextViewText(R.id.body_text, body);
-		// TODO: Set profile image.
-		// TODO: Button image.
-		// TODO: Button click handler.
 
 		return customView;
 	}
@@ -144,9 +168,10 @@ public class CallNotification {
 	 * 
 	 * @param message
 	 */
-	public void sendCallNotification(String message, Intent intent) {
-		sendNotification(R.drawable.notification_generic, message,
-				VOIP_INCOMING_CALL_ID, intent);
+	public void sendCallNotification(String tickerText, String message,
+			Intent intent, String cancelAction) {
+		sendNotification(R.drawable.notification_generic, tickerText, message,
+				VOIP_INCOMING_CALL_ID, intent, cancelAction);
 	}
 
 	/**
@@ -164,9 +189,9 @@ public class CallNotification {
 	 */
 	public void sendMissedCallNotification(String message, Intent intent) {
 		Random randomGenerator = new Random();
-		sendNotification(R.drawable.notification_generic, message,
+		sendNotification(R.drawable.notification_generic, message, message,
 				VOIP_MISSED_CALL_BASE_ID + randomGenerator.nextInt(1000),
-				intent);
+				intent, null);
 	}
 
 }
