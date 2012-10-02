@@ -14,9 +14,7 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.view.View;
 import android.view.WindowManager;
-import android.widget.TextView;
 
 import com.tuenti.voice.example.R;
 import com.tuenti.voice.example.service.CallIntent;
@@ -71,6 +69,7 @@ public class IncomingCallDialog extends Activity implements
 
 		mAlertDialog = alertDialogBuilder.create();
 		mAlertDialog.show();
+		setupReceiver();
 	}
 
 	@Override
@@ -84,7 +83,6 @@ public class IncomingCallDialog extends Activity implements
 		mWakeLock.setWakeLockState(PowerManager.FULL_WAKE_LOCK
 				| PowerManager.ACQUIRE_CAUSES_WAKEUP);
 
-		setupReceiver();
 	}
 
 	private void setupReceiver() {
@@ -132,8 +130,12 @@ public class IncomingCallDialog extends Activity implements
 		if (mWakeLock != null) {
 			mWakeLock.releaseWakeLock();
 		}
-
-		LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(
-				mReceiver);
+	}
+	
+	@Override
+	protected void onDestroy() {
+        LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(
+                mReceiver);
+        super.onDestroy();
 	}
 }
