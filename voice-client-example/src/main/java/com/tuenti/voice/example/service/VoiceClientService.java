@@ -44,8 +44,6 @@ public class VoiceClientService extends Service implements
 
 	private HashMap<Long, Call> mCallMap = new HashMap<Long, Call>();
 
-	private boolean mIncomingCall = false;
-
 	private boolean mCallInProgress = false;
 
 	private long mCurrentCallId = 0;
@@ -79,30 +77,11 @@ public class VoiceClientService extends Service implements
 	 */
 	final RemoteCallbackList<IVoiceClientServiceCallback> mCallbacks = new RemoteCallbackList<IVoiceClientServiceCallback>();
 
-	private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			Log.i(TAG, "Received intent: " + intent.getAction());
-			String intentString = intent.getAction();
-			if (intentString.equals(Intent.ACTION_SCREEN_ON) && mIncomingCall) {
-				Call call = mCallMap.get(Long.valueOf(mCurrentCallId));
-				String remoteJid = call.getRemoteJid();
-				startIncomingCallDialog(mCurrentCallId, remoteJid);
-				Log.v(TAG, "Received ACTION_SCREEN_ON");
-			} 
-		}
-	};
-
-	// --------------------- Service Methods
-	// ---------------------------------------
+// --------------------- Service Methods ---------------------------------------
 	@Override
 	public void onCreate() {
 		super.onCreate();
-
-		IntentFilter intentFilter = new IntentFilter();
-		intentFilter.addAction(Intent.ACTION_SCREEN_ON);
-		registerReceiver(mBroadcastReceiver, intentFilter);
-
+		
 		// Set default preferences
 		mSettings = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -162,8 +141,135 @@ public class VoiceClientService extends Service implements
 		// mBuddyList.clear();
 		mClient = null;
 	}
+// ------------------- End Service Methods -------------------------------
+	
+// --------------------- Interface VoiceClientEventCallback ---------------------
+    @Override
+    public void handleCallStateChanged(int state, String remoteJid, long callId) {
+        remoteJid = cleanJid(remoteJid);
+        switch (CallState.fromInteger(state)) {
+        case SENT_INITIATE:
+            Log.i(TAG, "Outgoing call");
+            outgoingCall(callId, remoteJid);
+            break;
+        case RECEIVED_INITIATE:
+            Log.i(TAG, "Incoming call");
+            if (mCallInProgress == false) {
+                incomingCall(callId, remoteJid);
+            } else {
+                mClient.declineCall(callId, true);// Decline busy;
+            }
+            break;
+        case SENT_TERMINATE:
+        case RECEIVED_TERMINATE:
+        case SENT_BUSY:
+        case RECEIVED_BUSY:
+        case SENT_REJECT:
+        case RECEIVED_REJECT:
+            Log.i(TAG, "Call ended");
+            endCall(callId, 0);// Add reason to end call.
+            break;
+        case RECEIVED_ACCEPT:
+            Log.i(TAG, "Call accepted");
+            acceptCall(callId, remoteJid);
+        case IN_PROGRESS:
+            Log.i(TAG, "IN_PROGRESS");
+            callStarted(callId);
+            break;
+        case DE_INIT:
+            Log.i(TAG, "DE_INIT");
+            break;
+        }
+        Log.i(TAG, "call state ------------------" + state);
+    }
 
-	public void releaseClient() {
+    @Override
+    public void handleXmppError(int error) {
+        switch (XmppError.fromInteger(error)) {
+        case XML:
+            Log.e(TAG, "Malformed XML or encoding error");
+            break;
+        case STREAM:
+            Log.e(TAG, "XMPP stream error");
+            break;
+        case VERSION:
+            Log.e(TAG, "XMPP version error");
+            break;
+        case UNAUTHORIZED:
+            Log.e(TAG,
+                    "User is not authorized (Check your username and password)");
+            break;
+        case TLS:
+            Log.e(TAG, "TLS could not be negotiated");
+            break;
+        case AUTH:
+            Log.e(TAG, "Authentication could not be negotiated");
+            break;
+        case BIND:
+            Log.e(TAG, "Resource or session binding could not be negotiated");
+            break;
+        case CONNECTION_CLOSED:
+            Log.e(TAG, "Connection closed by output handler.");
+            break;
+        case DOCUMENT_CLOSED:
+            Log.e(TAG, "Closed by </stream:stream>");
+            break;
+        case SOCKET:
+            Log.e(TAG, "Socket error");
+            break;
+        }
+        loggedOut();
+    }
+
+    @Override
+    public void handleXmppStateChanged(int state) {
+        Intent intent;
+        switch (XmppState.fromInteger(state)) {
+        case NONE:
+            mClientInited = true;
+            Log.e(TAG, "xmpp None state");
+            runPendingLogin();
+            break;
+        case START:
+            // changeStatus( "connecting..." );
+            break;
+        case OPENING:
+            // changeStatus( "logging in..." );
+            break;
+        case OPEN:
+            intent = new Intent(CallUIIntent.LOGGED_IN);
+            dispatchLocalIntent(intent);
+            break;
+        case CLOSED:
+            loggedOut();
+            break;
+        }
+        Log.e(TAG, "xmpp state" + state);
+    }
+
+    @Override
+    public void handleBuddyListChanged(int state, String remoteJid) {
+        switch (BuddyListState.fromInteger(state)) {
+        case ADD:
+            Log.v(TAG, "Adding buddy " + remoteJid);
+            // Intent add buddy
+            // mBuddyList.add(remoteJid);
+            break;
+        case REMOVE:
+            Log.v(TAG, "Removing buddy" + remoteJid);
+            // Intent remove buddy
+            // mBuddyList.remove(remoteJid);
+            break;
+        case RESET:
+            Log.v(TAG, "Reset buddy list");
+            // intent reset buddy list
+            // mBuddyList.clear();
+            break;
+        }
+    }
+// --------------------- End Interface VoiceClientEventCallback ---------------------
+    
+	private void releaseClient() {
 		mClient.release();
 		mClientInited = false;
 	}
@@ -184,6 +290,7 @@ public class VoiceClientService extends Service implements
 		mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 	}
 
+	
 	private void setAudioForCall() {
 		mAudioManager
 				.setMode((Build.VERSION.SDK_INT < 11) ? AudioManager.MODE_IN_CALL
@@ -309,7 +416,6 @@ public class VoiceClientService extends Service implements
 
 	public void outgoingCall(long callId, String remoteJid) {
 		initCallState(callId, remoteJid);
-
 		Intent dialogIntent = new Intent(getBaseContext(),
 				CallInProgressActivity.class);
 		dialogIntent.putExtra("callId", callId);
@@ -317,7 +423,7 @@ public class VoiceClientService extends Service implements
 		dialogIntent
 				.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
 						| Intent.FLAG_ACTIVITY_CLEAR_TASK
-						| Intent.FLAG_FROM_BACKGROUND);
+						| Intent.FLAG_FROM_BACKGROUND );
 
 		// Intent call started, show call in progress activity
 		getApplication().startActivity(dialogIntent);
@@ -329,9 +435,30 @@ public class VoiceClientService extends Service implements
 		sendOutgoingCallNotification(remoteJid);
 
 	}
+	
+    public void startCallInProgressActivity(long callId, String remoteJid) {
+        Intent dialogIntent = new Intent(getBaseContext(),
+                CallInProgressActivity.class);
+        dialogIntent.putExtra("callId", callId)
+                    .putExtra("remoteJid", remoteJid)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                            | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                            | Intent.FLAG_FROM_BACKGROUND );
+        getApplication().startActivity(dialogIntent);
+    }
+
+    public void startIncomingCallDialog(long callId, String remoteJid) {
+        Intent dialogIntent = new Intent(getBaseContext(),
+                IncomingCallDialog.class);
+        dialogIntent.putExtra("callId", callId)
+                    .putExtra("remoteJid", remoteJid)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                            | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                            | Intent.FLAG_FROM_BACKGROUND );
+        getApplication().startActivity(dialogIntent);
+    }
 
 	public void incomingCall(long callId, String remoteJid) {
-		mIncomingCall = true;
 		initCallState(callId, remoteJid);
 
 		// Ringer.
@@ -347,7 +474,6 @@ public class VoiceClientService extends Service implements
 	}
 
 	public void callStarted(long callId) {
-		mIncomingCall = false;
 		stopRing();
 		Call call = mCallMap.get(Long.valueOf(callId));
 		call.startCallTimer();
@@ -381,7 +507,6 @@ public class VoiceClientService extends Service implements
 		// we decline as busy while in a call.
 		if (mCallMap.containsKey(Long.valueOf(callId))) {
 			mCallInProgress = false;
-			mIncomingCall = false;
 			mCurrentCallId = 0;
 			Call call = mCallMap.get(Long.valueOf(callId));
 			mCallMap.remove(Long.valueOf(callId));
@@ -401,7 +526,7 @@ public class VoiceClientService extends Service implements
 		}
 	}
 
-	public void acceptCall(long callId, String remoteJid) {
+	private void acceptCall(long callId, String remoteJid) {
 		// dispatchIntent(getCallIntent(CallUIIntent.CALL_PROGRESS, callId,
 		// remoteJid));
 	}
@@ -409,7 +534,7 @@ public class VoiceClientService extends Service implements
 	/*
 	 * Only called on XMPP disconnect as a cleanup operation.
 	 */
-	public void endAllCalls() {
+	private void endAllCalls() {
 		Iterator<Long> iter = mCallMap.keySet().iterator();
 		while (iter.hasNext()) {
 			Long key = iter.next();
@@ -418,28 +543,7 @@ public class VoiceClientService extends Service implements
 		}
 	}
 
-	public void startCallInProgressActivity(long callId, String remoteJid) {
-		Intent dialogIntent = new Intent(getBaseContext(),
-				CallInProgressActivity.class);
-		dialogIntent.putExtra("callId", callId);
-		dialogIntent.putExtra("remoteJid", remoteJid);
-		dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-				| Intent.FLAG_ACTIVITY_CLEAR_TOP );
-
-		getApplication().startActivity(dialogIntent);
-	}
-
-	public void startIncomingCallDialog(long callId, String remoteJid) {
-		Intent dialogIntent = new Intent(getBaseContext(),
-				IncomingCallDialog.class);
-		dialogIntent.putExtra("callId", callId);
-		dialogIntent.putExtra("remoteJid", remoteJid);
-		dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-				| Intent.FLAG_ACTIVITY_CLEAR_TOP );
-		getApplication().startActivity(dialogIntent);
-	}
-
-	public void dispatchCallState(String callState, long callId,
+	private void dispatchCallState(String callState, long callId,
 			String remoteJid, long duration) {
 		Intent intent = new Intent(callState);
 		// TODO: Stick these extra values in some constants!
@@ -449,99 +553,21 @@ public class VoiceClientService extends Service implements
 		dispatchLocalIntent(intent);
 	}
 
-	public void dispatchCallState(String callState, long callId,
+	private void dispatchCallState(String callState, long callId,
 			String remoteJid) {
 		dispatchCallState(callState, callId, remoteJid, -1);
 	}
 
-	public void startRing(boolean isIncoming, boolean callInProgress) {
+	private void startRing(boolean isIncoming, boolean callInProgress) {
 		stopRing();
 		mRingManager = new RingManager(getApplicationContext(), isIncoming,
 				callInProgress);
 	}
 
-	public void stopRing() {
+	private void stopRing() {
 		if (mRingManager != null) {
 			mRingManager.stop();
 			mRingManager = null;
-		}
-	}
-
-	// --------------------- Interface VoiceClientEventCallback
-	// ---------------------
-	@Override
-	public void handleCallStateChanged(int state, String remoteJid, long callId) {
-		remoteJid = cleanJid(remoteJid);
-		switch (CallState.fromInteger(state)) {
-		case SENT_INITIATE:
-			Log.i(TAG, "Outgoing call");
-			outgoingCall(callId, remoteJid);
-			break;
-		case RECEIVED_INITIATE:
-			Log.i(TAG, "Incoming call");
-			if (mCallInProgress == false) {
-				incomingCall(callId, remoteJid);
-			} else {
-				mClient.declineCall(callId, true);// Decline busy;
-			}
-			break;
-		case SENT_TERMINATE:
-		case RECEIVED_TERMINATE:
-		case SENT_BUSY:
-		case RECEIVED_BUSY:
-		case SENT_REJECT:
-		case RECEIVED_REJECT:
-			Log.i(TAG, "Call ended");
-			endCall(callId, 0);// Add reason to end call.
-			break;
-		case RECEIVED_ACCEPT:
-			Log.i(TAG, "Call accepted");
-			acceptCall(callId, remoteJid);
-		case IN_PROGRESS:
-			Log.i(TAG, "IN_PROGRESS");
-			callStarted(callId);
-			break;
-		case DE_INIT:
-			Log.i(TAG, "DE_INIT");
-			break;
-		}
-		Log.i(TAG, "call state ------------------" + state);
-	}
-
-	@Override
-	public void handleXmppError(int error) {
-		switch (XmppError.fromInteger(error)) {
-		case XML:
-			Log.e(TAG, "Malformed XML or encoding error");
-			break;
-		case STREAM:
-			Log.e(TAG, "XMPP stream error");
-			break;
-		case VERSION:
-			Log.e(TAG, "XMPP version error");
-			break;
-		case UNAUTHORIZED:
-			Log.e(TAG,
-					"User is not authorized (Check your username and password)");
-			break;
-		case TLS:
-			Log.e(TAG, "TLS could not be negotiated");
-			break;
-		case AUTH:
-			Log.e(TAG, "Authentication could not be negotiated");
-			break;
-		case BIND:
-			Log.e(TAG, "Resource or session binding could not be negotiated");
-			break;
-		case CONNECTION_CLOSED:
-			Log.e(TAG, "Connection closed by output handler.");
-			break;
-		case DOCUMENT_CLOSED:
-			Log.e(TAG, "Closed by </stream:stream>");
-			break;
-		case SOCKET:
-			Log.e(TAG, "Socket error");
-			break;
 		}
 	}
 
@@ -556,59 +582,14 @@ public class VoiceClientService extends Service implements
 			mXmppUseSsl = false;
 		}
 	}
-
-	@Override
-	public void handleXmppStateChanged(int state) {
-		Intent intent;
-		switch (XmppState.fromInteger(state)) {
-		case NONE:
-			mClientInited = true;
-			Log.e(TAG, "xmpp None state");
-			runPendingLogin();
-			break;
-		case START:
-			// changeStatus( "connecting..." );
-			break;
-		case OPENING:
-			// changeStatus( "logging in..." );
-			break;
-		case OPEN:
-			intent = new Intent(CallUIIntent.LOGGED_IN);
-			dispatchLocalIntent(intent);
-			break;
-		case CLOSED:
-			intent = new Intent(CallUIIntent.LOGGED_OUT);
-			dispatchLocalIntent(intent);
-			endAllCalls();
-			releaseClient();
-			// Intent disconnected.
-			// - Connection listener can handle this event.
-			// - When we have a connection, it will try to
-			// login again.
-			break;
-		}
-	}
-
-	@Override
-	public void handleBuddyListChanged(int state, String remoteJid) {
-		switch (BuddyListState.fromInteger(state)) {
-		case ADD:
-			Log.v(TAG, "Adding buddy " + remoteJid);
-			// Intent add buddy
-			// mBuddyList.add(remoteJid);
-			break;
-		case REMOVE:
-			Log.v(TAG, "Removing buddy" + remoteJid);
-			// Intent remove buddy
-			// mBuddyList.remove(remoteJid);
-			break;
-		case RESET:
-			Log.v(TAG, "Reset buddy list");
-			// intent reset buddy list
-			// mBuddyList.clear();
-			break;
-		}
-	}
+	   
+    private void loggedOut(){
+        Intent intent;
+        intent = new Intent(CallUIIntent.LOGGED_OUT);
+        dispatchLocalIntent(intent);
+        endAllCalls();
+        releaseClient();
+    }
 
 	public void dispatchLocalIntent(Intent intent) {
 		final int N = mCallbacks.beginBroadcast();
