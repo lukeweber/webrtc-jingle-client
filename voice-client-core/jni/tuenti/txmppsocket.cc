@@ -167,8 +167,9 @@ void TXmppSocket::OnEvent(talk_base::StreamInterface* stream,
       buffer_.Shift(written);
     }
   }
-  if ((events & talk_base::SE_CLOSE))
+  if ((events & talk_base::SE_CLOSE)) {
     SignalCloseEvent(err);
+  }
 }
 #endif  // USE_SSLSTREAM
 buzz::AsyncSocket::State TXmppSocket::state() {

@@ -60,6 +60,7 @@ class CallbackHelper : public VoiceClientNotify {
   void OnCallStateChange(cricket::Session* session,
       cricket::Session::State state, uint32 call_id);
   void OnXmppError(buzz::XmppEngine::Error error);
+  void OnXmppSocketClose(int state);
   void OnBuddyListAdd(std::string user_key, std::string nick);
   void OnBuddyListRemove(std::string user_key);
   void OnBuddyListReset();

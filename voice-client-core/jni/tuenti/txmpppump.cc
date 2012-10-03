@@ -55,6 +55,7 @@ void TXmppPump::DoLogin(const buzz::XmppClientSettings & xcs) {
     OnStateChange(buzz::XmppEngine::STATE_START);
     LOGI("TXmppPump::DoLogin - logging on");
     client_->SignalStateChange.connect(this, &TXmppPump::OnStateChange);
+    socket_->SignalCloseEvent.connect(this, &TXmppPump::OnXmppSocketClose);
     client_->Connect(xcs, "", socket_, auth_);
     client_->Start();
   }
@@ -75,8 +76,18 @@ void TXmppPump::OnStateChange(buzz::XmppEngine::State state) {
   if (state_ == state)
     return;
   state_ = state;
-  if (notify_ != NULL)
+  if (notify_ != NULL) {
+      if ( state_ == buzz::XmppEngine::STATE_CLOSED) {
+        notify_->OnXmppError(client_->GetError(NULL));
+      }
     notify_->OnStateChange(state);
+  }
+}
+
+void TXmppPump::OnXmppSocketClose(int state) {
+  if (notify_ != NULL) {
+    notify_->OnXmppSocketClose(state);
+  }
 }
 
 void TXmppPump::WakeTasks() {

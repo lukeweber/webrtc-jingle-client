@@ -98,17 +98,11 @@ public class VoiceClientActivity extends Activity implements
         mSettings = PreferenceManager.getDefaultSharedPreferences(this);
 
         initClientWrapper();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
         setupReceiver();
     }
-
+    
     @Override
-    public void onPause() {
-        super.onPause();
+    public void onDestroy() {
         LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(
                 mReceiver);
     }

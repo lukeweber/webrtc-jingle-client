@@ -218,6 +218,10 @@ public class VoiceClientService extends Service implements
             Log.e(TAG, "Socket error");
             break;
         }
+    }
+
+    @Override
+    public void handleXmppSocketClose(int state){
         loggedOut();
     }
 
@@ -227,7 +231,6 @@ public class VoiceClientService extends Service implements
         switch (XmppState.fromInteger(state)) {
         case NONE:
             mClientInited = true;
-            Log.e(TAG, "xmpp None state");
             runPendingLogin();
             break;
         case START:
@@ -244,7 +247,6 @@ public class VoiceClientService extends Service implements
             loggedOut();
             break;
         }
-        Log.e(TAG, "xmpp state" + state);
     }
 
     @Override

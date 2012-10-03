@@ -46,6 +46,7 @@ class VoiceClientNotify {
 
   /* Called when there is a xmpp error */
   virtual void OnXmppError(buzz::XmppEngine::Error) = 0;
+  virtual void OnXmppSocketClose(int state) = 0;
 
   virtual void OnBuddyListAdd(std::string user_key, std::string nick) = 0;
   virtual void OnBuddyListRemove(std::string user_key) = 0;

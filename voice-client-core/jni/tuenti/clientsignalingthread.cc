@@ -310,6 +310,18 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
   }
 }
 
+void ClientSignalingThread::OnXmppError(buzz::XmppEngine::Error error) {
+  if (notify_) {
+    notify_->OnXmppError(error);
+  }
+}
+
+void ClientSignalingThread::OnXmppSocketClose(int state) {
+  if (notify_) {
+    notify_->OnXmppSocketClose(state);
+  }
+}
+
 void ClientSignalingThread::OnStateChange(buzz::XmppEngine::State state) {
   LOGI("ClientSignalingThread::OnStateChange");
   assert(talk_base::Thread::Current() == signal_thread_);

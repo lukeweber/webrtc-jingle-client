@@ -96,6 +96,11 @@ void CallbackHelper::OnXmppError(buzz::XmppEngine::Error error) {
     error, "", 0);
 }
 
+void CallbackHelper::OnXmppSocketClose(int state) {
+  CallNativeDispatchEvent(
+    com_tuenti_voice_core_VoiceClient_XMPP_SOCKET_CLOSE_EVENT, state, "", 0);
+}
+
 void CallbackHelper::OnBuddyListAdd(const std::string user_key,
     const std::string nick) {
   LOGI("Adding to buddy list: %s, %s", user_key.c_str(), nick.c_str());

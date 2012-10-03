@@ -103,7 +103,8 @@ class ClientSignalingThread: public talk_base::SignalThread,
   void OnStatusUpdate(const buzz::Status& status);
   // OnStateChange Needed by TXmppPumpNotify maybe better in another class
   void OnStateChange(buzz::XmppEngine::State state);
-
+  void OnXmppSocketClose(int state);
+  void OnXmppError(buzz::XmppEngine::Error state);
   void OnRequestSignaling();
   void OnSessionCreate(cricket::Session* session, bool initiate);
   void OnCallCreate(cricket::Call* call);

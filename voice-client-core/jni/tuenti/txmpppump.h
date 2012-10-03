@@ -45,6 +45,8 @@ class TXmppPumpNotify {
   virtual ~TXmppPumpNotify() {
   }
   virtual void OnStateChange(buzz::XmppEngine::State state) = 0;
+  virtual void OnXmppError(buzz::XmppEngine::Error error) = 0;
+  virtual void OnXmppSocketClose(int state) = 0;
 };
 
 class TXmppPump: public talk_base::MessageHandler,
@@ -62,6 +64,8 @@ class TXmppPump: public talk_base::MessageHandler,
   void DoDisconnect();
 
   void OnStateChange(buzz::XmppEngine::State state);
+
+  void OnXmppSocketClose(int state);
 
   void WakeTasks();
 
