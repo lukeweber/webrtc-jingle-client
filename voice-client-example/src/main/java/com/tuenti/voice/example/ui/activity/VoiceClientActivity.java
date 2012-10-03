@@ -30,6 +30,8 @@ public class VoiceClientActivity extends Activity implements
 
     private static final String MY_PASS = "pass";
 
+    private static final String MY_TURN_PASS = MY_PASS;
+
     private SharedPreferences mSettings;
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -59,6 +61,7 @@ public class VoiceClientActivity extends Activity implements
             changeStatus("Logging in");
             intent.putExtra("username", MY_USER);
             intent.putExtra("password", MY_PASS);
+            intent.putExtra("turnPassword", MY_TURN_PASS);
             intent.putExtra(
                     "xmppHost",
                     getStringPref(R.string.xmpp_host_key,
