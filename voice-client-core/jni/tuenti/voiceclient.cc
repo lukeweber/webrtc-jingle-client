@@ -52,6 +52,9 @@ VoiceClient::VoiceClient(VoiceClientNotify *notify, StunConfig *stun_config)
     client_signaling_thread_(NULL),
     stun_config_(stun_config) {
   LOGI("VoiceClient::VoiceClient");
+#ifdef TUENTI_CUSTOM_BUILD
+  LOG(INFO) << "LOGT RUNNING WITH TUENTI_CUSTOM_BUILD";
+#endif //TUENTI_CUSTOM_BUILD
   LOG(INFO) << "LOGT VoiceClient Constructed with stun_config";
   LOG(INFO) << "LOGT " << stun_config->ToString();
 
@@ -136,12 +139,12 @@ void VoiceClient::OnMessage(talk_base::Message *msg) {
 }
 
 void VoiceClient::Login(const std::string &username, 
-  const std::string &password, const std::string &xmpp_host, int xmpp_port,
-  bool use_ssl) {
+  const std::string &password, const std::string &turn_password,
+  const std::string &xmpp_host, int xmpp_port, bool use_ssl) {
   LOGI("VoiceClient::Login");
   if (client_signaling_thread_) {
-    client_signaling_thread_->Login(username, password, xmpp_host, xmpp_port,
-        use_ssl);
+    client_signaling_thread_->Login(username, password, turn_password,
+        xmpp_host, xmpp_port, use_ssl);
   }
 }
 

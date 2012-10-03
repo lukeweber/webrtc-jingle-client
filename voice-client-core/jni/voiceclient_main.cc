@@ -28,6 +28,7 @@
 #include <assert.h>
 #include <string>
 #include <cstring>
+//#include <csignal>
 
 #include "com_tuenti_voice_core_VoiceClient.h"
 #include "tuenti/logging.h"
@@ -105,6 +106,7 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeEndCall(
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeInit(
     JNIEnv *env, jobject object, jstring stun, jstring relay_udp,
     jstring relay_tcp, jstring relay_ssl, jstring turn) {
+  //raise(SIGABRT);
   const char* native_stun = env->GetStringUTFChars(stun, NULL);
   const char* native_relay_udp = env->GetStringUTFChars(relay_udp, NULL);
   const char* native_relay_tcp = env->GetStringUTFChars(relay_tcp, NULL);
@@ -136,7 +138,7 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeInit(
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin(
     JNIEnv *env, jobject object, jstring username, jstring password,
-    jstring xmppHost, jint xmppPort, jboolean useSSL) {
+    jstring turnPassword, jstring xmppHost, jint xmppPort, jboolean useSSL) {
   if (!client_) {
     LOGE("client not initialized");
     return;
@@ -145,18 +147,21 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin(
   const char* nativeUsername = env->GetStringUTFChars(username, NULL);
   const char* nativePassword = env->GetStringUTFChars(password, NULL);
   const char* nativeXmppHost = env->GetStringUTFChars(xmppHost, NULL);
+  const char* nativeTurnPassword = env->GetStringUTFChars(turnPassword, NULL);
 
   std::string nativeUsernameS(nativeUsername);
   std::string nativePasswordS(nativePassword);
+  std::string nativeTurnPasswordS(nativeTurnPassword);
   std::string nativeXmppHostS(nativeXmppHost);
 
   // login
-  client_->Login(nativeUsernameS, nativePasswordS, nativeXmppHostS, xmppPort,
-    useSSL);
+  client_->Login(nativeUsernameS, nativePasswordS, nativeTurnPasswordS,
+    nativeXmppHostS, xmppPort, useSSL);
 
   // release
   env->ReleaseStringUTFChars(username, nativeUsername);
   env->ReleaseStringUTFChars(password, nativePassword);
+  env->ReleaseStringUTFChars(turnPassword, nativeTurnPassword);
   env->ReleaseStringUTFChars(xmppHost, nativeXmppHost);
 }
 

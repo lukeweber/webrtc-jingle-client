@@ -421,8 +421,8 @@ void ClientSignalingThread::OnPingTimeout() {
 // THESE ARE THE ONLY FUNCTIONS THAT CAN BE CALLED USING ANY THREAD
 // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 void ClientSignalingThread::Login(const std::string &username,
-    const std::string &password, const std::string &xmpp_host, int xmpp_port,
-    bool use_ssl) {
+    const std::string &password, const std::string &turn_password,
+    const std::string &xmpp_host, int xmpp_port, bool use_ssl) {
   LOGI("ClientSignalingThread::Login");
 
   buzz::Jid jid = buzz::Jid(username);

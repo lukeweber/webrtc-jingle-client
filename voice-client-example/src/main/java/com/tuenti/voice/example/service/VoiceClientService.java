@@ -66,6 +66,7 @@ public class VoiceClientService extends Service implements
 	// Pending login values
 	private String mUsername;
 	private String mPassword;
+	private String mTurnPassword;
 	private String mXmppHost;
 	private int mXmppPort = 0;
 	private boolean mXmppUseSsl = false;
@@ -575,10 +576,11 @@ public class VoiceClientService extends Service implements
 
 	public void runPendingLogin() {
 		if (mUsername != null) {
-			mClient.login(mUsername, mPassword, mXmppHost, mXmppPort,
+			mClient.login(mUsername, mPassword, mTurnPassword, mXmppHost, mXmppPort,
 					mXmppUseSsl);
 			mUsername = null;
 			mPassword = null;
+			mTurnPassword = null;
 			mXmppHost = null;
 			mXmppPort = 0;
 			mXmppUseSsl = false;
@@ -656,10 +658,12 @@ public class VoiceClientService extends Service implements
 			mClient.endCall(callId);
 		}
 
-		public void login(String username, String password, String xmppHost,
-				int xmppPort, boolean xmppUseSsl) throws RemoteException {
+		public void login(String username, String password, String turnPassword,
+				String xmppHost, int xmppPort, boolean xmppUseSsl)
+				throws RemoteException {
 			mUsername = username;
 			mPassword = password;
+			mTurnPassword = turnPassword;
 			mXmppHost = xmppHost;
 			mXmppPort = xmppPort;
 			mXmppUseSsl = xmppUseSsl;
