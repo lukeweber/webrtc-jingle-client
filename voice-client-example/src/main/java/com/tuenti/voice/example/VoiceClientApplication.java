@@ -12,8 +12,6 @@ public class VoiceClientApplication extends Application {
     public void onCreate() {
         super.onCreate();
         startService(new Intent(getApplicationContext(),
-                VoiceClientService.class));
-        startService(new Intent(getApplicationContext(),
                 VoiceClientControllerService.class));
     }
 
