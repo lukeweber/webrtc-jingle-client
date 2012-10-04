@@ -4,18 +4,17 @@ import android.app.Application;
 import android.content.Intent;
 
 import com.tuenti.voice.example.service.VoiceClientService;
+import com.tuenti.voice.example.service.VoiceClientControllerService;
 
 public class VoiceClientApplication extends Application {
-
-    public static VoiceClientController mVoiceClientController;
 
     @Override
     public void onCreate() {
         super.onCreate();
         startService(new Intent(getApplicationContext(),
                 VoiceClientService.class));
-        mVoiceClientController = new VoiceClientController(this);
-        mVoiceClientController.bind();
+        startService(new Intent(getApplicationContext(),
+                VoiceClientControllerService.class));
     }
 
     // TODO(LUKE): Figure out how we should clean up this binding
