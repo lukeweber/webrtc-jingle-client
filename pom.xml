@@ -121,7 +121,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <android.liboutdir>standard-debug</android.liboutdir>
+                <android.liboutdir>default_debug</android.liboutdir>
                 <android.apk.debug>true</android.apk.debug>
                 <android.ndkappfile>jni/default_debug.mk</android.ndkappfile>
                 <android.manifest.debuggable>true</android.manifest.debuggable>
@@ -130,7 +130,7 @@
         <profile>
             <id>standard-release</id>
             <properties>
-                <android.liboutdir>standard-release</android.liboutdir>
+                <android.liboutdir>default_release</android.liboutdir>
                 <android.apk.debug>false</android.apk.debug>
                 <android.ndkappfile>jni/default_release.mk</android.ndkappfile>
                 <android.manifest.debuggable>false</android.manifest.debuggable>
@@ -139,7 +139,7 @@
         <profile>
             <id>tuenti-debug</id>
             <properties>
-                <android.liboutdir>tuenti-debug</android.liboutdir>
+                <android.liboutdir>tuenti_debug</android.liboutdir>
                 <android.apk.debug>true</android.apk.debug>
                 <android.ndkappfile>jni/tuenti_debug.mk</android.ndkappfile>
                 <android.manifest.debuggable>true</android.manifest.debuggable>
@@ -148,7 +148,7 @@
         <profile>
             <id>tuenti-release</id>
             <properties>
-                <android.liboutdir>tuenti-release</android.liboutdir>
+                <android.liboutdir>tuenti_release</android.liboutdir>
                 <android.apk.debug>false</android.apk.debug>
                 <android.ndkappfile>jni/tuenti_release.mk</android.ndkappfile>
                 <android.manifest.debuggable>false</android.manifest.debuggable>

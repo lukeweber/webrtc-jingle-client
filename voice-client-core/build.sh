@@ -76,6 +76,9 @@ case ${filename} in
                 ;;
 esac
 
-cmd="$ndk_build_exe -C $CURRENT_APP_DIR NDK_APPLICATION_MK=jni/${filename} ${flags}"
+OBJDIR=`echo $filename | awk '{sub(".mk","");print}'`
+
+cmd="$ndk_build_exe -C $CURRENT_APP_DIR NDK_APPLICATION_MK=jni/${filename} NDK_APP_OUT=$CURRENT_APP_DIR/obj/$OBJDIR ${flags}"
+
 echo ${cmd}
 ${cmd}

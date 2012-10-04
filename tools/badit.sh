@@ -131,6 +131,7 @@ elif [ "$BUILDSYSTEM" == "mvn" ]; then
   fi
   
   echo -e "-------------------------------\nBUILDING/INSTALLING\n---------------------"
+  #$TRUNKDIR/voice-client-core/build.sh
   mvn $CLEAN install 
   check_return_code "$?"
   
@@ -158,7 +159,7 @@ elif [ "$BUILDSYSTEM" == "mvn" ]; then
   check_return_code "$?"
 
   echo -e "-------------------------------\nDEBUGGING\n-------------------------------"
-  $TRUNKDIR/build/android/gdb_apk -p com.tuenti.voice.example -l voice-client-core/obj/local/armeabi-v7a/
+  $TRUNKDIR/build/android/gdb_apk -p com.tuenti.voice.example -s VoiceClientService -l voice-client-core/obj/default_debug/local/armeabi-v7a
   check_return_code "$?"
 else
   print_usage "Only gyp & mvn build systems available for now"
