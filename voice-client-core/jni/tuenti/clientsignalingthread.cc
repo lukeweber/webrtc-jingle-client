@@ -422,7 +422,8 @@ void ClientSignalingThread::OnPingTimeout() {
 // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 void ClientSignalingThread::Login(const std::string &username,
     const std::string &password, const std::string &turn_password,
-    const std::string &xmpp_host, int xmpp_port, bool use_ssl) {
+    const std::string &turn_realm, const std::string &xmpp_host,
+    int xmpp_port, bool use_ssl) {
   LOGI("ClientSignalingThread::Login");
 
   buzz::Jid jid = buzz::Jid(username);

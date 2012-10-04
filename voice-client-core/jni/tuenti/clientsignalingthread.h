@@ -114,8 +114,8 @@ class ClientSignalingThread: public talk_base::SignalThread,
   // These are signal thread entry points that will be farmed
   // out to the worker equivilent functions
   void Login(const std::string &username, const std::string &password,
-      const std::string &turn_password, const std::string &xmpp_host,
-      int xmpp_port, bool use_ssl);
+      const std::string &turn_password, const std::string &turn_realm,
+      const std::string &xmpp_host, int xmpp_port, bool use_ssl);
   void Disconnect();
   void Call(std::string remoteJid);
   void AcceptCall(uint32 call_id);

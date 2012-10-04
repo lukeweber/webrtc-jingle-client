@@ -139,9 +139,9 @@ public class VoiceClient
         }
     }
 
-    public void login( String username, String password, String turnPassword, String xmppServer, int xmppPort, boolean useSsl )
+    public void login( String username, String password, String turnPassword, String turnRealm, String xmppServer, int xmppPort, boolean useSsl )
     {
-        nativeLogin( username, password, turnPassword, xmppServer, xmppPort, useSsl );
+        nativeLogin( username, password, turnPassword, turnRealm, xmppServer, xmppPort, useSsl );
     }
 
     public void logout()
@@ -180,7 +180,7 @@ public class VoiceClient
 
     private native void nativeInit( String stunServer, String relayServerUDP, String relayServerTCP, String relayServerSSL, String turnServer);
 
-    private native void nativeLogin( String user_name, String password, String turnPassword, String xmppServer, int xmppPort, boolean UseSSL );
+    private native void nativeLogin( String user_name, String password, String turnPassword, String turnRealm, String xmppServer, int xmppPort, boolean UseSSL );
 
     private native void nativeLogout();
 

@@ -10,6 +10,7 @@
 ##  -c             clean. do a clean install
 ##  -s             sync. sync before doing the build
 ##  -j             jobs. force the number of processes
+##  -p             patch. apply required patch for ssl
 #
 # default variables
 #
@@ -20,17 +21,11 @@ SYNCREPOS="no"
 TOOLSDIR="$( cd "$( dirname "$0" )" && pwd )"
 TRUNKDIR="$( dirname $TOOLSDIR )"
 SRCDIR="$TRUNKDIR/src"
-OPENSSL_PATCH="--- a/third_party/openssl/openssl.gyp
-+++ b/third_party/openssl/openssl.gyp
-@@ -13,6 +13,8 @@
-         'PURIFY',
-         'TERMIO',
-         '_REENTRANT',
-+        'OPENSSL_NO_HW',
-+        'OPENSSL_NO_GOST',
-         # We do not use TLS over UDP on Chromium so far.
-         'OPENSSL_NO_DTLS1',
-       ],"
+OPENSSL_PATCH=""
+BUILD_PROFILE="default_debug"
+#BUILD_PROFILE="tuenti_debug"
+#BUILD_PROFILE="default_release"
+#BUILD_PROFILE="tuenti_release"
 #
 # helper functions
 #
@@ -74,6 +69,19 @@ do
     s ) #sync
       SYNCREPOS="yes"
       ;;
+    p ) #patch
+      OPENSSL_PATCH="--- a/third_party/openssl/openssl.gyp
+      +++ b/third_party/openssl/openssl.gyp
+      @@ -13,6 +13,8 @@
+               'PURIFY',
+               'TERMIO',
+               '_REENTRANT',
+      +        'OPENSSL_NO_HW',
+      +        'OPENSSL_NO_GOST',
+               # We do not use TLS over UDP on Chromium so far.
+               'OPENSSL_NO_DTLS1',
+             ],"
+      ;;
     j ) #jobs
       num_of_cores="${OPTARG}"
       export num_of_cores
@@ -93,9 +101,12 @@ do
 done
 
 pushd $TRUNKDIR;
-echo "patching gyp"
-echo "$OPENSSL_PATCH"|patch --strip=1 --forward
-#check_return_code "$?" commented because if alreay applied it ignores it but returns an error code
+if [ "$OPENSSL_PATCH" != "" ];then
+    echo "patching gyp"
+    echo -e "-------------------------------\nPATCHING_SSL\n-------------------------------"
+    echo "$OPENSSL_PATCH"|patch --strip=1 --forward;
+    check_return_code "$?"
+fi
 
 echo "CHROME_SRC=$TRUNKDIR"
 export CHROME_SRC="$TRUNKDIR"
@@ -130,9 +141,9 @@ elif [ "$BUILDSYSTEM" == "mvn" ]; then
     mvn clean
   fi
   
-  echo -e "-------------------------------\nBUILDING/INSTALLING\n---------------------"
+  echo -e "-------------------------------\nBUILDING/INSTALLING\n-------------------------------";
   #$TRUNKDIR/voice-client-core/build.sh
-  mvn $CLEAN install 
+  mvn $CLEAN install -P $BUILD_PROFILE
   check_return_code "$?"
   
   echo -e "-------------------------------\nHEADERGEN\n-------------------------------"
@@ -159,7 +170,7 @@ elif [ "$BUILDSYSTEM" == "mvn" ]; then
   check_return_code "$?"
 
   echo -e "-------------------------------\nDEBUGGING\n-------------------------------"
-  $TRUNKDIR/build/android/gdb_apk -p com.tuenti.voice.example -s VoiceClientService -l voice-client-core/obj/default_debug/local/armeabi-v7a
+  $TRUNKDIR/build/android/gdb_apk -p com.tuenti.voice.example -s VoiceClientService -l voice-client-core/obj/$BUILD_PROFILE/local/armeabi-v7a
   check_return_code "$?"
 else
   print_usage "Only gyp & mvn build systems available for now"

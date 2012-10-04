@@ -70,7 +70,8 @@ class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
 
   // passthru functions
   void Login(const std::string &username, const std::string &password,
-    const std::string &turn_password, const std::string &xmpp_host,
+    const std::string &turn_password, const std::string &turn_realm,
+    const std::string &xmpp_host,
     int xmpp_port, bool use_ssl);
   void Disconnect();
   void Call(std::string remoteJid);
