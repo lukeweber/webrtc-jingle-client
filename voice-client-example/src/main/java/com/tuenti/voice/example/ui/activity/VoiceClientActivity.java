@@ -103,7 +103,8 @@ public class VoiceClientActivity extends Activity implements
     
     @Override
     public void onDestroy() {
-        LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(
+        super.onDestroy();
+    	LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(
                 mReceiver);
     }
 
