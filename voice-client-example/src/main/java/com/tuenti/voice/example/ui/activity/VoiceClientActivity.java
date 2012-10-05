@@ -100,7 +100,7 @@ public class VoiceClientActivity extends Activity implements
         initClientWrapper();
         setupReceiver();
     }
-    
+
     @Override
     public void onDestroy() {
         super.onDestroy();
