@@ -140,12 +140,11 @@ void VoiceClient::OnMessage(talk_base::Message *msg) {
 
 void VoiceClient::Login(const std::string &username, 
   const std::string &password, const std::string &turn_password,
-  const std::string &turn_realm, const std::string &xmpp_host,
-  int xmpp_port, bool use_ssl) {
+  const std::string &xmpp_host, int xmpp_port, bool use_ssl) {
   LOGI("VoiceClient::Login");
   if (client_signaling_thread_) {
     client_signaling_thread_->Login(username, password, turn_password,
-        turn_realm, xmpp_host, xmpp_port, use_ssl);
+        xmpp_host, xmpp_port, use_ssl);
   }
 }
 

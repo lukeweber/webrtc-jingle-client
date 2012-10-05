@@ -9,7 +9,7 @@ interface IVoiceClientService {
     void toggleMute( long callId );
     void toggleHold( long callId );
     void endCall( long callId );
-    void login( String username, String password, String turnPassword, String turnRealm, String xmppHost, int xmppPort, boolean xmppUseSSl );
+    void login( String username, String password, String turnPassword, String xmppHost, int xmppPort, boolean xmppUseSSl );
     void release();
     void logout();
     void registerCallback( IVoiceClientServiceCallback cb );

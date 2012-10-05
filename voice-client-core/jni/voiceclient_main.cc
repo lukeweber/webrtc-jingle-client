@@ -138,7 +138,7 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeInit(
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin(
     JNIEnv *env, jobject object, jstring username, jstring password,
-    jstring turnPassword, jstring turnRealm, jstring xmppHost, jint xmppPort, jboolean useSSL) {
+    jstring turnPassword, jstring xmppHost, jint xmppPort, jboolean useSSL) {
   if (!client_) {
     LOGE("client not initialized");
     return;
@@ -147,24 +147,21 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin(
   const char* nativeUsername = env->GetStringUTFChars(username, NULL);
   const char* nativePassword = env->GetStringUTFChars(password, NULL);
   const char* nativeTurnPassword = env->GetStringUTFChars(turnPassword, NULL);
-  const char* nativeTurnRealm = env->GetStringUTFChars(turnRealm, NULL);
   const char* nativeXmppHost = env->GetStringUTFChars(xmppHost, NULL);
 
   std::string nativeUsernameS(nativeUsername);
   std::string nativePasswordS(nativePassword);
   std::string nativeTurnPasswordS(nativeTurnPassword);
-  std::string nativeTurnRealmS(nativeTurnRealm);
   std::string nativeXmppHostS(nativeXmppHost);
 
   // login
   client_->Login(nativeUsernameS, nativePasswordS, nativeTurnPasswordS,
-    nativeTurnRealmS, nativeXmppHostS, xmppPort, useSSL);
+    nativeXmppHostS, xmppPort, useSSL);
 
   // release
   env->ReleaseStringUTFChars(username, nativeUsername);
   env->ReleaseStringUTFChars(password, nativePassword);
   env->ReleaseStringUTFChars(turnPassword, nativeTurnPassword);
-  env->ReleaseStringUTFChars(turnRealm, nativeTurnRealm);
   env->ReleaseStringUTFChars(xmppHost, nativeXmppHost);
 }
 

@@ -66,12 +66,11 @@ public class VoiceClientController {
 					String username = intent.getStringExtra("username");
 					String password = intent.getStringExtra("password");
 					String turnPassword = intent.getStringExtra("turnPassword");
-					String turnRealm = intent.getStringExtra("turnRealm");
 					String xmppHost = intent.getStringExtra("xmppHost");
 					int xmppPort = intent.getIntExtra("xmppPort", 0);
 					boolean xmppUseSSl = intent.getBooleanExtra("xmppUseSSL",
 							false);
-					mService.login(username, password, turnPassword, turnRealm, xmppHost, xmppPort,
+					mService.login(username, password, turnPassword, xmppHost, xmppPort,
 							xmppUseSSl);
 				} catch (RemoteException e) {
 				}
