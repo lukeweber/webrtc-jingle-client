@@ -36,10 +36,6 @@
                   android:theme="@android:style/Theme.Dialog" />
         <service android:enabled="true"
                  android:exported="false"
-                 android:name=".service.VoiceClientControllerService">
-        </service>
-        <service android:enabled="true" 
-                 android:exported="false"
                  android:label="TuentiVoiceService"
                  android:process=":VoiceClientService"
                  android:name=".service.VoiceClientService">

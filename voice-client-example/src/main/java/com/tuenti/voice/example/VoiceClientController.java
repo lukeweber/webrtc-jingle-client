@@ -1,74 +1,28 @@
-package com.tuenti.voice.example.service;
+package com.tuenti.voice.example;
 
-import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-public class VoiceClientControllerService extends Service {
+import com.tuenti.voice.example.service.CallIntent;
+import com.tuenti.voice.example.service.IVoiceClientService;
+import com.tuenti.voice.example.service.IVoiceClientServiceCallback;
+
+public class VoiceClientController {
 	IVoiceClientService mService;
+	private Context mContext;
 
 	private static final String TAG = "controller-libjingle-webrtc";
 
 	private boolean mIsBound = false;
-	
-	// ------------ Local service ----------------------------
-	
-	/**
-     * Class for clients to access.  Because we know this service always
-     * runs in the same process as its clients, we don't need to deal with
-     * IPC.
-     */
-    public class LocalBinder extends Binder {
-        VoiceClientControllerService getService() {
-            return VoiceClientControllerService.this;
-        }
-    }
-
-    @Override
-    public void onCreate() {
-        Log.i(TAG, "onCreate in controller");
-        init();
-        bind();
-    }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.i("LocalService", "Received start id " + startId + ": " + intent);
-        // We want this service to continue running until it is explicitly
-        // stopped, so return sticky.
-        return START_STICKY;
-    }
-
-    @Override
-    public void onDestroy() {
-        if (mIsBound) {
-            unbindService(mConnection);
-            LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(
-                    mBroadcastReceiver);
-            mIsBound = false;
-        }
-    }
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        return mBinder;
-    }
-
-    // This is the object that receives interactions from clients.  See
-    // RemoteService for a more complete example.
-    private final IBinder mBinder = new LocalBinder();
-    
-    // ------------------- End local service code ---------------------------
 
 	private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
 
@@ -128,7 +82,25 @@ public class VoiceClientControllerService extends Service {
 		}
 	};
 
-	public void init() {
+	private BroadcastReceiver globalBroadcastReceiver = new BroadcastReceiver() {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			// Thin layer of security to avoid others from killing calls.
+			// TODO: Is this enough security?
+			if (context.getApplicationContext() == mContext
+					.getApplicationContext()) {
+				mBroadcastReceiver.onReceive(context, intent);
+			} else {
+				Log.e(TAG,
+						"Another app is trying to access things it shouldn't!\nOffender: "
+								+ context);
+			}
+		}
+	};
+
+	public VoiceClientController(Context context) {
+		mContext = context;
 
 		// Local receiver.
 		IntentFilter intentFilter = new IntentFilter();
@@ -140,12 +112,18 @@ public class VoiceClientControllerService extends Service {
 		intentFilter.addAction(CallIntent.HOLD_CALL);
 		intentFilter.addAction(CallIntent.LOGIN);
 		intentFilter.addAction(CallIntent.LOGOUT);
-		LocalBroadcastManager.getInstance(getBaseContext()).registerReceiver(
+		LocalBroadcastManager.getInstance(mContext).registerReceiver(
 				mBroadcastReceiver, intentFilter);
+
+		// Global receiver.
+		IntentFilter globalIntentFilter = new IntentFilter();
+		globalIntentFilter.addAction(CallIntent.END_CALL);
+		globalIntentFilter.addAction(CallIntent.REJECT_CALL);
+		mContext.registerReceiver(globalBroadcastReceiver, globalIntentFilter);
 	}
 
 	public void bind() {
-		bindService(new Intent(IVoiceClientService.class.getName()),
+		mContext.bindService(new Intent(IVoiceClientService.class.getName()),
 				mConnection, Context.BIND_AUTO_CREATE);
 		mIsBound = true;
 	}
@@ -205,8 +183,17 @@ public class VoiceClientControllerService extends Service {
 
 		public void dispatchLocalIntent(Intent intent) {
 			Intent newIntent = (Intent) intent.clone();
-			LocalBroadcastManager.getInstance(getBaseContext())
+			LocalBroadcastManager.getInstance(mContext)
 					.sendBroadcast(newIntent);
 		}
 	};
+
+	public void onDestroy() {
+		if (mIsBound) {
+			mContext.unbindService(mConnection);
+			LocalBroadcastManager.getInstance(mContext).unregisterReceiver(
+					mBroadcastReceiver);
+			mIsBound = false;
+		}
+	}
 }
