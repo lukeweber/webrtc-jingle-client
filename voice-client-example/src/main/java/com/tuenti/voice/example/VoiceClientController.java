@@ -82,6 +82,7 @@ public class VoiceClientController {
 		}
 	};
 
+	//This is used to receive events for notifications, which can only broadcast global.
 	private BroadcastReceiver globalBroadcastReceiver = new BroadcastReceiver() {
 
 		@Override
