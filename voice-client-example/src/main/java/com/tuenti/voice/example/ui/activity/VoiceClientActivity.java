@@ -30,7 +30,7 @@ public class VoiceClientActivity extends Activity implements
 
     private static final String MY_PASS = "pass";
 
-    private static final String MY_TURN_PASS = MY_PASS;
+    private static final String MY_TURN_PASS = new String(MY_PASS);
 
     private SharedPreferences mSettings;
 
