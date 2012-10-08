@@ -32,6 +32,7 @@ import com.tuenti.voice.example.data.Call;
 import com.tuenti.voice.example.ui.activity.CallInProgressActivity;
 import com.tuenti.voice.example.ui.dialog.IncomingCallDialog;
 import com.tuenti.voice.example.util.CallNotification;
+import com.tuenti.voice.example.util.NetworkPreference;
 import com.tuenti.voice.example.util.RingManager;
 
 public class VoiceClientService extends Service implements
@@ -61,6 +62,8 @@ public class VoiceClientService extends Service implements
 
 	private SharedPreferences mSettings;
 
+	private NetworkPreference mNetworkPreference;
+
 	private boolean mClientInited = false;
 
 	// Pending login values
@@ -82,12 +85,12 @@ public class VoiceClientService extends Service implements
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		
+
 		// Set default preferences
 		mSettings = PreferenceManager.getDefaultSharedPreferences(this);
 
 		mNotificationManager = new CallNotification(this);
-
+		mNetworkPreference = new NetworkPreference(this);
 		initClientWrapper();
 		initAudio();
 		initCallDurationTask();
@@ -143,7 +146,7 @@ public class VoiceClientService extends Service implements
 		mClient = null;
 	}
 // ------------------- End Service Methods -------------------------------
-	
+
 // --------------------- Interface VoiceClientEventCallback ---------------------
     @Override
     public void handleCallStateChanged(int state, String remoteJid, long callId) {
@@ -271,7 +274,7 @@ public class VoiceClientService extends Service implements
         }
     }
 // --------------------- End Interface VoiceClientEventCallback ---------------------
-    
+
 	private void releaseClient() {
 		mClient.release();
 		mClientInited = false;
@@ -293,7 +296,7 @@ public class VoiceClientService extends Service implements
 		mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 	}
 
-	
+
 	private void setAudioForCall() {
 		mAudioManager
 				.setMode((Build.VERSION.SDK_INT < 11) ? AudioManager.MODE_IN_CALL
@@ -309,7 +312,7 @@ public class VoiceClientService extends Service implements
 
 	/**
 	 * Sends an incoming call notification.
-	 * 
+	 *
 	 * @param remoteJid
 	 *            The user that is calling.
 	 */
@@ -325,7 +328,7 @@ public class VoiceClientService extends Service implements
 
 	/**
 	 * Sends an outgoing call notification.
-	 * 
+	 *
 	 * @param remoteJid
 	 *            The user that is being called.
 	 */
@@ -341,7 +344,7 @@ public class VoiceClientService extends Service implements
 
 	/**
 	 * Sends a call progress (duration) notification.
-	 * 
+	 *
 	 * @param remoteJid
 	 *            The remote party.
 	 * @param duration
@@ -382,7 +385,7 @@ public class VoiceClientService extends Service implements
 
 	/**
 	 * Generates an Intent to send with a Notification.
-	 * 
+	 *
 	 * @param remoteJid
 	 *            The remote party.
 	 * @param action
@@ -412,6 +415,7 @@ public class VoiceClientService extends Service implements
 	}
 
 	public void initCallState(long callId, String remoteJid) {
+        mNetworkPreference.enableStickyNetworkPreference();
 		mCallInProgress = true;
 		mCurrentCallId = callId;
 		mCallMap.put(Long.valueOf(callId), new Call(callId, remoteJid));
@@ -438,7 +442,7 @@ public class VoiceClientService extends Service implements
 		sendOutgoingCallNotification(remoteJid);
 
 	}
-	
+
     public void startCallInProgressActivity(long callId, String remoteJid) {
         Intent dialogIntent = new Intent(getBaseContext(),
                 CallInProgressActivity.class);
@@ -511,6 +515,7 @@ public class VoiceClientService extends Service implements
 		if (mCallMap.containsKey(Long.valueOf(callId))) {
 			mCallInProgress = false;
 			mCurrentCallId = 0;
+			mNetworkPreference.unsetNetworkPreference();
 			Call call = mCallMap.get(Long.valueOf(callId));
 			mCallMap.remove(Long.valueOf(callId));
 			stopRing();
@@ -586,7 +591,7 @@ public class VoiceClientService extends Service implements
 			mXmppUseSsl = false;
 		}
 	}
-	   
+
     private void loggedOut(){
         Intent intent;
         intent = new Intent(CallUIIntent.LOGGED_OUT);

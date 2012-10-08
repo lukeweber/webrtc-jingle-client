@@ -2,8 +2,10 @@ package com.tuenti.voice.example;
 
 import android.app.Application;
 import android.content.Intent;
+import android.util.Log;
 
 import com.tuenti.voice.example.service.VoiceClientService;
+import com.tuenti.voice.example.util.ProcessUtil;
 
 public class VoiceClientApplication extends Application {
 
@@ -12,10 +14,10 @@ public class VoiceClientApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        startService(new Intent(getApplicationContext(),
-                VoiceClientService.class));
-        mVoiceClientController = new VoiceClientController(this);
-        mVoiceClientController.bind();
+        if( !ProcessUtil.isRemoteService(this) ){
+            mVoiceClientController = new VoiceClientController(this);
+            mVoiceClientController.bind();
+        }
     }
 
     // TODO(LUKE): Figure out how we should clean up this binding

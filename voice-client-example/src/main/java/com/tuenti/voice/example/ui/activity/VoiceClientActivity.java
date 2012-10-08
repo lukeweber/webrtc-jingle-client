@@ -103,10 +103,11 @@ public class VoiceClientActivity extends Activity implements
         initClientWrapper();
         setupReceiver();
     }
-    
+
     @Override
     public void onDestroy() {
-        LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(
+        super.onDestroy();
+    	LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(
                 mReceiver);
     }
 
