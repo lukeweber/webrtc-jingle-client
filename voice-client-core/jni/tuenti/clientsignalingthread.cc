@@ -425,6 +425,14 @@ void ClientSignalingThread::Login(const std::string &username,
     const std::string &xmpp_host, int xmpp_port, bool use_ssl) {
   LOGI("ClientSignalingThread::Login");
 
+  size_t pos = username.find("@"); 
+  if (pos != std::string::npos) {
+    std::string turn_username = username.substr(0, pos);
+    port_allocator_->set_turn_username(turn_username.c_str());
+  } else {
+    port_allocator_->set_turn_username(username.c_str());
+  }
+  port_allocator_->set_turn_password(turn_password.c_str());
   buzz::Jid jid = buzz::Jid(username);
 
   talk_base::InsecureCryptStringImpl pass;
