@@ -54,9 +54,9 @@ public class CallInProgressActivity extends Activity implements
 
 	/**
 	 * Updates the call duration TextView with the new duration.
-	 * 
+	 *
 	 * @param duration
-	 *            The new duration to display.
+	 *			The new duration to display.
 	 */
 	private void updateCallDuration(long duration) {
 		if (duration >= 0) {
@@ -74,6 +74,7 @@ public class CallInProgressActivity extends Activity implements
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.callinprogress);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_IGNORE_CHEEK_PRESSES);
 
 		durationTextView = (TextView) findViewById(R.id.duration_textview);
 		updateCallDuration(0);
@@ -127,12 +128,12 @@ public class CallInProgressActivity extends Activity implements
 		super.onStop();
 		mWakeLock.releaseWakeLock();
 	}
-	
+
 	@Override
 	protected void onDestroy() {
-	    LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(
-                mReceiver);
-	    super.onDestroy();
+		LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(
+				mReceiver);
+		super.onDestroy();
 	}
 
 	public void onProximity() {
@@ -146,19 +147,22 @@ public class CallInProgressActivity extends Activity implements
 	}
 
 	public void onUnProximity() {
-		mWakeLock.setWakeLockState(PowerManager.FULL_WAKE_LOCK);
-		mUILocked = false;
 		turnScreenOn(true);
+		mWakeLock.setWakeLockState(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP);
+		mUILocked = false;
 	}
 
 	private void turnScreenOn(boolean on) {
 		WindowManager.LayoutParams params = getWindow().getAttributes();
-		params.flags |= LayoutParams.FLAG_KEEP_SCREEN_ON;
+		params.flags |= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
 		if (on) {
 			// less than 0 returns to default behavior.
 			params.screenBrightness = -1;
 		} else {
-			params.screenBrightness = 0;
+			// Samsung Galaxy Ace locks if you turn the screen off.
+			// To be safe, we're just going to dim. Dimming more is
+			// also considered off, i.e. 0.001f.
+			params.screenBrightness = 0.01f;
 		}
 		getWindow().setAttributes(params);
 	}

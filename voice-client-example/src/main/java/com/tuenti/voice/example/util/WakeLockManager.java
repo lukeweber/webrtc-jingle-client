@@ -35,6 +35,4 @@ public class WakeLockManager {
             mWakeLock = null;
         }
     }
-
-    /* End wake lock related logic */
 }
