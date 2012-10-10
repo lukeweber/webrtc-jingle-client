@@ -195,6 +195,7 @@ public class VoiceClientController {
 			mContext.unbindService(mConnection);
 			LocalBroadcastManager.getInstance(mContext).unregisterReceiver(
 					mBroadcastReceiver);
+			mContext.unregisterReceiver(globalBroadcastReceiver);
 			mIsBound = false;
 		}
 	}

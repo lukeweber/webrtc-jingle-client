@@ -17,6 +17,8 @@ import android.os.IBinder;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.tuenti.voice.core.BuddyListState;
@@ -32,11 +34,13 @@ import com.tuenti.voice.example.data.Call;
 import com.tuenti.voice.example.ui.activity.CallInProgressActivity;
 import com.tuenti.voice.example.ui.dialog.IncomingCallDialog;
 import com.tuenti.voice.example.util.CallNotification;
+import com.tuenti.voice.example.util.ConnectionMonitor;
+import com.tuenti.voice.example.util.IConnectionMonitor;
 import com.tuenti.voice.example.util.NetworkPreference;
 import com.tuenti.voice.example.util.RingManager;
 
 public class VoiceClientService extends Service implements
-		IVoiceClientServiceInt, VoiceClientEventCallback {
+		IVoiceClientServiceInt, VoiceClientEventCallback, IConnectionMonitor {
 	private VoiceClient mClient;
 
 	private static final String TAG = "VoiceClientService";
@@ -46,6 +50,7 @@ public class VoiceClientService extends Service implements
 	private HashMap<Long, Call> mCallMap = new HashMap<Long, Call>();
 
 	private boolean mCallInProgress = false;
+	private boolean mExternalCallInProgress = false;
 
 	private long mCurrentCallId = 0;
 
@@ -66,6 +71,8 @@ public class VoiceClientService extends Service implements
 
 	private boolean mClientInited = false;
 
+	private int mXmppState;
+
 	// Pending login values
 	private String mUsername;
 	private String mPassword;
@@ -73,6 +80,8 @@ public class VoiceClientService extends Service implements
 	private String mXmppHost;
 	private int mXmppPort = 0;
 	private boolean mXmppUseSsl = false;
+	private boolean mReconnectTimerRunning = false;
+	private boolean mLoggedInIntent = false;
 
 	/**
 	 * This is a list of callbacks that have been registered with the service.
@@ -94,8 +103,14 @@ public class VoiceClientService extends Service implements
 		initClientWrapper();
 		initAudio();
 		initCallDurationTask();
+		initConnectionMonitor();
 		// Set default preferences
 		// mSettings = PreferenceManager.getDefaultSharedPreferences( this );
+	}
+
+	private void initConnectionMonitor(){
+	    ConnectionMonitor connectionMonitor = ConnectionMonitor.getInstance(getApplicationContext());
+	    ConnectionMonitor.registerCallback(this);
 	}
 
 	private void initCallDurationTask() {
@@ -144,6 +159,8 @@ public class VoiceClientService extends Service implements
 		mClient.destroy();
 		// mBuddyList.clear();
 		mClient = null;
+		mNetworkPreference.unsetNetworkPreference();
+		ConnectionMonitor.getInstance(getApplicationContext()).destroy();
 	}
 // ------------------- End Service Methods -------------------------------
 
@@ -158,10 +175,18 @@ public class VoiceClientService extends Service implements
             break;
         case RECEIVED_INITIATE:
             Log.i(TAG, "Incoming call");
-            if (mCallInProgress == false) {
-                incomingCall(callId, remoteJid);
+            if ( ConnectionMonitor.hasSlowConnection() ){
+                //Warn that you can't accept the incoming call
+                //TODO(Luke): Notification of missed call./Explanation about bad connection
+                Log.i(TAG, "Declining call because of slow connection");
+                mClient.declineCall(callId, true);
+            } else if ( mCallInProgress
+                    || ConnectionMonitor.getInstance(getApplicationContext()).isCallInProgress()) {
+                //TODO(Luke): Notification of missed call.
+                Log.i(TAG, "Declining call because call in progress");
+                mClient.declineCall(callId, true);
             } else {
-                mClient.declineCall(callId, true);// Decline busy;
+                incomingCall(callId, remoteJid);
             }
             break;
         case SENT_TERMINATE:
@@ -175,7 +200,7 @@ public class VoiceClientService extends Service implements
             break;
         case RECEIVED_ACCEPT:
             Log.i(TAG, "Call accepted");
-            acceptCall(callId, remoteJid);
+            break;
         case IN_PROGRESS:
             Log.i(TAG, "IN_PROGRESS");
             callStarted(callId);
@@ -231,6 +256,7 @@ public class VoiceClientService extends Service implements
 
     @Override
     public void handleXmppStateChanged(int state) {
+        mXmppState = state;
         Intent intent;
         switch (XmppState.fromInteger(state)) {
         case NONE:
@@ -244,6 +270,7 @@ public class VoiceClientService extends Service implements
             // changeStatus( "logging in..." );
             break;
         case OPEN:
+            stopReconnectTimer();
             intent = new Intent(CallUIIntent.LOGGED_IN);
             dispatchLocalIntent(intent);
             break;
@@ -251,6 +278,29 @@ public class VoiceClientService extends Service implements
             loggedOut();
             break;
         }
+    }
+
+    final Runnable mReconnectRunnable = new Runnable()
+    {
+        public void run()
+        {
+            internalLogin();
+            //Try to reconnect again in 1000 seconds.
+            mHandler.postDelayed(this, 1000000);
+        }
+    };
+
+    private void startReconnectTimer(){
+        // Reconnect in 10 seconds if there isn't already one running.
+        if (!mReconnectTimerRunning){
+            mReconnectTimerRunning = true;
+            mHandler.postDelayed(mReconnectRunnable, 10000);
+        }
+    }
+
+    private void stopReconnectTimer(){
+        mHandler.removeCallbacks(mReconnectRunnable);
+        mReconnectTimerRunning = false;
     }
 
     @Override
@@ -275,6 +325,25 @@ public class VoiceClientService extends Service implements
     }
 // --------------------- End Interface VoiceClientEventCallback ---------------------
 
+// --------------------- Connection Monitor interface --------------
+    public void onConnectionEstablished(){
+        if ( XmppState.fromInteger(mXmppState) == XmppState.CLOSED && mLoggedInIntent){
+            internalLogin();
+        }
+    }
+
+    public void onConnectionLost(){
+        releaseClient();
+    }
+
+    public void onConnectivityLost(){
+        stopReconnectTimer();
+        //Could blank out voip icons as being available.
+        Log.i(TAG, "Connectivity lost");
+    }
+
+// ----------------- End Connection Monitor interface ---------------
+
 	private void releaseClient() {
 		mClient.release();
 		mClientInited = false;
@@ -296,10 +365,8 @@ public class VoiceClientService extends Service implements
 		mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 	}
 
-
 	private void setAudioForCall() {
-		mAudioManager
-				.setMode((Build.VERSION.SDK_INT < 11) ? AudioManager.MODE_IN_CALL
+		mAudioManager.setMode((Build.VERSION.SDK_INT < 11) ? AudioManager.MODE_NORMAL
 						: AudioManager.MODE_IN_COMMUNICATION);
 		mAudioManager.requestAudioFocus(null, AudioManager.STREAM_VOICE_CALL,
 				AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
@@ -476,10 +543,6 @@ public class VoiceClientService extends Service implements
 		sendIncomingCallNotification(remoteJid);
 	}
 
-	public void rejectCall(long callId) {
-		// Cancel notification alert for incoming call + tray
-	}
-
 	public void callStarted(long callId) {
 		stopRing();
 		Call call = mCallMap.get(Long.valueOf(callId));
@@ -534,11 +597,6 @@ public class VoiceClientService extends Service implements
 		}
 	}
 
-	private void acceptCall(long callId, String remoteJid) {
-		// dispatchIntent(getCallIntent(CallUIIntent.CALL_PROGRESS, callId,
-		// remoteJid));
-	}
-
 	/*
 	 * Only called on XMPP disconnect as a cleanup operation.
 	 */
@@ -583,12 +641,6 @@ public class VoiceClientService extends Service implements
 		if (mUsername != null) {
 			mClient.login(mUsername, mPassword, mTurnPassword, mXmppHost, mXmppPort,
 					mXmppUseSsl);
-			mUsername = null;
-			mPassword = null;
-			mTurnPassword = null;
-			mXmppHost = null;
-			mXmppPort = 0;
-			mXmppUseSsl = false;
 		}
 	}
 
@@ -598,6 +650,11 @@ public class VoiceClientService extends Service implements
         dispatchLocalIntent(intent);
         endAllCalls();
         releaseClient();
+        if (ConnectionMonitor.isOnline() && mLoggedInIntent){
+            startReconnectTimer();
+        } else {
+            stopReconnectTimer();
+        }
     }
 
 	public void dispatchLocalIntent(Intent intent) {
@@ -626,6 +683,33 @@ public class VoiceClientService extends Service implements
 		mCallbacks.finishBroadcast();
 	}
 
+	public void storeLoginAndLogin(String username, String password, String turnPassword, String xmppHost,
+            int xmppPort, boolean xmppUseSsl){
+	    mUsername = username;
+        mPassword = password;
+        mTurnPassword = turnPassword;
+        mXmppHost = xmppHost;
+        mXmppPort = xmppPort;
+        mXmppUseSsl = xmppUseSsl;
+        internalLogin();
+	}
+
+	public void internalLogin(){
+	    if (mClientInited) {
+            runPendingLogin();
+        } else {// We run login after xmpp_none event, meaning our client is
+                // initialized
+            String stunServer = getStringPref(R.string.stunserver_key,
+                    R.string.stunserver_value);
+            String relayServer = getStringPref(R.string.relayserver_key,
+                    R.string.relayserver_value);
+            String turnServer = getStringPref(R.string.turnserver_key,
+                    R.string.turnserver_value);
+            mClient.init(stunServer, relayServer, relayServer, relayServer,
+                    turnServer);
+        }
+	}
+
 	/*
 	 * Binder Interface implementation.
 	 */
@@ -635,7 +719,11 @@ public class VoiceClientService extends Service implements
 		}
 
 		public void call(String remoteJid) throws RemoteException {
-			mClient.call(remoteJid);
+		    if (ConnectionMonitor.hasSlowConnection()) {
+		        //Throw warning to user.
+		    } else {
+		        mClient.call(remoteJid);
+		    }
 		}
 
 		public void declineCall(long callId, boolean busy)
@@ -666,28 +754,12 @@ public class VoiceClientService extends Service implements
 		public void login(String username, String password, String turnPassword,
 				String xmppHost, int xmppPort, boolean xmppUseSsl)
 				throws RemoteException {
-			mUsername = username;
-			mPassword = password;
-			mTurnPassword = turnPassword;
-			mXmppHost = xmppHost;
-			mXmppPort = xmppPort;
-			mXmppUseSsl = xmppUseSsl;
-			if (mClientInited) {
-				runPendingLogin();
-			} else {// We run login after xmpp_none event, meaning our client is
-					// initialized
-				String stunServer = getStringPref(R.string.stunserver_key,
-						R.string.stunserver_value);
-				String relayServer = getStringPref(R.string.relayserver_key,
-						R.string.relayserver_value);
-				String turnServer = getStringPref(R.string.turnserver_key,
-						R.string.turnserver_value);
-				mClient.init(stunServer, relayServer, relayServer, relayServer,
-						turnServer);
-			}
+		    mLoggedInIntent = true;
+		    storeLoginAndLogin(username, password, turnPassword, xmppHost, xmppPort, xmppUseSsl);
 		}
 
 		public void logout() throws RemoteException {
+		    mLoggedInIntent = false;
 			mClient.logout();
 		}
 

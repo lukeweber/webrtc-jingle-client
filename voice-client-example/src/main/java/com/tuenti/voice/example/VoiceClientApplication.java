@@ -15,6 +15,7 @@ public class VoiceClientApplication extends Application {
     public void onCreate() {
         super.onCreate();
         if( !ProcessUtil.isRemoteService(this) ){
+            startService(new Intent(getApplicationContext(), VoiceClientService.class));
             mVoiceClientController = new VoiceClientController(this);
             mVoiceClientController.bind();
         }
