@@ -37,10 +37,16 @@
 #include "talk/xmpp/xmppclient.h"
 #include "talk/examples/login/xmpppump.h"
 
-#include "tuenti/voiceclientnotify.h"
+#include "tuenti/helpers.h"
 #include "tuenti/status.h"
 
 namespace tuenti {
+
+typedef enum {
+  ADD,
+  REMOVE,
+  RESET
+} BuddyList;
 
 typedef struct {
   std::string stun;
@@ -64,7 +70,7 @@ class ClientSignalingThread;
 class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
  public:
   // initialization
-  explicit VoiceClient(VoiceClientNotify *notify, StunConfig *stun_config);
+  explicit VoiceClient(JavaObjectReference *reference, StunConfig *stun_config);
   ~VoiceClient();
   void Destroy(int delay);  // Deletes self after deleting threads
 
@@ -81,6 +87,18 @@ class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
   void DeclineCall(uint32 call_id, bool busy);
 
  private:
+
+  // signals
+  void OnSignalCallStateChange(int state, const char *remote_jid, int call_id);
+
+  void OnSignalXmppError(int error);
+  void OnSignalXmppSocketClose(int state);
+  void OnSignalXmppStateChange(int state);
+
+  void OnSignalBuddyListReset();
+  void OnSignalBuddyListRemove(const char *remote_jid);
+  void OnSignalBuddyListAdd(const char *remote_jid, const char *nick);
+
   // signaling thread functions initialization
   void InitializeS();
   void DestroyS();
@@ -88,10 +106,10 @@ class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
   // signaling thread functions other
   void OnMessage(talk_base::Message *msg);
 
-  VoiceClientNotify *notify_;
   std::string stunserver_;
   std::string relayserver_;
   talk_base::Thread *signal_thread_;
+  JavaObjectReference *reference_;
   tuenti::ClientSignalingThread *client_signaling_thread_;
   StunConfig *stun_config_;
 };

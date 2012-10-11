@@ -29,14 +29,13 @@
 #include <vector>
 #include <memory>
 
+#include "com_tuenti_voice_core_VoiceClient.h"
 #include "tuenti/voiceclient.h"
 #include "tuenti/logging.h"
 #include "tuenti/threadpriorityhandler.h"
 #include "tuenti/clientsignalingthread.h"
 #include "talk/base/thread.h"
 #include "talk/base/logging.h"
-
-// #include "talk/base/signalthread.h"
 
 namespace tuenti {
 
@@ -46,8 +45,8 @@ enum {
 
 const char* msgNames[] = { "MSG_INIT", "MSG_DESTROY", };
 
-VoiceClient::VoiceClient(VoiceClientNotify *notify, StunConfig *stun_config)
-    : notify_(notify),
+VoiceClient::VoiceClient(JavaObjectReference *reference, StunConfig *stun_config)
+    : reference_(reference),
     signal_thread_(NULL),
     client_signaling_thread_(NULL),
     stun_config_(stun_config) {
@@ -92,15 +91,33 @@ void VoiceClient::Destroy(int delay) {
 void VoiceClient::InitializeS() {
   LOGI("VoiceClient::InitializeS");
   if (client_signaling_thread_ == NULL) {
-    client_signaling_thread_ = new tuenti::ClientSignalingThread(notify_,
+    client_signaling_thread_ = new tuenti::ClientSignalingThread(
         signal_thread_, stun_config_);
     LOGI("VoiceClient::VoiceClient - new ClientSignalingThread "
             "client_signaling_thread_@(0x%x)",
             reinterpret_cast<int>(client_signaling_thread_));
+
+    client_signaling_thread_->SignalCallStateChange.connect(
+        this, &VoiceClient::OnSignalCallStateChange);
+
+    client_signaling_thread_->SignalXmppError.connect(
+        this, &VoiceClient::OnSignalXmppError);
+    client_signaling_thread_->SignalXmppSocketClose.connect(
+        this, &VoiceClient::OnSignalXmppSocketClose);;
+    client_signaling_thread_->SignalXmppStateChange.connect(
+        this, &VoiceClient::OnSignalXmppStateChange);
+
+    client_signaling_thread_->SignalBuddyListReset.connect(
+        this, &VoiceClient::OnSignalBuddyListReset);
+    client_signaling_thread_->SignalBuddyListRemove.connect(
+        this, &VoiceClient::OnSignalBuddyListRemove);
+    client_signaling_thread_->SignalBuddyListAdd.connect(
+        this, &VoiceClient::OnSignalBuddyListAdd);
+
     client_signaling_thread_->Start();
 
     //We know the client is alive when we get this state.
-    notify_->OnXmppStateChange(buzz::XmppEngine::STATE_NONE);
+    OnSignalXmppStateChange(buzz::XmppEngine::STATE_NONE);
   }
 }
 void VoiceClient::DestroyS() {
@@ -197,4 +214,34 @@ void VoiceClient::DeclineCall(uint32 call_id, bool busy) {
   }
 }
 
+void VoiceClient::OnSignalCallStateChange(int state, const char *remote_jid, int call_id) {
+  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_CALL_STATE_EVENT, state, remote_jid, call_id);
+}
+
+void VoiceClient::OnSignalXmppError(int error) {
+  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_XMPP_ERROR_EVENT, error, "", 0);
+}
+
+void VoiceClient::OnSignalXmppSocketClose(int state) {
+  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_XMPP_SOCKET_CLOSE_EVENT, state, "", 0);
+}
+
+void VoiceClient::OnSignalXmppStateChange(int state) {
+  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_XMPP_STATE_EVENT, state, "", 0);
+}
+
+void VoiceClient::OnSignalBuddyListReset() {
+  LOGI("Resetting buddy list");
+  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT, RESET, "", 0);
+}
+
+void VoiceClient::OnSignalBuddyListRemove(const char *remote_jid) {
+  LOGI("Removing from buddy list: %s", remote_jid);
+  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT, REMOVE, remote_jid, 0);
+}
+
+void VoiceClient::OnSignalBuddyListAdd(const char *remote_jid, const char *nick) {
+  LOGI("Adding to buddy list: %s, %s", remote_jid, nick);
+  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT, ADD, remote_jid, 0);
+}
 }  // namespace tuenti

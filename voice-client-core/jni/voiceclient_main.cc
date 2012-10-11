@@ -33,11 +33,9 @@
 #include "tuenti/logging.h"
 #include "tuenti/voiceclient.h"
 #include "tuenti/threadpriorityhandler.h"
-#include "tuenti/voiceclientnotify.h"
-#include "tuenti/callbackhelper.h"
+#include "tuenti/helpers.h"
 
 tuenti::VoiceClient *client_;
-tuenti::CallbackHelper *callback_helper_;
 tuenti::StunConfig *stun_config_;
 
 jint JNI_OnLoad(JavaVM* vm, void* /*reserved*/) {
@@ -50,8 +48,6 @@ jint JNI_OnLoad(JavaVM* vm, void* /*reserved*/) {
     LOGE("JNI_OnLoad could not get JNI env");
     return JNI_ERR;
   }
-  callback_helper_ = new tuenti::CallbackHelper();
-  callback_helper_->setJvm(vm);
 
   tuenti::ThreadPriorityHandler::Init(vm);
 
@@ -127,10 +123,12 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeInit(
   if (!client_) {
     LOGI("Java_com_tuenti_voice_VoiceClient_nativeInit - initializing "
       "client");
-    callback_helper_->setReferenceObject(env->NewGlobalRef(object));
-    client_ =
-        new tuenti::VoiceClient(static_cast<tuenti::VoiceClientNotify*>
-        (callback_helper_), stun_config_);
+
+    JavaObjectReference *instance = NEW_OBJECT(JavaObjectReference, 1);
+    RETURN_IF_FAIL(instance != NULL);
+    SetJavaObject(instance, env, object);
+
+    client_ = new tuenti::VoiceClient(instance, stun_config_);
   }
 }
 

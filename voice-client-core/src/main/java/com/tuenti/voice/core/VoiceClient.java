@@ -26,15 +26,15 @@ public class VoiceClient
 
     //Event constants
     /* Event Types */
-    public static final int CALL_STATE_EVENT = 0;
+    public static final int BUDDY_LIST_EVENT = 3;
 
-    public static final int XMPP_STATE_EVENT = 1;
+    public static final int CALL_STATE_EVENT = 0;
 
     public static final int XMPP_ERROR_EVENT = 2;
 
-    public static final int BUDDY_LIST_EVENT = 3;
-    
     public static final int XMPP_SOCKET_CLOSE_EVENT = 4;
+
+    public static final int XMPP_STATE_EVENT = 1;
     //End Event constants
 
     private final static String TAG = "j-libjingle-webrtc";
@@ -58,22 +58,6 @@ public class VoiceClient
         return instance;
     }
 
-    @SuppressWarnings("UnusedDeclaration")
-    private static void dispatchNativeEvent( int what, int code, String remoteJid, long callId )
-    {
-        VoiceClient client = getInstance();
-        if ( client != null && client.mHandler != null )
-        {
-            Message msg = Message.obtain(client.mHandler, what);
-            Bundle bundle = new Bundle();
-            bundle.putInt("code", code);
-            bundle.putString( "remoteJid", remoteJid );
-            bundle.putLong( "callId", callId );
-            msg.setData(bundle);
-            msg.sendToTarget();
-        }
-    }
-
 // --------------------------- CONSTRUCTORS ---------------------------
 
     private VoiceClient()
@@ -84,19 +68,12 @@ public class VoiceClient
         }
     }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-    public void setHandler( Handler handler )
-    {
-        mHandler = handler;
-    }
-
 // -------------------------- OTHER METHODS --------------------------
 
-    public void acceptCall(long call_id)
+    public void acceptCall( long call_id )
     {
         Log.i( TAG, "native accept call " + call_id );
-        nativeAcceptCall(call_id);
+        nativeAcceptCall( call_id );
     }
 
     public void call( String remoteUsername )
@@ -104,19 +81,9 @@ public class VoiceClient
         nativeCall( remoteUsername );
     }
 
-    public void declineCall(long call_id, boolean busy)
+    public void declineCall( long call_id, boolean busy )
     {
-        nativeDeclineCall(call_id, busy);
-    }
-
-    public void muteCall(long call_id, boolean mute)
-    {
-        nativeMuteCall(call_id, mute);
-    }
-
-    public void holdCall(long call_id, boolean hold)
-    {
-        nativeHoldCall(call_id, hold);
+        nativeDeclineCall( call_id, busy );
     }
 
     public void destroy()
@@ -125,12 +92,18 @@ public class VoiceClient
         instance = null;
     }
 
-    public void endCall(long call_id)
+    public void endCall( long call_id )
     {
-        nativeEndCall(call_id);
+        nativeEndCall( call_id );
     }
 
-    public void init( String stunServer, String relayServerUDP, String relayServerTCP, String relayServerSSL, String turnServer )
+    public void holdCall( long call_id, boolean hold )
+    {
+        nativeHoldCall( call_id, hold );
+    }
+
+    public void init( String stunServer, String relayServerUDP, String relayServerTCP, String relayServerSSL,
+                      String turnServer )
     {
         if ( !initialized )
         {
@@ -139,7 +112,8 @@ public class VoiceClient
         }
     }
 
-    public void login( String username, String password, String turnPassword, String xmppServer, int xmppPort, boolean useSsl )
+    public void login( String username, String password, String turnPassword, String xmppServer, int xmppPort,
+                       boolean useSsl )
     {
         nativeLogin( username, password, turnPassword, xmppServer, xmppPort, useSsl );
     }
@@ -149,12 +123,38 @@ public class VoiceClient
         nativeLogout();
     }
 
+    public void muteCall( long call_id, boolean mute )
+    {
+        nativeMuteCall( call_id, mute );
+    }
+
     public void release()
     {
         if ( initialized )
         {
             initialized = false;
             nativeRelease();
+        }
+    }
+
+    public void setHandler( Handler handler )
+    {
+        mHandler = handler;
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private void dispatchNativeEvent( int what, int code, String remoteJid, long callId )
+    {
+        VoiceClient client = getInstance();
+        if ( client != null && client.mHandler != null )
+        {
+            Message msg = Message.obtain( client.mHandler, what );
+            Bundle bundle = new Bundle();
+            bundle.putInt( "code", code );
+            bundle.putString( "remoteJid", remoteJid );
+            bundle.putLong( "callId", callId );
+            msg.setData( bundle );
+            msg.sendToTarget();
         }
     }
 
@@ -168,21 +168,23 @@ public class VoiceClient
 
     private native void nativeCall( String remoteJid );
 
-    private native void nativeMuteCall( long call_id, boolean mute );
-
-    private native void nativeHoldCall( long call_id, boolean hold );
-
     private native void nativeDeclineCall( long call_id, boolean busy );
 
     private native void nativeDestroy();
 
     private native void nativeEndCall( long call_id );
 
-    private native void nativeInit( String stunServer, String relayServerUDP, String relayServerTCP, String relayServerSSL, String turnServer);
+    private native void nativeHoldCall( long call_id, boolean hold );
 
-    private native void nativeLogin( String user_name, String password, String turnPassword, String xmppServer, int xmppPort, boolean UseSSL );
+    private native void nativeInit( String stunServer, String relayServerUDP, String relayServerTCP,
+                                    String relayServerSSL, String turnServer );
+
+    private native void nativeLogin( String user_name, String password, String turnPassword, String xmppServer,
+                                     int xmppPort, boolean UseSSL );
 
     private native void nativeLogout();
+
+    private native void nativeMuteCall( long call_id, boolean mute );
 
     private native void nativeRelease();
 }

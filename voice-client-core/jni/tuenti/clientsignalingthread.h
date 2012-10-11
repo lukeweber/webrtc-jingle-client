@@ -95,7 +95,7 @@ class VoiceClientNotify;
 class ClientSignalingThread: public talk_base::SignalThread,
     public TXmppPumpNotify {
  public:
-  ClientSignalingThread(VoiceClientNotify *notifier,
+  ClientSignalingThread(
       talk_base::Thread *signal_thread, StunConfig *stun_config);
   // Public Library Callbacks
   void OnSessionState(cricket::Call* call, cricket::Session* session,
@@ -104,7 +104,7 @@ class ClientSignalingThread: public talk_base::SignalThread,
   // OnStateChange Needed by TXmppPumpNotify maybe better in another class
   void OnStateChange(buzz::XmppEngine::State state);
   void OnXmppSocketClose(int state);
-  void OnXmppError(buzz::XmppEngine::Error state);
+  void OnXmppError(buzz::XmppEngine::Error error);
   void OnRequestSignaling();
   void OnSessionCreate(cricket::Session* session, bool initiate);
   void OnCallCreate(cricket::Call* call);
@@ -124,6 +124,17 @@ class ClientSignalingThread: public talk_base::SignalThread,
   void MuteCall(uint32 call_id, bool mute);
   void HoldCall(uint32 call_id, bool hold);
   bool Destroy();
+
+  // signals
+  sigslot::signal3<int, const char *, int> SignalCallStateChange;
+
+  sigslot::signal1<int> SignalXmppError;
+  sigslot::signal1<int> SignalXmppSocketClose;
+  sigslot::signal1<int> SignalXmppStateChange;
+
+  sigslot::signal0<> SignalBuddyListReset;
+  sigslot::signal1<const char *> SignalBuddyListRemove;
+  sigslot::signal2<const char *, const char *> SignalBuddyListAdd;
 
  protected:
   virtual ~ClientSignalingThread();
@@ -153,7 +164,6 @@ class ClientSignalingThread: public talk_base::SignalThread,
   typedef std::map<std::string, RosterItem> RosterMap;
   typedef std::map<std::string, int> BuddyListMap;
 
-  VoiceClientNotify *notify_;
   talk_base::Thread *signal_thread_;
   StunConfig *stun_confg_;
   RosterMap *roster_;
