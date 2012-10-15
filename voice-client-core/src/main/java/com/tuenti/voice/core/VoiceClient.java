@@ -121,7 +121,6 @@ public class VoiceClient
 
     public void destroy()
     {
-        nativeDestroy();
         instance = null;
     }
 
@@ -173,8 +172,6 @@ public class VoiceClient
     private native void nativeHoldCall( long call_id, boolean hold );
 
     private native void nativeDeclineCall( long call_id, boolean busy );
-
-    private native void nativeDestroy();
 
     private native void nativeEndCall( long call_id );
 
