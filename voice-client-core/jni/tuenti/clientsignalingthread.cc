@@ -70,10 +70,9 @@ struct ClientSignalingData: public talk_base::MessageData {
 // ClientSignalingThread
 ///////////////////////////////////////////////////////////////////////////////
 
-ClientSignalingThread::ClientSignalingThread(VoiceClientNotify *notifier,
+ClientSignalingThread::ClientSignalingThread(
     talk_base::Thread *signal_thread, StunConfig *stun_config)
     : talk_base::SignalThread(),
-    notify_(notifier),
     signal_thread_(signal_thread),
     roster_(NULL),
     buddy_list_(NULL),
@@ -234,7 +233,7 @@ void ClientSignalingThread::OnStatusUpdate(const buzz::Status& status) {
     if (buddy_iter == buddy_list_->end()) {
       // LOGI("Adding to roster: %s, %s", key.c_str(), item.nick.c_str());
       (*buddy_list_)[bare_jid_str] = 1;
-      notify_->OnBuddyListAdd(bare_jid_str, item.nick);
+      SignalBuddyListAdd(bare_jid_str.c_str(), item.nick.c_str());
     // New Available client of existing buddy
     } else if (iter == roster_->end()) {
       (*buddy_iter).second++;
@@ -250,7 +249,7 @@ void ClientSignalingThread::OnStatusUpdate(const buzz::Status& status) {
       if (buddy_iter != buddy_list_->end() && --((*buddy_iter).second) == 0) {
         // LOGI("Removing from roster: %s", key.c_str());
         buddy_list_->erase(buddy_iter);
-        notify_->OnBuddyListRemove(bare_jid_str);
+        SignalBuddyListRemove(bare_jid_str.c_str());
       }
     }
   }
@@ -305,21 +304,16 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
     LOGI("VoiceClient::OnSessionState - Received Busy");
     break;
   }
-  if (notify_) {
-    notify_->OnCallStateChange(session, state, call->id());
-  }
+  buzz::Jid jid(session->remote_name());
+  SignalCallStateChange(state, jid.Str().c_str(), call->id());
 }
 
 void ClientSignalingThread::OnXmppError(buzz::XmppEngine::Error error) {
-  if (notify_) {
-    notify_->OnXmppError(error);
-  }
+  SignalXmppError(error);
 }
 
 void ClientSignalingThread::OnXmppSocketClose(int state) {
-  if (notify_) {
-    notify_->OnXmppSocketClose(state);
-  }
+  SignalXmppSocketClose(state);
 }
 
 void ClientSignalingThread::OnStateChange(buzz::XmppEngine::State state) {
@@ -360,7 +354,7 @@ void ClientSignalingThread::OnStateChange(buzz::XmppEngine::State state) {
       roster_->clear();
     }
     if (buddy_list_) {
-      notify_->OnBuddyListReset();
+      SignalBuddyListReset();
       buddy_list_->clear();
     }
     // NFHACK we should probably do something with the media_client_ here
@@ -370,11 +364,7 @@ void ClientSignalingThread::OnStateChange(buzz::XmppEngine::State state) {
     }
     break;
   }
-  if (notify_) {
-    notify_->OnXmppStateChange(state);
-  }
-
-  // main_thread_->Post(this, MSG_STATE_CHANGE, new StateChangeData(state));
+  SignalXmppStateChange(state);
 }
 
 void ClientSignalingThread::OnRequestSignaling() {

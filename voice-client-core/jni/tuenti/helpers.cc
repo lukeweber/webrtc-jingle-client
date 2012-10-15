@@ -24,34 +24,52 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _JNI_TUENTI_VOICECLIENTNOTIFY_H_
-#define _JNI_TUENTI_VOICECLIENTNOTIFY_H_
 
-#include <string>
-#include "talk/p2p/base/session.h"
-#include "talk/xmpp/xmppclient.h"
+#include "tuenti/helpers.h"
 
-namespace tuenti {
-class VoiceClientNotify {
- public:
-  virtual ~VoiceClientNotify() {
+jmethodID GetMethodIDCachedReferenced(JNIEnv *env, jclass clazz,
+                                      JavaMethodIDCache *cache) {
+  RETURN_VAL_IF_FAIL(env != NULL, NULL);
+  RETURN_VAL_IF_FAIL(clazz != NULL, NULL);
+  RETURN_VAL_IF_FAIL(cache != NULL, NULL);
+
+  if (cache->mid == NULL) {
+    cache->mid = env->GetMethodID(clazz, cache->name, cache->signature);
+  }
+  return cache->mid;
+}
+
+bool SetJavaObject(JavaObjectReference *ref, JNIEnv *env, jobject object) {
+  RETURN_VAL_IF_FAIL(env != NULL, false);
+  RETURN_VAL_IF_FAIL(object != NULL, false);
+
+  JavaVM *jvm;
+  int success = env->GetJavaVM(&jvm);
+  if (success != 0) {
+    return false;
   }
 
-  /* Called when the connection state changes */
-  virtual void OnXmppStateChange(buzz::XmppEngine::State) = 0;
+  jclass localClass = env->GetObjectClass(object);
+  if (localClass == NULL) {
+    return false;
+  }
 
-  /* Called when the call state changes */
-  virtual void OnCallStateChange(cricket::Session* session,
-      cricket::Session::State state, uint32 call_id) = 0;
+  ref->java_class = reinterpret_cast<jclass>(env->NewGlobalRef(localClass));
+  ref->handler_object = env->NewGlobalRef(object);
+  ref->jvm = jvm;
+  env->DeleteLocalRef(localClass);
 
-  /* Called when there is a xmpp error */
-  virtual void OnXmppError(buzz::XmppEngine::Error) = 0;
-  virtual void OnXmppSocketClose(int state) = 0;
+  return true;
+}
 
-  virtual void OnBuddyListAdd(std::string user_key, std::string nick) = 0;
-  virtual void OnBuddyListRemove(std::string user_key) = 0;
-  virtual void OnBuddyListReset() = 0;
-};
-}  // Namespace tuenti
-
-#endif  // _JNI_TUENTI_VOICECLIENTNOTIFY_H_
+void UnsetJavaObject(JavaObjectReference *ref, JNIEnv *env) {
+  if (ref->java_class != NULL) {
+    env->DeleteGlobalRef(ref->java_class);
+  }
+  if (ref->handler_object != NULL) {
+    env->DeleteGlobalRef(ref->handler_object);
+  }
+  ref->java_class = NULL;
+  ref->handler_object = NULL;
+  ref->jvm = NULL;
+}
