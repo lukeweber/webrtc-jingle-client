@@ -27,9 +27,10 @@
             <version>r6</version>
         </dependency>
         <dependency>
-        <groupId>com.google.android</groupId>
+            <groupId>com.google.android</groupId>
             <artifactId>annotations</artifactId>
             <version>4.1.1.4</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.tuenti.voice</groupId>
