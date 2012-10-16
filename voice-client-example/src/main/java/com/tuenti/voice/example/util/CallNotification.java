@@ -2,17 +2,12 @@ package com.tuenti.voice.example.util;
 
 import java.util.Random;
 
-import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.RelativeLayout;
+import android.support.v4.app.NotificationCompat;
 import android.widget.RemoteViews;
 
 import com.tuenti.voice.example.R;
@@ -60,83 +55,25 @@ public class CallNotification {
 	private void sendNotification(int iconId, String tickerText,
 			String message, int notificationId, Intent intent,
 			String cancelAction) {
-		Notification notification = null;
-
-		// @TargetApi(11)
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-			notification = createNotificationLegacy(iconId, tickerText,
-					message, intent, cancelAction);
-		} else {
-			notification = createNotificationHoneycomb(iconId, tickerText,
-					message, intent, cancelAction);
-		}
+		Notification notification = new NotificationCompat.Builder(context)
+			.setWhen(System.currentTimeMillis())
+			.setAutoCancel(true)
+			.setContentTitle(context.getString(R.string.app_name))
+			.setContentText(message)
+			.setTicker(tickerText)
+			.setContentIntent(
+					PendingIntent.getActivity(context, 0, intent,
+							PendingIntent.FLAG_CANCEL_CURRENT))
+			.setContent(
+					getCustomNotificationView(
+							context.getString(R.string.app_name), message,
+							// TODO: Replace with constant.
+							cancelAction, intent.getLongExtra("callId", 0)))
+			.setSmallIcon(iconId)
+			.getNotification();
 
 		notificationManager.notify(VOIP_CALL_NOTIFICATION_TAG, notificationId,
 				notification);
-	}
-
-	/**
-	 * Creates a Notification the old fashioned (aka < Honeycomb) way.
-	 * 
-	 * NOTE: Sucks that we use deprecated methods, but we're supporting API 8+.
-	 * 
-	 * @param iconId
-	 *            The icon to show with the notification (in the status bar).
-	 * @param message
-	 *            The message to show.
-	 * @param intent
-	 *            The Intent to execute when the Notification is clicked.
-	 */
-	private Notification createNotificationLegacy(int iconId,
-			String tickerText, String message, Intent intent,
-			String cancelAction) {
-		Notification notification = new Notification(iconId, tickerText,
-				System.currentTimeMillis());
-		notification.defaults = Notification.FLAG_AUTO_CANCEL;
-
-		PendingIntent pendingIntent = PendingIntent.getActivity(context, 0,
-				intent, PendingIntent.FLAG_CANCEL_CURRENT);
-		notification.setLatestEventInfo(context,
-				context.getString(R.string.app_name), message, pendingIntent);
-
-		notification.contentView = getCustomNotificationView(
-				context.getString(R.string.app_name), message, cancelAction,
-				// TODO: Replace with constant.
-				intent.getLongExtra("callId", 0));
-
-		return notification;
-	}
-
-	/**
-	 * Creates a Notification the new (aka >= Honeycomb) way.
-	 * 
-	 * @param iconId
-	 *            The icon to show with the notification (in the status bar).
-	 * @param message
-	 *            The message to show.
-	 * @param intent
-	 *            The Intent to execute when the Notification is clicked.
-	 */
-	@TargetApi(11)
-	private Notification createNotificationHoneycomb(int iconId,
-			String tickerText, String message, Intent intent,
-			String cancelAction) {
-		return new Notification.Builder(context)
-				.setWhen(System.currentTimeMillis())
-				.setAutoCancel(true)
-				.setContentTitle(context.getString(R.string.app_name))
-				.setContentText(message)
-				.setTicker(tickerText)
-				.setContentIntent(
-						PendingIntent.getActivity(context, 0, intent,
-								PendingIntent.FLAG_CANCEL_CURRENT))
-				.setContent(
-						getCustomNotificationView(
-								context.getString(R.string.app_name), message,
-								// TODO: Replace with constant.
-								cancelAction, intent.getLongExtra("callId", 0)))
-				.setSmallIcon(iconId)
-				.getNotification();
 	}
 
 	/**
