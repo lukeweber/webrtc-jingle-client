@@ -22,6 +22,8 @@ public class NetworkPreference {
     }
     
     public void unsetNetworkPreference(){
-        mConnManager.setNetworkPreference(ConnectivityManager.DEFAULT_NETWORK_PREFERENCE);
+    	if(mConnManager != null) {
+    		mConnManager.setNetworkPreference(ConnectivityManager.DEFAULT_NETWORK_PREFERENCE);
+    	}
     }
 }
