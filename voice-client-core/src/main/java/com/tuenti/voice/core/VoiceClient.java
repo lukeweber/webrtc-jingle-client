@@ -30,6 +30,8 @@ public class VoiceClient
 
     public static final int CALL_STATE_EVENT = 0;
 
+    public static final int CALL_ERROR_EVENT = 5;
+
     public static final int XMPP_ERROR_EVENT = 2;
 
     public static final int XMPP_SOCKET_CLOSE_EVENT = 4;

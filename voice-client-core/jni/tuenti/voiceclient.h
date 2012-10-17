@@ -90,6 +90,7 @@ class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
 
   // signals
   void OnSignalCallStateChange(int state, const char *remote_jid, int call_id);
+  void OnSignalCallError(int error, int call_id);
 
   void OnSignalXmppError(int error);
   void OnSignalXmppSocketClose(int state);

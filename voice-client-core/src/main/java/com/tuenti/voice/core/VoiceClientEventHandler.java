@@ -35,6 +35,10 @@ public class VoiceClientEventHandler
                 long callId = bundle.getLong( "callId" );
                 mCallback.handleCallStateChanged( code, remoteJid, callId );
                 break;
+            case VoiceClient.CALL_ERROR_EVENT:
+                long callIdError = bundle.getLong( "callId" );
+                mCallback.handleCallError( code, callIdError );
+                break;
             case VoiceClient.BUDDY_LIST_EVENT:
                 String remoteJidBuddy = bundle.getString( "remoteJid" );
                 mCallback.handleBuddyListChanged( code , remoteJidBuddy);

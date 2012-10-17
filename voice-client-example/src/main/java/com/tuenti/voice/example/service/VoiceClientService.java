@@ -23,6 +23,7 @@ import android.util.Log;
 
 import com.tuenti.voice.core.BuddyListState;
 import com.tuenti.voice.core.CallState;
+import com.tuenti.voice.core.CallError;
 import com.tuenti.voice.core.IVoiceClientServiceInt;
 import com.tuenti.voice.core.VoiceClient;
 import com.tuenti.voice.core.VoiceClientEventCallback;
@@ -31,6 +32,7 @@ import com.tuenti.voice.core.XmppError;
 import com.tuenti.voice.core.XmppState;
 import com.tuenti.voice.example.R;
 import com.tuenti.voice.example.data.Call;
+import com.tuenti.voice.example.data.User;
 import com.tuenti.voice.example.ui.activity.CallInProgressActivity;
 import com.tuenti.voice.example.ui.dialog.IncomingCallDialog;
 import com.tuenti.voice.example.util.CallNotification;
@@ -71,17 +73,12 @@ public class VoiceClientService extends Service implements
 
 	private boolean mClientInited = false;
 
+	private User mUser;
+
 	private int mXmppState;
 
-	// Pending login values
-	private String mUsername;
-	private String mPassword;
-	private String mTurnPassword;
-	private String mXmppHost;
-	private int mXmppPort = 0;
-	private boolean mXmppUseSsl = false;
 	private boolean mReconnectTimerRunning = false;
-	private boolean mLoggedInIntent = false;
+	private boolean mReconnect = false;
 
 	/**
 	 * This is a list of callbacks that have been registered with the service.
@@ -173,6 +170,9 @@ public class VoiceClientService extends Service implements
             Log.i(TAG, "Outgoing call");
             outgoingCall(callId, remoteJid);
             break;
+        case RECEIVED_INITIATE_ACK:
+            Log.i(TAG, "Initiate was acked");
+            break;
         case RECEIVED_INITIATE:
             Log.i(TAG, "Incoming call");
             if ( ConnectionMonitor.hasSlowConnection() ){
@@ -210,6 +210,27 @@ public class VoiceClientService extends Service implements
             break;
         }
         Log.i(TAG, "call state ------------------" + state);
+    }
+
+    @Override
+    public void handleCallError(int error, long callId){
+        switch (CallError.fromInteger(error)){
+        case ERROR_NONE:
+            // no error
+        case ERROR_TIME:
+            // no response to signaling
+        case ERROR_RESPONSE:
+            // error during signaling
+        case ERROR_NETWORK:
+            // network error, could not allocate network resources
+        case ERROR_CONTENT:
+            // channel errors in SetLocalContent/SetRemoteContent
+        case ERROR_TRANSPORT:
+            // transport error of some kind
+        case ERROR_ACK_TIME:
+            // no ack response to signaling, client not available
+        }
+        Log.e(TAG, "call error ------------------, callid " + callId + "error " + error );
     }
 
     @Override
@@ -327,7 +348,7 @@ public class VoiceClientService extends Service implements
 
 // --------------------- Connection Monitor interface --------------
     public void onConnectionEstablished(){
-        if ( XmppState.fromInteger(mXmppState) == XmppState.CLOSED && mLoggedInIntent){
+        if ( mReconnect && XmppState.fromInteger(mXmppState) == XmppState.CLOSED ){
             internalLogin();
         }
     }
@@ -638,9 +659,9 @@ public class VoiceClientService extends Service implements
 	}
 
 	public void runPendingLogin() {
-		if (mUsername != null) {
-			mClient.login(mUsername, mPassword, mTurnPassword, mXmppHost, mXmppPort,
-					mXmppUseSsl);
+		if (mUser != null) {
+			mClient.login(mUser.mUsername, mUser.mPassword, mUser.mTurnPassword , mUser.mXmppHost,
+			              mUser.mXmppPort, mUser.mXmppUseSsl);
 		}
 	}
 
@@ -650,7 +671,7 @@ public class VoiceClientService extends Service implements
         dispatchLocalIntent(intent);
         endAllCalls();
         releaseClient();
-        if (ConnectionMonitor.isOnline() && mLoggedInIntent){
+        if (ConnectionMonitor.isOnline() && mReconnect){
             startReconnectTimer();
         } else {
             stopReconnectTimer();
@@ -685,12 +706,7 @@ public class VoiceClientService extends Service implements
 
 	public void storeLoginAndLogin(String username, String password, String turnPassword, String xmppHost,
             int xmppPort, boolean xmppUseSsl){
-	    mUsername = username;
-        mPassword = password;
-        mTurnPassword = turnPassword;
-        mXmppHost = xmppHost;
-        mXmppPort = xmppPort;
-        mXmppUseSsl = xmppUseSsl;
+	    mUser = new User(username, password, turnPassword, xmppHost, xmppPort, xmppUseSsl);
         internalLogin();
 	}
 
@@ -754,12 +770,13 @@ public class VoiceClientService extends Service implements
 		public void login(String username, String password, String turnPassword,
 				String xmppHost, int xmppPort, boolean xmppUseSsl)
 				throws RemoteException {
-		    mLoggedInIntent = true;
+		    mReconnect = true;
 		    storeLoginAndLogin(username, password, turnPassword, xmppHost, xmppPort, xmppUseSsl);
 		}
 
 		public void logout() throws RemoteException {
-		    mLoggedInIntent = false;
+		    mReconnect = false;
+		    mUser = null;
 			mClient.logout();
 		}
 

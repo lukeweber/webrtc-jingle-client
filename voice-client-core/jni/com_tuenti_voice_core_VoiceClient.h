@@ -7,16 +7,18 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#undef com_tuenti_voice_core_VoiceClient_CALL_STATE_EVENT
-#define com_tuenti_voice_core_VoiceClient_CALL_STATE_EVENT 0L
-#undef com_tuenti_voice_core_VoiceClient_XMPP_STATE_EVENT
-#define com_tuenti_voice_core_VoiceClient_XMPP_STATE_EVENT 1L
-#undef com_tuenti_voice_core_VoiceClient_XMPP_ERROR_EVENT
-#define com_tuenti_voice_core_VoiceClient_XMPP_ERROR_EVENT 2L
 #undef com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT
 #define com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT 3L
+#undef com_tuenti_voice_core_VoiceClient_CALL_STATE_EVENT
+#define com_tuenti_voice_core_VoiceClient_CALL_STATE_EVENT 0L
+#undef com_tuenti_voice_core_VoiceClient_CALL_ERROR_EVENT
+#define com_tuenti_voice_core_VoiceClient_CALL_ERROR_EVENT 5L
+#undef com_tuenti_voice_core_VoiceClient_XMPP_ERROR_EVENT
+#define com_tuenti_voice_core_VoiceClient_XMPP_ERROR_EVENT 2L
 #undef com_tuenti_voice_core_VoiceClient_XMPP_SOCKET_CLOSE_EVENT
 #define com_tuenti_voice_core_VoiceClient_XMPP_SOCKET_CLOSE_EVENT 4L
+#undef com_tuenti_voice_core_VoiceClient_XMPP_STATE_EVENT
+#define com_tuenti_voice_core_VoiceClient_XMPP_STATE_EVENT 1L
 /*
  * Class:     com_tuenti_voice_core_VoiceClient
  * Method:    nativeAcceptCall
@@ -35,22 +37,6 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeCall
 
 /*
  * Class:     com_tuenti_voice_core_VoiceClient
- * Method:    nativeMuteCall
- * Signature: (JZ)V
- */
-JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeMuteCall
-  (JNIEnv *, jobject, jlong, jboolean);
-
-/*
- * Class:     com_tuenti_voice_core_VoiceClient
- * Method:    nativeHoldCall
- * Signature: (JZ)V
- */
-JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeHoldCall
-  (JNIEnv *, jobject, jlong, jboolean);
-
-/*
- * Class:     com_tuenti_voice_core_VoiceClient
  * Method:    nativeDeclineCall
  * Signature: (JZ)V
  */
@@ -64,6 +50,14 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeDeclineCall
  */
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeEndCall
   (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tuenti_voice_core_VoiceClient
+ * Method:    nativeHoldCall
+ * Signature: (JZ)V
+ */
+JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeHoldCall
+  (JNIEnv *, jobject, jlong, jboolean);
 
 /*
  * Class:     com_tuenti_voice_core_VoiceClient
@@ -88,6 +82,14 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin
  */
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogout
   (JNIEnv *, jobject);
+
+/*
+ * Class:     com_tuenti_voice_core_VoiceClient
+ * Method:    nativeMuteCall
+ * Signature: (JZ)V
+ */
+JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeMuteCall
+  (JNIEnv *, jobject, jlong, jboolean);
 
 /*
  * Class:     com_tuenti_voice_core_VoiceClient

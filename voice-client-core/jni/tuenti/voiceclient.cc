@@ -99,6 +99,8 @@ void VoiceClient::InitializeS() {
 
     client_signaling_thread_->SignalCallStateChange.connect(
         this, &VoiceClient::OnSignalCallStateChange);
+    client_signaling_thread_->SignalCallError.connect(
+        this, &VoiceClient::OnSignalCallError);
 
     client_signaling_thread_->SignalXmppError.connect(
         this, &VoiceClient::OnSignalXmppError);
@@ -216,6 +218,10 @@ void VoiceClient::DeclineCall(uint32 call_id, bool busy) {
 
 void VoiceClient::OnSignalCallStateChange(int state, const char *remote_jid, int call_id) {
   CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_CALL_STATE_EVENT, state, remote_jid, call_id);
+}
+
+void VoiceClient::OnSignalCallError(int error, int call_id) {
+  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_CALL_ERROR_EVENT, error, "", call_id);
 }
 
 void VoiceClient::OnSignalXmppError(int error) {

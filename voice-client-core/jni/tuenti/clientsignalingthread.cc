@@ -32,6 +32,7 @@
 #include "tuenti/voiceclient.h"  // Needed for notify_ would be nice to remove
 #include "talk/base/signalthread.h"
 #include "talk/base/ssladapter.h"
+#include "talk/p2p/base/session.h"
 #include "talk/session/media/call.h"
 #include "talk/session/media/mediasessionclient.h"
 #include "talk/p2p/base/sessionmanager.h"
@@ -280,6 +281,9 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
     }
     break;
     }
+  case cricket::Session::STATE_RECEIVEDINITIATE_ACK:
+    LOGI("VoiceClient::OnSessionState - STATE_RECEIVEDINITIATE_ACK");
+    break;
   case cricket::Session::STATE_SENTINITIATE:
     LOGI("VoiceClient::OnSessionState - STATE_SENTINITIATE doing nothing...");
     break;
@@ -307,6 +311,35 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
   buzz::Jid jid(session->remote_name());
   SignalCallStateChange(state, jid.Str().c_str(), call->id());
 }
+
+void ClientSignalingThread::OnSessionError(cricket::Call* call,
+    cricket::Session* session, cricket::Session::Error error) {
+  switch ( error ){
+  case cricket::Session::ERROR_NONE:
+    // no error
+    break;
+  case cricket::Session::ERROR_TIME:
+    // no response to signaling
+    break;
+  case cricket::Session::ERROR_RESPONSE:
+    // error during signaling
+    break;
+  case cricket::Session::ERROR_NETWORK:
+    // network error, could not allocate network resources
+    break;
+  case cricket::Session::ERROR_CONTENT:
+    // channel errors in SetLocalContent/SetRemoteContent
+    break;
+  case cricket::Session::ERROR_TRANSPORT:
+    // transport error of some kind
+    break;
+  case cricket::Session::ERROR_ACK_TIME:
+    // no ack response to signaling
+    break;
+  }
+  SignalCallError(error, call->id());
+}
+
 
 void ClientSignalingThread::OnXmppError(buzz::XmppEngine::Error error) {
   SignalXmppError(error);
@@ -385,6 +418,8 @@ void ClientSignalingThread::OnCallCreate(cricket::Call* call) {
   assert(talk_base::Thread::Current() == signal_thread_);
   call->SignalSessionState.connect(this,
       &ClientSignalingThread::OnSessionState);
+  call->SignalSessionError.connect(this,
+      &ClientSignalingThread::OnSessionError);
 }
 
 void ClientSignalingThread::OnCallDestroy(cricket::Call* call) {

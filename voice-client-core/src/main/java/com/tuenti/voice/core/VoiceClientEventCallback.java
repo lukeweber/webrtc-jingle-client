@@ -6,8 +6,10 @@ public interface VoiceClientEventCallback
 
     void handleCallStateChanged( int state, String remoteJid, long callId );
 
+    void handleCallError( int error, long callId );
+
     void handleXmppError( int error );
-    
+
     void handleXmppSocketClose( int state );
 
     void handleXmppStateChanged( int state );

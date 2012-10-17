@@ -99,7 +99,9 @@ class ClientSignalingThread: public talk_base::SignalThread,
       talk_base::Thread *signal_thread, StunConfig *stun_config);
   // Public Library Callbacks
   void OnSessionState(cricket::Call* call, cricket::Session* session,
-      cricket::Session::State state);
+                      cricket::Session::State state);
+  void OnSessionError(cricket::Call* call, cricket::Session* session,
+                      cricket::Session::Error error);
   void OnStatusUpdate(const buzz::Status& status);
   // OnStateChange Needed by TXmppPumpNotify maybe better in another class
   void OnStateChange(buzz::XmppEngine::State state);
@@ -114,8 +116,8 @@ class ClientSignalingThread: public talk_base::SignalThread,
   // These are signal thread entry points that will be farmed
   // out to the worker equivilent functions
   void Login(const std::string &username, const std::string &password,
-      const std::string &turn_password, const std::string &xmpp_host,
-      int xmpp_port, bool use_ssl);
+             const std::string &turn_password, const std::string &xmpp_host,
+             int xmpp_port, bool use_ssl);
   void Disconnect();
   void Call(std::string remoteJid);
   void AcceptCall(uint32 call_id);
@@ -127,6 +129,7 @@ class ClientSignalingThread: public talk_base::SignalThread,
 
   // signals
   sigslot::signal3<int, const char *, int> SignalCallStateChange;
+  sigslot::signal2<int, int> SignalCallError;
 
   sigslot::signal1<int> SignalXmppError;
   sigslot::signal1<int> SignalXmppSocketClose;
