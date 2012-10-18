@@ -61,24 +61,6 @@ public class VoiceClientController {
 					mService.declineCall(callId, true);
 				} catch (RemoteException e) {
 				}
-			} else if (intentString.equals(CallIntent.LOGIN)) {
-				try {
-					String username = intent.getStringExtra("username");
-					String password = intent.getStringExtra("password");
-					String turnPassword = intent.getStringExtra("turnPassword");
-					String xmppHost = intent.getStringExtra("xmppHost");
-					int xmppPort = intent.getIntExtra("xmppPort", 0);
-					boolean xmppUseSSl = intent.getBooleanExtra("xmppUseSSL",
-							false);
-					mService.login(username, password, turnPassword, xmppHost, xmppPort,
-							xmppUseSSl);
-				} catch (RemoteException e) {
-				}
-			} else if (intentString.equals(CallIntent.LOGOUT)) {
-				try {
-					mService.logout();
-				} catch (RemoteException e) {
-				}
 			}
 		}
 	};
