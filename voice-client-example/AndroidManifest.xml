@@ -24,26 +24,27 @@
                   android:label="@string/app_name"
                   android:screenOrientation="portrait">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
         <activity android:name=".ui.activity.CallInProgressActivity"
                   android:label="@string/app_name"
                   android:launchMode="singleTask"
-                  android:taskAffinity="" />
+                  android:taskAffinity=""/>
         <activity android:name=".ui.dialog.IncomingCallDialog"
                   android:launchMode="singleTask"
                   android:taskAffinity=""
                   android:excludeFromRecents="true"
-                  android:theme="@android:style/Theme.Dialog" />
+                  android:theme="@android:style/Theme.Dialog"/>
         <service android:enabled="true"
                  android:exported="false"
                  android:label="TuentiVoiceService"
                  android:process=":VoiceClientService"
                  android:name=".service.VoiceClientService">
             <intent-filter>
-                <action android:name="com.tuenti.voice.example.service.IVoiceClientService" />
+                <action android:name="com.tuenti.voice.example.service.IVoiceClientService"/>
+                <action android:name="com.tuenti.voice.example.service.IConnectionService"/>
             </intent-filter>
         </service>
     </application>
