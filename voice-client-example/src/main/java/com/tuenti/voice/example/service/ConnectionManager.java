@@ -24,13 +24,13 @@ public class ConnectionManager
         @Override
         public void login( User user )
         {
-            receiveLogin( user );
+            handleLogin( user );
         }
 
         @Override
         public void logout()
         {
-            receiveLogout();
+            handleLogout();
         }
 
         @Override
@@ -120,7 +120,7 @@ public class ConnectionManager
     @Override
     public void handleXmppSocketClose( int state )
     {
-        sendLoggedOut();
+        handleLoggedOut();
     }
 
     @Override
@@ -130,12 +130,12 @@ public class ConnectionManager
         switch ( XmppState.fromInteger( state ) )
         {
             case NONE:
-                sendConnectionReady();
+                handleConnectionReady();
             case OPEN:
-                sendLoggedIn();
+                handleLoggedIn();
                 break;
             case CLOSED:
-                sendLoggedOut();
+                handleLoggedOut();
                 break;
         }
     }
@@ -171,44 +171,7 @@ public class ConnectionManager
         return mBinder;
     }
 
-    private void internalLogin()
-    {
-        if ( mClientInited )
-        {
-            mClient.login( mUser.getUsername(),
-                           mUser.getPassword(),
-                           mUser.getTurnPassword(),
-                           mUser.getXmppHost(),
-                           mUser.getXmppPort(),
-                           mUser.getXmppUseSsl() );
-        }
-        else
-        {
-            // We run login after xmpp_none event, meaning our client is
-            // initialized
-            mClient.init( mUser.getStunHost(),
-                          mUser.getRelayHost(),
-                          mUser.getRelayHost(),
-                          mUser.getRelayHost(),
-                          mUser.getTurnHost() );
-        }
-    }
-
-    private void receiveLogin( User user )
-    {
-        mUser = user;
-        if ( mUser != null )
-        {
-            internalLogin();
-        }
-    }
-
-    private void receiveLogout()
-    {
-        mClient.logout();
-    }
-
-    private void sendConnectionReady()
+    private void handleConnectionReady()
     {
         mClientInited = true;
         if ( mUser != null )
@@ -219,7 +182,7 @@ public class ConnectionManager
         // handleConnectionReady
     }
 
-    private void sendLoggedIn()
+    private void handleLoggedIn()
     {
         stopReconnectTimer();
 
@@ -239,7 +202,7 @@ public class ConnectionManager
         mCallbacks.finishBroadcast();
     }
 
-    private void sendLoggedOut()
+    private void handleLoggedOut()
     {
         final int callbackCount = mCallbacks.beginBroadcast();
         for ( int i = 0; i < callbackCount; i++ )
@@ -263,6 +226,43 @@ public class ConnectionManager
         else
         {
             stopReconnectTimer();
+        }
+    }
+
+    private void handleLogin( User user )
+    {
+        mUser = user;
+        if ( mUser != null )
+        {
+            internalLogin();
+        }
+    }
+
+    private void handleLogout()
+    {
+        mClient.logout();
+    }
+
+    private void internalLogin()
+    {
+        if ( mClientInited )
+        {
+            mClient.login( mUser.getUsername(),
+                           mUser.getPassword(),
+                           mUser.getTurnPassword(),
+                           mUser.getXmppHost(),
+                           mUser.getXmppPort(),
+                           mUser.getXmppUseSsl() );
+        }
+        else
+        {
+            // We run login after xmpp_none event, meaning our client is
+            // initialized
+            mClient.init( mUser.getStunHost(),
+                          mUser.getRelayHost(),
+                          mUser.getRelayHost(),
+                          mUser.getRelayHost(),
+                          mUser.getTurnHost() );
         }
     }
 

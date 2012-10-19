@@ -25,7 +25,10 @@ import com.tuenti.voice.example.util.RingManager;
 
 import java.util.HashMap;
 
-import static android.content.Intent.*;
+import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK;
+import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP;
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
+import static android.content.Intent.FLAG_FROM_BACKGROUND;
 
 public class CallManager
     implements CallListener
@@ -50,6 +53,7 @@ public class CallManager
         @Override
         public void call( String remoteJid )
         {
+            handleCall( remoteJid );
         }
 
         @Override
@@ -65,13 +69,13 @@ public class CallManager
         @Override
         public void toggleMute( long callId )
         {
-            receiveToggleMute( callId );
+            handleToggleMute( callId );
         }
 
         @Override
         public void toggleHold( long callId )
         {
-            receiveToggleHold( callId );
+            handleToggleHold( callId );
         }
 
         @Override
@@ -164,22 +168,19 @@ public class CallManager
     @Override
     public void handleCallStateChanged( int state, String remoteJid, long callId )
     {
+        Log.d( TAG, state + " | " + remoteJid + " | " + callId );
         remoteJid = cleanJid( remoteJid );
         switch ( CallState.fromInteger( state ) )
         {
             case SENT_INITIATE:
-                sendOutgoingCall( callId, remoteJid );
+                handleOutgoingCall( callId, remoteJid );
                 break;
             case RECEIVED_INITIATE:
-                sendIncomingCall( callId, remoteJid );
+                handleIncomingCall( callId, remoteJid );
                 break;
             case RECEIVED_REJECT:
                 Log.i( TAG, "Call ended" );
                 endCall( callId, 0 );// Add reason to end call.
-                break;
-            case IN_PROGRESS:
-                Log.i( TAG, "IN_PROGRESS" );
-                callStarted( callId );
                 break;
         }
     }
@@ -270,15 +271,64 @@ public class CallManager
         return mCallMap.get( mCurrentCallId );
     }
 
-    private void initCallState( long callId, String remoteJid )
+    private void handleCall( String remoteJid )
     {
-        mNetworkPreference.enableStickyNetworkPreference();
-        mCallInProgress = true;
-        mCurrentCallId = callId;
-        mCallMap.put( callId, new Call( callId, remoteJid ) );
+        if ( ConnectionMonitor.hasSlowConnection() )
+        {
+            //Throw warning to user.
+        }
+        else
+        {
+            mClient.call( remoteJid );
+        }
     }
 
-    private void receiveToggleHold( long callId )
+    private void handleIncomingCall( long callId, String remoteJid )
+    {
+        if ( ConnectionMonitor.hasSlowConnection() )
+        {
+            //Warn that you can't accept the incoming call
+            //TODO(Luke): Notification of missed call./Explanation about bad connection
+            Log.i( TAG, "Declining call because of slow connection" );
+            mClient.declineCall( callId, true );
+        }
+        else if ( mCallInProgress || ConnectionMonitor.getInstance( mContext ).isCallInProgress() )
+        {
+            //TODO(Luke): Notification of missed call.
+            Log.i( TAG, "Declining call because call in progress" );
+            mClient.declineCall( callId, true );
+        }
+        else
+        {
+            initCallState( callId, remoteJid );
+
+            // Ringer.
+            startRing( true, false );
+
+            // show alert pop up for incoming call + tray notification
+            startIncomingCallDialog( callId, remoteJid );
+            sendIncomingCallNotification( remoteJid );
+        }
+    }
+
+    private void handleOutgoingCall( long callId, String remoteJid )
+    {
+        initCallState( callId, remoteJid );
+
+        // Intent call started, show call in progress activity
+        Intent intent = new Intent( mContext, CallInProgressActivity.class );
+        intent.putExtra( "call", getCurrentCall() );
+        intent.addFlags( FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK | FLAG_FROM_BACKGROUND );
+        mContext.startActivity( intent );
+
+        // Ring in the headphone
+        startRing( false, false );
+
+        // Show notification
+        sendOutgoingCallNotification( remoteJid );
+    }
+
+    private void handleToggleHold( long callId )
     {
         Call call = mCallMap.get( Long.valueOf( callId ) );
         if ( call != null )
@@ -288,7 +338,7 @@ public class CallManager
         }
     }
 
-    private void receiveToggleMute( long callId )
+    private void handleToggleMute( long callId )
     {
         Call call = mCallMap.get( Long.valueOf( callId ) );
         if ( call != null )
@@ -296,6 +346,14 @@ public class CallManager
             call.setMute( !call.isMute() );
             mClient.muteCall( callId, call.isMute() );
         }
+    }
+
+    private void initCallState( long callId, String remoteJid )
+    {
+        mNetworkPreference.enableStickyNetworkPreference();
+        mCallInProgress = true;
+        mCurrentCallId = callId;
+        mCallMap.put( callId, new Call( callId, remoteJid ) );
     }
 
     private void resetAudio()
@@ -338,34 +396,6 @@ public class CallManager
         //mNotificationManager.sendCallNotification( tickerText, message, intent, CallIntent.END_CALL );
     }
 
-    private void sendIncomingCall( long callId, String remoteJid )
-    {
-        if ( ConnectionMonitor.hasSlowConnection() )
-        {
-            //Warn that you can't accept the incoming call
-            //TODO(Luke): Notification of missed call./Explanation about bad connection
-            Log.i( TAG, "Declining call because of slow connection" );
-            mClient.declineCall( callId, true );
-        }
-        else if ( mCallInProgress || ConnectionMonitor.getInstance( mContext ).isCallInProgress() )
-        {
-            //TODO(Luke): Notification of missed call.
-            Log.i( TAG, "Declining call because call in progress" );
-            mClient.declineCall( callId, true );
-        }
-        else
-        {
-            initCallState( callId, remoteJid );
-
-            // Ringer.
-            startRing( true, false );
-
-            // show alert pop up for incoming call + tray notification
-            startIncomingCallDialog( callId, remoteJid );
-            sendIncomingCallNotification( remoteJid );
-        }
-    }
-
     /**
      * Sends an incoming call notification.
      *
@@ -376,23 +406,6 @@ public class CallManager
         String message = String.format( mContext.getString( R.string.notification_incoming_call ), remoteJid );
         //Intent intent = getNotificationIntent( remoteJid, "", IncomingCallDialog.class );
         //mNotificationManager.sendCallNotification( message, message, intent, CallIntent.REJECT_CALL );
-    }
-
-    private void sendOutgoingCall( long callId, String remoteJid )
-    {
-        initCallState( callId, remoteJid );
-
-        // Intent call started, show call in progress activity
-        Intent intent = new Intent( mContext, CallInProgressActivity.class );
-        intent.putExtra( "call", getCurrentCall() );
-        intent.addFlags( FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK | FLAG_FROM_BACKGROUND );
-        mContext.startActivity( intent );
-
-        // Ring in the headphone
-        startRing( false, false );
-
-        // Show notification
-        sendOutgoingCallNotification( remoteJid );
     }
 
     /**
@@ -417,9 +430,10 @@ public class CallManager
 
     private void startCallInProgressActivity( long callId, String remoteJid )
     {
+        Call call = new Call( callId, remoteJid );
+
         Intent intent = new Intent( mContext, CallInProgressActivity.class );
-        intent.putExtra( "callId", callId );
-        intent.putExtra( "remoteJid", remoteJid );
+        intent.putExtra( "call", call );
         intent.addFlags( FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TOP | FLAG_FROM_BACKGROUND );
         mContext.startActivity( intent );
     }

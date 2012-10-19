@@ -8,33 +8,27 @@
 <!-- be found in the AUTHORS file in the root of the source tree. -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:orientation="vertical" >
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:orientation="vertical">
 
     <TextView
         android:id="@+id/status_view"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"/>
 
     <Button
         android:id="@+id/login_btn"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/login" >
+        android:text="@string/login">
     </Button>
 
     <Button
         android:id="@+id/logout_btn"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/logout" >
+        android:text="@string/logout">
     </Button>
 
-    <Button
-        android:id="@+id/place_call_btn"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/place_call" >
-    </Button>
 </LinearLayout>
