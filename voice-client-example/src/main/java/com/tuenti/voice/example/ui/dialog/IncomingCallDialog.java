@@ -5,137 +5,187 @@ import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.app.KeyguardManager;
 import android.app.KeyguardManager.KeyguardLock;
-import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.PowerManager;
-import android.support.v4.content.LocalBroadcastManager;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.util.Log;
-import android.view.WindowManager;
-
 import com.tuenti.voice.example.R;
-import com.tuenti.voice.example.service.CallIntent;
-import com.tuenti.voice.example.service.CallUIIntent;
+import com.tuenti.voice.example.data.Call;
+import com.tuenti.voice.example.service.ICallService;
+import com.tuenti.voice.example.service.ICallServiceCallback;
 import com.tuenti.voice.example.util.WakeLockManager;
 
-public class IncomingCallDialog extends Activity implements
-		DialogInterface.OnClickListener {
+import static android.content.DialogInterface.BUTTON_NEGATIVE;
+import static android.content.DialogInterface.BUTTON_POSITIVE;
+import static android.content.DialogInterface.OnClickListener;
+import static android.os.PowerManager.ACQUIRE_CAUSES_WAKEUP;
+import static android.os.PowerManager.FULL_WAKE_LOCK;
+import static android.view.WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD;
+import static android.view.WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED;
+import static android.view.WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON;
 
-	// ------------------------------ FIELDS ------------------------------
+public class IncomingCallDialog
+    extends Activity
+    implements OnClickListener
+{
+// ------------------------------ FIELDS ------------------------------
 
-	private long mCallId;
-	private String mRemoteJid;
-	private WakeLockManager mWakeLock;
-	private KeyguardLock mKeyguardLock;
-	private AlertDialog mAlertDialog;
+    private static final String TAG = "IncomingDialog";
 
-	private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+    private AlertDialog mAlertDialog;
 
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			Log.i("libjingle",
-					"libjingle local receiver: " + intent.getAction());
-			if (intent.getAction().equals(CallUIIntent.CALL_PROGRESS)
-					|| intent.getAction().equals(CallUIIntent.CALL_ENDED)
-					|| intent.getAction().equals(CallUIIntent.LOGGED_OUT)) {
-				finish();
-			}
-		}
-	};
+    private Call mCall;
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    private ICallService mCallService;
 
-		Intent intent = getIntent();
-		mCallId = intent.getLongExtra("callId", 0);
-		mRemoteJid = intent.getStringExtra("remoteJid");
+    private final ICallServiceCallback mCallServiceCallback = new ICallServiceCallback.Stub()
+    {
+        @Override
+        public void handleCallInProgress()
+        {
+            finish();
+        }
 
-		getWindow().addFlags(
-				WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
-						| WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
-						| WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        @Override
+        public void handleCallStarted( Call call )
+        {
+        }
+    };
 
-		// setContentView(R.layout.incomingcalldialog);
-		final Builder alertDialogBuilder = new AlertDialog.Builder(this);
-		alertDialogBuilder.setTitle(R.string.voice_chat_invite)
-				.setMessage(mRemoteJid)
-				.setPositiveButton(R.string.accept_call, this)
-				.setNegativeButton(R.string.decline_call, this)
-				.setCancelable(false);
+    private final ServiceConnection mCallServiceConnection = new ServiceConnection()
+    {
+        @Override
+        public void onServiceConnected( ComponentName name, IBinder service )
+        {
+            try
+            {
+                mCallService = ICallService.Stub.asInterface( service );
+                mCallService.registerCallback( mCallServiceCallback );
+            }
+            catch ( RemoteException e )
+            {
+                Log.e( TAG, "Error on ServiceConnection.onServiceConnected", e );
+            }
+        }
 
-		mAlertDialog = alertDialogBuilder.create();
-		mAlertDialog.show();
-		setupReceiver();
-	}
+        @Override
+        public void onServiceDisconnected( ComponentName name )
+        {
+            try
+            {
+                mCallService.unregisterCallback( mCallServiceCallback );
+                mCallService = null;
+            }
+            catch ( RemoteException e )
+            {
+                Log.e( TAG, "Error on ServiceConnection.onServiceDisconnected", e );
+            }
+        }
+    };
 
-	@Override
-	public void onResume() {
-		super.onResume();
-		KeyguardManager mKeyGuardManager = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
-		mKeyguardLock = mKeyGuardManager.newKeyguardLock("screenunlock");
-		mKeyguardLock.disableKeyguard();
+    private KeyguardLock mKeyguardLock;
 
-		mWakeLock = new WakeLockManager(getBaseContext());
-		mWakeLock.setWakeLockState(PowerManager.FULL_WAKE_LOCK
-				| PowerManager.ACQUIRE_CAUSES_WAKEUP);
+    /*
+    if ( intent.getAction().equals( CallUIIntent.CALL_PROGRESS ) ||
+        intent.getAction().equals( CallUIIntent.CALL_ENDED ) ||
+        intent.getAction().equals( CallUIIntent.LOGGED_OUT ) )
+    {
+        finish();
+    }
+    */
 
-	}
+    private WakeLockManager mWakeLock;
 
-	private void setupReceiver() {
-		IntentFilter intentFilter = new IntentFilter();
-		intentFilter.addAction(CallUIIntent.CALL_PROGRESS);
-		intentFilter.addAction(CallUIIntent.CALL_ENDED);
-		intentFilter.addAction(CallUIIntent.LOGGED_OUT);
-		LocalBroadcastManager.getInstance(getBaseContext()).registerReceiver(
-				mReceiver, intentFilter);
-	}
+// ------------------------ INTERFACE METHODS ------------------------
 
-	// ------------------------ INTERFACE METHODS ------------------------
-	// --------------------- Interface OnClickListener ---------------------
-	@Override
-	public void onClick(DialogInterface dialog, int which) {
-		Intent intent;
-		switch (which) {
-		case DialogInterface.BUTTON_POSITIVE:
-			// Yes button clicked
-			intent = new Intent(CallIntent.ACCEPT_CALL);
-			intent.putExtra("callId", mCallId);
-			LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(
-					intent);
-			break;
+// --------------------- Interface OnClickListener ---------------------
 
-		case DialogInterface.BUTTON_NEGATIVE:
-			// No button clicked
-			intent = new Intent(CallIntent.REJECT_CALL);
-			intent.putExtra("callId", mCallId);
-			LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(
-					intent);
-			break;
-		}
-		mAlertDialog.hide();
-		finish();
-	}
+    @Override
+    public void onClick( DialogInterface dialog, int which )
+    {
+        try
+        {
+            switch ( which )
+            {
+                case BUTTON_POSITIVE:
+                    mCallService.acceptCall( mCall.getCallId() );
+                    break;
+                case BUTTON_NEGATIVE:
+                    mCallService.declineCall( mCall.getCallId(), false );
+                    break;
+            }
+        }
+        catch ( RemoteException e )
+        {
+            Log.e( TAG, e.getMessage(), e );
+        }
 
-	@Override
-	public void onPause() {
-		super.onPause();
-		if (mKeyguardLock != null) {
-			mKeyguardLock.reenableKeyguard();
-		}
+        mAlertDialog.hide();
+        finish();
+    }
 
-		if (mWakeLock != null) {
-			mWakeLock.releaseWakeLock();
-		}
-	}
-	
-	@Override
-	protected void onDestroy() {
-        LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(
-                mReceiver);
-        super.onDestroy();
-	}
+// -------------------------- OTHER METHODS --------------------------
+
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+
+        // unbind the service
+        unbindService( mCallServiceConnection );
+
+        if ( mKeyguardLock != null )
+        {
+            mKeyguardLock.reenableKeyguard();
+        }
+
+        // release the WakeLock
+        if ( mWakeLock != null )
+        {
+            mWakeLock.releaseWakeLock();
+        }
+    }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+
+        // bind service
+        Intent callIntent = new Intent( ICallService.class.getName() );
+        bindService( callIntent, mCallServiceConnection, Context.BIND_AUTO_CREATE );
+
+        KeyguardManager mKeyGuardManager = (KeyguardManager) getSystemService( KEYGUARD_SERVICE );
+        mKeyguardLock = mKeyGuardManager.newKeyguardLock( "screenunlock" );
+        mKeyguardLock.disableKeyguard();
+
+        mWakeLock = new WakeLockManager( getBaseContext() );
+        mWakeLock.setWakeLockState( FULL_WAKE_LOCK | ACQUIRE_CAUSES_WAKEUP );
+    }
+
+    @Override
+    protected void onCreate( Bundle savedInstanceState )
+    {
+        super.onCreate( savedInstanceState );
+
+        // get the Call object
+        mCall = getIntent().getParcelableExtra( "call" );
+
+        getWindow().addFlags( FLAG_DISMISS_KEYGUARD | FLAG_SHOW_WHEN_LOCKED | FLAG_TURN_SCREEN_ON );
+
+        final Builder builder = new AlertDialog.Builder( this );
+        builder.setTitle( R.string.voice_chat_invite );
+        builder.setMessage( mCall.getRemoteJid() );
+        builder.setPositiveButton( R.string.accept_call, this );
+        builder.setNegativeButton( R.string.decline_call, this );
+        builder.setCancelable( false );
+
+        mAlertDialog = builder.create();
+        mAlertDialog.show();
+    }
 }

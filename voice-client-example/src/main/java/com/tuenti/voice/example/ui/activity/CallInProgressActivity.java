@@ -1,198 +1,235 @@
 package com.tuenti.voice.example.ui.activity;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.os.PowerManager;
-import android.os.PowerManager.WakeLock;
-import android.support.v4.content.LocalBroadcastManager;
+import android.os.RemoteException;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.WindowManager.LayoutParams;
 import android.widget.TextView;
-
 import com.tuenti.voice.example.R;
-import com.tuenti.voice.example.service.CallIntent;
-import com.tuenti.voice.example.service.CallUIIntent;
+import com.tuenti.voice.example.data.Call;
+import com.tuenti.voice.example.service.ICallService;
+import com.tuenti.voice.example.service.ICallServiceCallback;
 import com.tuenti.voice.example.util.ProximitySensor;
 import com.tuenti.voice.example.util.WakeLockManager;
 
-public class CallInProgressActivity extends Activity implements
-		View.OnClickListener {
-	// UI lock flag
-	private boolean mUILocked = false;
+public class CallInProgressActivity
+    extends Activity
+    implements View.OnClickListener
+{
+// ------------------------------ FIELDS ------------------------------
 
-	private final String TAG = "CallInProgressActivity";
-	private ProximitySensor mProximitySensor;
-	private WakeLockManager mWakeLock;
+    private final String TAG = "CallInProgressActivity";
 
-	private long mCallId;
-	private String mRemoteJid;
-	private boolean mMute;
-	private boolean mHold;
+    private TextView durationTextView;
 
-	private TextView durationTextView;
+    private Call mCall;
 
-	private BroadcastReceiver mReceiver = new BroadcastReceiver() {
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			String action = intent.getAction();
+    private final ICallServiceCallback mCallback = new ICallServiceCallback.Stub()
+    {
+        @Override
+        public void handleCallInProgress()
+        {
+        }
 
-			if (action.equals(CallUIIntent.LOGGED_OUT)
-					|| action.equals(CallUIIntent.CALL_ENDED)) {
-				finish();
-			} else if (action.equals(CallUIIntent.CALL_PROGRESS)) {
-				updateCallDuration(intent.getLongExtra("duration", -1));
-			}
+        @Override
+        public void handleCallStarted( Call call )
+        {
+            mCall = call;
+        }
+    };
 
-		}
-	};
+    private ProximitySensor mProximitySensor;
 
-	/**
-	 * Updates the call duration TextView with the new duration.
-	 *
-	 * @param duration
-	 *			The new duration to display.
-	 */
-	private void updateCallDuration(long duration) {
-		if (duration >= 0) {
-			long minutes = duration / 60;
-			long seconds = duration % 60;
-			String formattedDuration = String.format("%02d:%02d", minutes,
-					seconds);
+    private ICallService mService;
 
-			durationTextView.setText(formattedDuration);
-		}
-	}
+    private final ServiceConnection mServiceConnection = new ServiceConnection()
+    {
+        @Override
+        public void onServiceConnected( ComponentName name, IBinder service )
+        {
+            try
+            {
+                mService = ICallService.Stub.asInterface( service );
+                mService.registerCallback( mCallback );
+            }
+            catch ( RemoteException e )
+            {
+                Log.e( TAG, "Error on ServiceConnection.onServiceConnected", e );
+            }
+        }
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.callinprogress);
-		getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
-		getWindow().addFlags(WindowManager.LayoutParams.FLAG_IGNORE_CHEEK_PRESSES);
+        @Override
+        public void onServiceDisconnected( ComponentName name )
+        {
+            try
+            {
+                mService.unregisterCallback( mCallback );
+                mService = null;
+            }
+            catch ( RemoteException e )
+            {
+                Log.e( TAG, "Error on ServiceConnection.onServiceDisconnected", e );
+            }
+        }
+    };
 
-		durationTextView = (TextView) findViewById(R.id.duration_textview);
-		updateCallDuration(0);
+    // UI lock flag
+    private boolean mUILocked;
 
-		initClickListeners();
-		setupReceiver();
-	}
+    private WakeLockManager mWakeLock;
 
-	@Override
-	protected void onResume() {
-		super.onResume();
-		Log.v(TAG, "onResume()");
+// ------------------------ INTERFACE METHODS ------------------------
 
-		Intent intent = getIntent();
-		mCallId = intent.getLongExtra("callId", 0);
-		mRemoteJid = intent.getStringExtra("remoteJid");
-		mMute = intent.getBooleanExtra("isMuted", false);
-		mHold = intent.getBooleanExtra("isHeld", false);
-		mProximitySensor = new ProximitySensor(this);
-		mWakeLock = new WakeLockManager(getBaseContext());
-		changeStatus("Talking to " + mRemoteJid);
-	}
+// --------------------- Interface OnClickListener ---------------------
 
-	private void setupReceiver() {
-		IntentFilter intentFilter = new IntentFilter();
-		intentFilter.addAction(CallUIIntent.CALL_STARTED);
-		intentFilter.addAction(CallUIIntent.CALL_PROGRESS);
-		intentFilter.addAction(CallUIIntent.CALL_ENDED);
-		intentFilter.addAction(CallUIIntent.LOGGED_OUT);
-		LocalBroadcastManager.getInstance(getBaseContext()).registerReceiver(
-				mReceiver, intentFilter);
-	}
+    @Override
+    public void onClick( View view )
+    {
+        if ( !mUILocked )
+        {
+            try
+            {
+                switch ( view.getId() )
+                {
+                    case R.id.hang_up_btn:
+                        mService.endCall( mCall.getCallId() );
+                        updateCallDuration( 0 );
+                        finish();
+                        break;
+                    case R.id.mute_btn:
+                        mService.toggleMute( mCall.getCallId() );
+                        break;
+                    case R.id.hold_btn:
+                        mService.toggleHold( mCall.getCallId() );
+                        break;
+                }
+            }
+            catch ( RemoteException e )
+            {
+                Log.e( TAG, e.getMessage(), e );
+            }
+        }
+    }
 
-	public void initClickListeners() {
-		findViewById(R.id.hang_up_btn).setOnClickListener(this);
-		findViewById(R.id.mute_btn).setOnClickListener(this);
-		findViewById(R.id.hold_btn).setOnClickListener(this);
-	}
+// -------------------------- OTHER METHODS --------------------------
 
-	@Override
-	protected void onPause() {
-		super.onPause();
-		mProximitySensor.destroy();
-		mProximitySensor = null;
-		onUnProximity();
-		mWakeLock.releaseWakeLock();
-	}
+    public void initClickListeners()
+    {
+        findViewById( R.id.hang_up_btn ).setOnClickListener( this );
+        findViewById( R.id.mute_btn ).setOnClickListener( this );
+        findViewById( R.id.hold_btn ).setOnClickListener( this );
+    }
 
-	@Override
-	protected void onStop() {
-		super.onStop();
-		mWakeLock.releaseWakeLock();
-	}
+    public void onProximity()
+    {
+        mUILocked = true;
+        turnScreenOn( false );
+        mWakeLock.setWakeLockState( PowerManager.PARTIAL_WAKE_LOCK );
+    }
 
-	@Override
-	protected void onDestroy() {
-		LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(
-				mReceiver);
-		super.onDestroy();
-	}
+    public void onUnProximity()
+    {
+        turnScreenOn( true );
+        mWakeLock.setWakeLockState( PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP );
+        mUILocked = false;
+    }
 
-	public void onProximity() {
-		mUILocked = true;
-		turnScreenOn(false);
-		mWakeLock.setWakeLockState(PowerManager.PARTIAL_WAKE_LOCK);
-	}
+    @Override
+    protected void onCreate( Bundle savedInstanceState )
+    {
+        super.onCreate( savedInstanceState );
+        setContentView( R.layout.callinprogress );
+        getWindow().addFlags( WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED );
+        getWindow().addFlags( WindowManager.LayoutParams.FLAG_IGNORE_CHEEK_PRESSES );
 
-	private void changeStatus(String status) {
-		((TextView) findViewById(R.id.status_view)).setText(status);
-	}
+        durationTextView = (TextView) findViewById( R.id.duration_textview );
+        updateCallDuration( 0 );
 
-	public void onUnProximity() {
-		turnScreenOn(true);
-		mWakeLock.setWakeLockState(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP);
-		mUILocked = false;
-	}
+        initClickListeners();
+    }
 
-	private void turnScreenOn(boolean on) {
-		WindowManager.LayoutParams params = getWindow().getAttributes();
-		params.flags |= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
-		if (on) {
-			// less than 0 returns to default behavior.
-			params.screenBrightness = -1;
-		} else {
-			// Samsung Galaxy Ace locks if you turn the screen off.
-			// To be safe, we're just going to dim. Dimming more is
-			// also considered off, i.e. 0.001f.
-			params.screenBrightness = 0.01f;
-		}
-		getWindow().setAttributes(params);
-	}
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
 
-	@Override
-	public void onClick(View view) {
-		if (mUILocked == false) {
-			Intent intent;
-			switch (view.getId()) {
-			case R.id.hang_up_btn:
-				intent = new Intent(CallIntent.END_CALL);
-				intent.putExtra("callId", mCallId);
-				LocalBroadcastManager.getInstance(getBaseContext())
-						.sendBroadcast(intent);
-				updateCallDuration(0);
-				finish();
-				break;
-			case R.id.mute_btn:
-				intent = new Intent(CallIntent.MUTE_CALL);
-				intent.putExtra("callId", mCallId);
-				LocalBroadcastManager.getInstance(getBaseContext())
-						.sendBroadcast(intent);
-				break;
-			case R.id.hold_btn:
-				intent = new Intent(CallIntent.HOLD_CALL);
-				intent.putExtra("callId", mCallId);
-				LocalBroadcastManager.getInstance(getBaseContext())
-						.sendBroadcast(intent);
-				break;
-			}
-		}
-	}
+        // unbind the service
+        unbindService( mServiceConnection );
+
+        mProximitySensor.destroy();
+        mProximitySensor = null;
+        onUnProximity();
+        mWakeLock.releaseWakeLock();
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        Log.v( TAG, "onResume()" );
+
+        // bind service
+        Intent callIntent = new Intent( ICallService.class.getName() );
+        bindService( callIntent, mServiceConnection, Context.BIND_AUTO_CREATE );
+
+        mProximitySensor = new ProximitySensor( this );
+        mWakeLock = new WakeLockManager( getBaseContext() );
+        changeStatus( "Talking to " + mCall.getRemoteJid() );
+    }
+
+    @Override
+    protected void onStop()
+    {
+        super.onStop();
+        mWakeLock.releaseWakeLock();
+    }
+
+    private void changeStatus( String status )
+    {
+        ( (TextView) findViewById( R.id.status_view ) ).setText( status );
+    }
+
+    private void turnScreenOn( boolean on )
+    {
+        WindowManager.LayoutParams params = getWindow().getAttributes();
+        params.flags |= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+        if ( on )
+        {
+            // less than 0 returns to default behavior.
+            params.screenBrightness = -1;
+        }
+        else
+        {
+            // Samsung Galaxy Ace locks if you turn the screen off.
+            // To be safe, we're just going to dim. Dimming more is
+            // also considered off, i.e. 0.001f.
+            params.screenBrightness = 0.01f;
+        }
+        getWindow().setAttributes( params );
+    }
+
+    /**
+     * Updates the call duration TextView with the new duration.
+     *
+     * @param duration The new duration to display.
+     */
+    private void updateCallDuration( long duration )
+    {
+        if ( duration >= 0 )
+        {
+            long minutes = duration / 60;
+            long seconds = duration % 60;
+            String formattedDuration = String.format( "%02d:%02d", minutes, seconds );
+
+            durationTextView.setText( formattedDuration );
+        }
+    }
 }

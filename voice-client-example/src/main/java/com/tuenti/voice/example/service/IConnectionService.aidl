@@ -7,7 +7,6 @@ interface IConnectionService {
 
     void login( in User user );
     void logout();
-
     void registerCallback( IConnectionServiceCallback cb );
     void unregisterCallback( IConnectionServiceCallback cb );
 
