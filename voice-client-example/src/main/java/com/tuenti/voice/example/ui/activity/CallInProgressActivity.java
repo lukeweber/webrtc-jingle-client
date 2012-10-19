@@ -150,6 +150,8 @@ public class CallInProgressActivity
         getWindow().addFlags( WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED );
         getWindow().addFlags( WindowManager.LayoutParams.FLAG_IGNORE_CHEEK_PRESSES );
 
+        mCall = getIntent().getParcelableExtra( "call" );
+
         durationTextView = (TextView) findViewById( R.id.duration_textview );
         updateCallDuration( 0 );
 

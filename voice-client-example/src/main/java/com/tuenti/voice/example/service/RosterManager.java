@@ -2,20 +2,32 @@ package com.tuenti.voice.example.service;
 
 import android.os.IBinder;
 import android.os.RemoteCallbackList;
+import android.os.RemoteException;
 import android.util.Log;
 import com.tuenti.voice.core.BuddyListState;
 import com.tuenti.voice.core.RosterListener;
 import com.tuenti.voice.core.VoiceClient;
+import com.tuenti.voice.example.data.Buddy;
+
+import java.util.LinkedHashMap;
 
 public class RosterManager
     implements RosterListener
 {
 // ------------------------------ FIELDS ------------------------------
 
+    private static final Object mLock = new Object();
+
     private static final String TAG = "RosterManager";
 
     private final IRosterService.Stub mBinder = new IRosterService.Stub()
     {
+        @Override
+        public void requestRosterUpdate()
+        {
+            handleRequestRosterUpdate();
+        }
+
         @Override
         public void registerCallback( IRosterServiceCallback cb )
         {
@@ -34,6 +46,8 @@ public class RosterManager
             }
         }
     };
+
+    private LinkedHashMap<String, Buddy> mBuddies = new LinkedHashMap<String, Buddy>();
 
     private final RemoteCallbackList<IRosterServiceCallback> mCallbacks =
         new RemoteCallbackList<IRosterServiceCallback>();
@@ -58,27 +72,92 @@ public class RosterManager
         switch ( BuddyListState.fromInteger( state ) )
         {
             case ADD:
-                Log.v( TAG, "Adding buddy " + remoteJid );
-                // Intent add buddy
-                // mBuddyList.add(remoteJid);
+                handleBuddyAdded( remoteJid );
                 break;
             case REMOVE:
-                Log.v( TAG, "Removing buddy" + remoteJid );
-                // Intent remove buddy
-                // mBuddyList.remove(remoteJid);
+                handleBuddyRemoved( remoteJid );
                 break;
             case RESET:
-                Log.v( TAG, "Reset buddy list" );
-                // intent reset buddy list
-                // mBuddyList.clear();
+                handleBuddyReset();
                 break;
         }
     }
 
 // -------------------------- OTHER METHODS --------------------------
 
+    public Buddy[] getBuddies()
+    {
+        return mBuddies.values().toArray( new Buddy[mBuddies.size()] );
+    }
+
     public IBinder onBind()
     {
         return mBinder;
+    }
+
+    private void handleBuddyAdded( String remoteJid )
+    {
+        if ( mBuddies.containsKey( remoteJid ) )
+        {
+            return;
+        }
+
+        Log.d( TAG, "buddy added " + remoteJid );
+        synchronized ( mLock )
+        {
+            Buddy buddy = new Buddy();
+            buddy.setRemoteJid( remoteJid );
+            mBuddies.put( remoteJid, buddy );
+        }
+
+        handleRosterUpdated();
+    }
+
+    private void handleBuddyRemoved( String remoteJid )
+    {
+        if ( !mBuddies.containsKey( remoteJid ) )
+        {
+            return;
+        }
+
+        Log.d( TAG, "buddy removed " + remoteJid );
+        synchronized ( mLock )
+        {
+            mBuddies.remove( remoteJid );
+        }
+
+        handleRosterUpdated();
+    }
+
+    private void handleBuddyReset()
+    {
+        synchronized ( mLock )
+        {
+            mBuddies.clear();
+        }
+        handleRosterUpdated();
+    }
+
+    private void handleRequestRosterUpdate()
+    {
+        handleRosterUpdated();
+    }
+
+    private void handleRosterUpdated()
+    {
+        final int callbackCount = mCallbacks.beginBroadcast();
+        for ( int i = 0; i < callbackCount; i++ )
+        {
+            try
+            {
+                mCallbacks.getBroadcastItem( i ).handleRosterUpdated( getBuddies() );
+            }
+            catch ( RemoteException e )
+            {
+                // The RemoteCallbackList will take care of removing
+                // the dead object for us.
+            }
+        }
+        mCallbacks.finishBroadcast();
     }
 }

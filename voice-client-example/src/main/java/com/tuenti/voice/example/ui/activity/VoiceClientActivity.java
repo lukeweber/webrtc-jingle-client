@@ -15,43 +15,24 @@ import android.view.View;
 import android.widget.TextView;
 import com.tuenti.voice.example.R;
 import com.tuenti.voice.example.data.User;
-import com.tuenti.voice.example.service.ICallService;
 import com.tuenti.voice.example.service.IConnectionService;
 import com.tuenti.voice.example.service.IConnectionServiceCallback;
+import com.tuenti.voice.example.ui.RosterView;
+
+import static android.view.View.*;
 
 public class VoiceClientActivity
     extends Activity
-    implements View.OnClickListener
+    implements OnClickListener
 {
 // ------------------------------ FIELDS ------------------------------
 
     // Template Google Settings
-    private static final String TO_USER = "";
-
     private static final String MY_USER = "";
 
     private static final String MY_PASS = "";
 
-    private static final String MY_TURN_PASS = MY_PASS;
-
     private static final String TAG = "VoiceClientActivity";
-
-    private ICallService mCallService;
-
-    private final ServiceConnection mCallServiceConnection = new ServiceConnection()
-    {
-        @Override
-        public void onServiceConnected( ComponentName name, IBinder service )
-        {
-            mCallService = ICallService.Stub.asInterface( service );
-        }
-
-        @Override
-        public void onServiceDisconnected( ComponentName name )
-        {
-            mCallService = null;
-        }
-    };
 
     private IConnectionService mConnectionService;
 
@@ -60,7 +41,8 @@ public class VoiceClientActivity
         @Override
         public void handleLoggedIn()
         {
-            changeStatus( "Logged in" );
+            Intent intent = new Intent( VoiceClientActivity.this, RosterView.class );
+            startActivity( intent );
         }
 
         @Override
@@ -110,7 +92,7 @@ public class VoiceClientActivity
         User user = new User();
         user.setUsername( MY_USER );
         user.setPassword( MY_PASS );
-        user.setTurnPassword( MY_TURN_PASS );
+        user.setTurnPassword( MY_PASS );
         user.setXmppHost( getStringPref( R.string.xmpp_host_key, R.string.xmpp_host_value ) );
         user.setXmppPort( getIntPref( R.string.xmpp_port_key, R.string.xmpp_port_value ) );
         user.setXmppUseSsl( getBooleanPref( R.string.xmpp_use_ssl_key, R.string.xmpp_use_ssl_value ) );
@@ -135,9 +117,6 @@ public class VoiceClientActivity
                     break;
                 case R.id.logout_btn:
                     mConnectionService.logout();
-                    break;
-                case R.id.place_call_btn:
-                    mCallService.call( TO_USER );
                     break;
             }
         }
@@ -168,7 +147,6 @@ public class VoiceClientActivity
 
         // unbind the service
         unbindService( mConnectionServiceConnection );
-        unbindService( mCallServiceConnection );
     }
 
     @Override
@@ -179,8 +157,6 @@ public class VoiceClientActivity
         // bind service
         Intent connectionIntent = new Intent( IConnectionService.class.getName() );
         bindService( connectionIntent, mConnectionServiceConnection, Context.BIND_AUTO_CREATE );
-        Intent callIntent = new Intent( ICallService.class.getName() );
-        bindService( callIntent, mCallServiceConnection, Context.BIND_AUTO_CREATE );
     }
 
     private void changeStatus( final String status )
@@ -214,6 +190,5 @@ public class VoiceClientActivity
     {
         findViewById( R.id.login_btn ).setOnClickListener( this );
         findViewById( R.id.logout_btn ).setOnClickListener( this );
-        findViewById( R.id.place_call_btn ).setOnClickListener( this );
     }
 }

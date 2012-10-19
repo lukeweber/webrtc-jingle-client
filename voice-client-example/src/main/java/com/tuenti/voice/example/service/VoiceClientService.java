@@ -3,6 +3,7 @@ package com.tuenti.voice.example.service;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
+import android.util.Log;
 import com.tuenti.voice.core.VoiceClient;
 import com.tuenti.voice.example.util.ConnectionMonitor;
 
@@ -48,10 +49,12 @@ public class VoiceClientService
         // probably init here too.
         mClient = new VoiceClient();
 
+        // init managers
         mConnectionManager = new ConnectionManager( mClient );
         mRosterManager = new RosterManager( mClient );
         mCallManager = new CallManager( mClient, getBaseContext() );
 
+        // TODO to be moved probably to ConnectionManager
         ConnectionMonitor.getInstance( getApplicationContext() );
         ConnectionMonitor.registerCallback( mConnectionManager );
     }
@@ -59,10 +62,15 @@ public class VoiceClientService
     @Override
     public void onDestroy()
     {
+        Log.d( "VoiceClientService", "onDestroy" );
+
         super.onDestroy();
 
+        // destroy the client
         mClient.release();
         mClient = null;
+
+        // TODO to be moved probably to ConnectionManager
         ConnectionMonitor.getInstance( getApplicationContext() ).destroy();
     }
 
