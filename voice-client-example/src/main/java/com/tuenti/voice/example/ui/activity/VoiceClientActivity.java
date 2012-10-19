@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.TextView;
 import com.tuenti.voice.example.R;
 import com.tuenti.voice.example.data.User;
+import com.tuenti.voice.example.service.ICallService;
 import com.tuenti.voice.example.service.IConnectionService;
 import com.tuenti.voice.example.service.IConnectionServiceCallback;
 
@@ -35,7 +36,26 @@ public class VoiceClientActivity
 
     private static final String TAG = "VoiceClientActivity";
 
-    private final IConnectionServiceCallback mCallback = new IConnectionServiceCallback.Stub()
+    private ICallService mCallService;
+
+    private final ServiceConnection mCallServiceConnection = new ServiceConnection()
+    {
+        @Override
+        public void onServiceConnected( ComponentName name, IBinder service )
+        {
+            mCallService = ICallService.Stub.asInterface( service );
+        }
+
+        @Override
+        public void onServiceDisconnected( ComponentName name )
+        {
+            mCallService = null;
+        }
+    };
+
+    private IConnectionService mConnectionService;
+
+    private final IConnectionServiceCallback mConnectionServiceCallback = new IConnectionServiceCallback.Stub()
     {
         @Override
         public void handleLoggedIn()
@@ -50,8 +70,6 @@ public class VoiceClientActivity
         }
     };
 
-    private IConnectionService mConnectionService;
-
     private final ServiceConnection mConnectionServiceConnection = new ServiceConnection()
     {
         @Override
@@ -60,7 +78,7 @@ public class VoiceClientActivity
             try
             {
                 mConnectionService = IConnectionService.Stub.asInterface( service );
-                mConnectionService.registerCallback( mCallback );
+                mConnectionService.registerCallback( mConnectionServiceCallback );
             }
             catch ( RemoteException e )
             {
@@ -73,7 +91,7 @@ public class VoiceClientActivity
         {
             try
             {
-                mConnectionService.unregisterCallback( mCallback );
+                mConnectionService.unregisterCallback( mConnectionServiceCallback );
                 mConnectionService = null;
             }
             catch ( RemoteException e )
@@ -119,7 +137,7 @@ public class VoiceClientActivity
                     mConnectionService.logout();
                     break;
                 case R.id.place_call_btn:
-                    //mService.call( TO_USER );
+                    mCallService.call( TO_USER );
                     break;
             }
         }
@@ -150,6 +168,7 @@ public class VoiceClientActivity
 
         // unbind the service
         unbindService( mConnectionServiceConnection );
+        unbindService( mCallServiceConnection );
     }
 
     @Override
@@ -160,6 +179,8 @@ public class VoiceClientActivity
         // bind service
         Intent connectionIntent = new Intent( IConnectionService.class.getName() );
         bindService( connectionIntent, mConnectionServiceConnection, Context.BIND_AUTO_CREATE );
+        Intent callIntent = new Intent( ICallService.class.getName() );
+        bindService( callIntent, mCallServiceConnection, Context.BIND_AUTO_CREATE );
     }
 
     private void changeStatus( final String status )

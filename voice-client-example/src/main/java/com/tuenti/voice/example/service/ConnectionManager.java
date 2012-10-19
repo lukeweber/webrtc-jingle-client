@@ -24,17 +24,13 @@ public class ConnectionManager
         @Override
         public void login( User user )
         {
-            mUser = user;
-            if ( mUser != null )
-            {
-                internalLogin();
-            }
+            receiveLogin( user );
         }
 
         @Override
         public void logout()
         {
-            mClient.logout();
+            receiveLogout();
         }
 
         @Override
@@ -124,7 +120,7 @@ public class ConnectionManager
     @Override
     public void handleXmppSocketClose( int state )
     {
-        loggedOut();
+        sendLoggedOut();
     }
 
     @Override
@@ -134,13 +130,12 @@ public class ConnectionManager
         switch ( XmppState.fromInteger( state ) )
         {
             case NONE:
-                login();
-                break;
+                sendConnectionReady();
             case OPEN:
-                loggedIn();
+                sendLoggedIn();
                 break;
             case CLOSED:
-                loggedOut();
+                sendLoggedOut();
                 break;
         }
     }
@@ -180,7 +175,12 @@ public class ConnectionManager
     {
         if ( mClientInited )
         {
-            login();
+            mClient.login( mUser.getUsername(),
+                           mUser.getPassword(),
+                           mUser.getTurnPassword(),
+                           mUser.getXmppHost(),
+                           mUser.getXmppPort(),
+                           mUser.getXmppUseSsl() );
         }
         else
         {
@@ -194,7 +194,32 @@ public class ConnectionManager
         }
     }
 
-    private void loggedIn()
+    private void receiveLogin( User user )
+    {
+        mUser = user;
+        if ( mUser != null )
+        {
+            internalLogin();
+        }
+    }
+
+    private void receiveLogout()
+    {
+        mClient.logout();
+    }
+
+    private void sendConnectionReady()
+    {
+        mClientInited = true;
+        if ( mUser != null )
+        {
+            internalLogin();
+        }
+
+        // handleConnectionReady
+    }
+
+    private void sendLoggedIn()
     {
         stopReconnectTimer();
 
@@ -214,7 +239,7 @@ public class ConnectionManager
         mCallbacks.finishBroadcast();
     }
 
-    private void loggedOut()
+    private void sendLoggedOut()
     {
         final int callbackCount = mCallbacks.beginBroadcast();
         for ( int i = 0; i < callbackCount; i++ )
@@ -238,20 +263,6 @@ public class ConnectionManager
         else
         {
             stopReconnectTimer();
-        }
-    }
-
-    private void login()
-    {
-        mClientInited = true;
-        if ( mUser != null )
-        {
-            mClient.login( mUser.getUsername(),
-                           mUser.getPassword(),
-                           mUser.getTurnPassword(),
-                           mUser.getXmppHost(),
-                           mUser.getXmppPort(),
-                           mUser.getXmppUseSsl() );
         }
     }
 

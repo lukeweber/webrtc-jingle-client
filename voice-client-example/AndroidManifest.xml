@@ -18,8 +18,7 @@
     <uses-sdk android:minSdkVersion="9"
               android:targetSdkVersion="14"/>
 
-    <application android:name=".VoiceClientApplication"
-                 android:label="@string/app_name">
+    <application android:label="@string/app_name">
         <activity android:name=".ui.activity.VoiceClientActivity"
                   android:label="@string/app_name"
                   android:screenOrientation="portrait">
@@ -43,8 +42,8 @@
                  android:process=":VoiceClientService"
                  android:name=".service.VoiceClientService">
             <intent-filter>
-                <action android:name="com.tuenti.voice.example.service.IVoiceClientService"/>
                 <action android:name="com.tuenti.voice.example.service.IConnectionService"/>
+                <action android:name="com.tuenti.voice.example.service.ICallService"/>
             </intent-filter>
         </service>
     </application>
