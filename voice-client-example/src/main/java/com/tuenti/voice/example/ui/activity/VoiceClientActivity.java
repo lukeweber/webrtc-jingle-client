@@ -1,13 +1,8 @@
 package com.tuenti.voice.example.ui.activity;
 
-import android.app.Activity;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -15,14 +10,13 @@ import android.view.View;
 import android.widget.TextView;
 import com.tuenti.voice.example.R;
 import com.tuenti.voice.example.data.User;
-import com.tuenti.voice.example.service.IConnectionService;
-import com.tuenti.voice.example.service.IConnectionServiceCallback;
+import com.tuenti.voice.example.ui.AbstractVoiceClientView;
 import com.tuenti.voice.example.ui.RosterView;
 
-import static android.view.View.*;
+import static android.view.View.OnClickListener;
 
 public class VoiceClientActivity
-    extends Activity
+    extends AbstractVoiceClientView
     implements OnClickListener
 {
 // ------------------------------ FIELDS ------------------------------
@@ -34,56 +28,14 @@ public class VoiceClientActivity
 
     private static final String TAG = "VoiceClientActivity";
 
-    private IConnectionService mConnectionService;
-
-    private final IConnectionServiceCallback mConnectionServiceCallback = new IConnectionServiceCallback.Stub()
-    {
-        @Override
-        public void handleLoggedIn()
-        {
-            Intent intent = new Intent( VoiceClientActivity.this, RosterView.class );
-            startActivity( intent );
-        }
-
-        @Override
-        public void handleLoggedOut()
-        {
-            changeStatus( "Logged out" );
-        }
-    };
-
-    private final ServiceConnection mConnectionServiceConnection = new ServiceConnection()
-    {
-        @Override
-        public void onServiceConnected( ComponentName name, IBinder service )
-        {
-            try
-            {
-                mConnectionService = IConnectionService.Stub.asInterface( service );
-                mConnectionService.registerCallback( mConnectionServiceCallback );
-            }
-            catch ( RemoteException e )
-            {
-                Log.e( TAG, "Error on ServiceConnection.onServiceConnected", e );
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected( ComponentName name )
-        {
-            try
-            {
-                mConnectionService.unregisterCallback( mConnectionServiceCallback );
-                mConnectionService = null;
-            }
-            catch ( RemoteException e )
-            {
-                Log.e( TAG, "Error on ServiceConnection.onServiceDisconnected", e );
-            }
-        }
-    };
-
     private SharedPreferences mSettings;
+
+// --------------------------- CONSTRUCTORS ---------------------------
+
+    public VoiceClientActivity()
+    {
+        super( true, false );
+    }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -113,10 +65,10 @@ public class VoiceClientActivity
             switch ( view.getId() )
             {
                 case R.id.login_btn:
-                    mConnectionService.login( getUser() );
+                    getConnectionService().login( getUser() );
                     break;
                 case R.id.logout_btn:
-                    mConnectionService.logout();
+                    getConnectionService().logout();
                     break;
             }
         }
@@ -132,31 +84,20 @@ public class VoiceClientActivity
     public void onCreate( Bundle savedInstanceState )
     {
         super.onCreate( savedInstanceState );
+
         setContentView( R.layout.main );
+        findViewById( R.id.login_btn ).setOnClickListener( this );
+        findViewById( R.id.logout_btn ).setOnClickListener( this );
 
         // Set default preferences
         mSettings = PreferenceManager.getDefaultSharedPreferences( this );
-
-        initClientWrapper();
     }
 
     @Override
-    protected void onPause()
+    protected void onLoggedIn()
     {
-        super.onPause();
-
-        // unbind the service
-        unbindService( mConnectionServiceConnection );
-    }
-
-    @Override
-    protected void onResume()
-    {
-        super.onResume();
-
-        // bind service
-        Intent connectionIntent = new Intent( IConnectionService.class.getName() );
-        bindService( connectionIntent, mConnectionServiceConnection, Context.BIND_AUTO_CREATE );
+        Intent intent = new Intent( this, RosterView.class );
+        startActivity( intent );
     }
 
     private void changeStatus( final String status )
@@ -184,11 +125,5 @@ public class VoiceClientActivity
     private String getStringPref( int key, int defaultValue )
     {
         return mSettings.getString( getString( key ), getString( defaultValue ) );
-    }
-
-    private void initClientWrapper()
-    {
-        findViewById( R.id.login_btn ).setOnClickListener( this );
-        findViewById( R.id.logout_btn ).setOnClickListener( this );
     }
 }

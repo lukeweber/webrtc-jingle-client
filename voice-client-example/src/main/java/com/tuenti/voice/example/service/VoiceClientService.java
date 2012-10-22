@@ -50,7 +50,7 @@ public class VoiceClientService
         mClient = new VoiceClient();
 
         // init managers
-        mConnectionManager = new ConnectionManager( mClient );
+        mConnectionManager = new ConnectionManager( mClient, getBaseContext() );
         mRosterManager = new RosterManager( mClient );
         mCallManager = new CallManager( mClient, getBaseContext() );
 

@@ -1,34 +1,23 @@
 package com.tuenti.voice.example.service;
 
 import android.content.Context;
-import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Build;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
-import android.os.SystemClock;
 import android.util.Log;
 import com.tuenti.voice.core.CallError;
 import com.tuenti.voice.core.CallListener;
 import com.tuenti.voice.core.CallState;
 import com.tuenti.voice.core.VoiceClient;
-import com.tuenti.voice.example.R;
 import com.tuenti.voice.example.data.Call;
-import com.tuenti.voice.example.ui.activity.CallInProgressActivity;
-import com.tuenti.voice.example.ui.dialog.IncomingCallDialog;
 import com.tuenti.voice.example.util.CallNotification;
 import com.tuenti.voice.example.util.ConnectionMonitor;
 import com.tuenti.voice.example.util.NetworkPreference;
 import com.tuenti.voice.example.util.RingManager;
 
-import java.util.HashMap;
-
-import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK;
-import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP;
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
-import static android.content.Intent.FLAG_FROM_BACKGROUND;
+import java.util.LinkedHashMap;
 
 public class CallManager
     implements CallListener
@@ -36,10 +25,6 @@ public class CallManager
 // ------------------------------ FIELDS ------------------------------
 
     private static final String TAG = "CallManager";
-
-    private static final int CALL_UPDATE_INTERVAL = 1000;
-
-    private Handler callProgressHandler;
 
     private AudioManager mAudioManager;
 
@@ -99,7 +84,7 @@ public class CallManager
 
     private boolean mCallInProgress;
 
-    private HashMap<Long, Call> mCallMap = new HashMap<Long, Call>();
+    private LinkedHashMap<Long, Call> mCallMap = new LinkedHashMap<Long, Call>();
 
     private final RemoteCallbackList<ICallServiceCallback> mCallbacks = new RemoteCallbackList<ICallServiceCallback>();
 
@@ -114,8 +99,6 @@ public class CallManager
     private CallNotification mNotificationManager;
 
     private RingManager mRingManager;
-
-    private Runnable updateCallDurationTask;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -178,6 +161,8 @@ public class CallManager
             case RECEIVED_INITIATE:
                 handleIncomingCall( callId, remoteJid );
                 break;
+            case RECEIVED_TERMINATE:
+                handleOutgoingCallTerminated( callId );
             case RECEIVED_REJECT:
                 Log.i( TAG, "Call ended" );
                 endCall( callId, 0 );// Add reason to end call.
@@ -190,40 +175,6 @@ public class CallManager
     public IBinder onBind()
     {
         return mBinder;
-    }
-
-    private void callStarted( long callId )
-    {
-        stopRing();
-
-        setAudioForCall();
-
-        Call call = mCallMap.get( callId );
-        call.setCallStartTime( SystemClock.elapsedRealtime() );
-        startCallInProgressActivity( callId, call.getRemoteJid() );
-
-        // do callback        
-        final int callbackCount = mCallbacks.beginBroadcast();
-        for ( int i = 0; i < callbackCount; i++ )
-        {
-            try
-            {
-                mCallbacks.getBroadcastItem( i ).handleCallStarted( call );
-            }
-            catch ( RemoteException e )
-            {
-                //NOOP
-            }
-        }
-        // Intent call started
-
-        // Change notification to call in progress notification, that points to
-        // call in progress activity on click.
-        sendCallInProgressNotification( call.getRemoteJid(), 0 );
-        // dispatchCallState( CallUIIntent.CALL_PROGRESS, mCurrentCallId, call.getRemoteJid(), call.getElapsedTime() );
-
-        // start timer on method updateCallUI every second.
-        startCallProgressTimer();
     }
 
     private String cleanJid( String jid )
@@ -251,15 +202,11 @@ public class CallManager
             mCurrentCallId = 0;
             mNetworkPreference.unsetNetworkPreference();
             Call call = mCallMap.get( Long.valueOf( callId ) );
-            mCallMap.remove( Long.valueOf( callId ) );
+            mCallMap.remove( callId );
             stopRing();
             resetAudio();
 
             //dispatchCallState( CallUIIntent.CALL_ENDED, callId, call.getRemoteJid() );
-            // Store reason in call history with jid.
-
-            // Intent call ended, store in history, return call time
-            stopCallProgressTimer();
 
             // Cancel notification
             mNotificationManager.cancelCallNotification();
@@ -301,31 +248,62 @@ public class CallManager
         else
         {
             initCallState( callId, remoteJid );
-
-            // Ringer.
             startRing( true, false );
 
             // show alert pop up for incoming call + tray notification
-            startIncomingCallDialog( callId, remoteJid );
-            sendIncomingCallNotification( remoteJid );
+            // startIncomingCallDialog( callId, remoteJid );
+            // sendIncomingCallNotification( remoteJid );
         }
     }
 
     private void handleOutgoingCall( long callId, String remoteJid )
     {
         initCallState( callId, remoteJid );
-
-        // Intent call started, show call in progress activity
-        Intent intent = new Intent( mContext, CallInProgressActivity.class );
-        intent.putExtra( "call", getCurrentCall() );
-        intent.addFlags( FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK | FLAG_FROM_BACKGROUND );
-        mContext.startActivity( intent );
-
-        // Ring in the headphone
         startRing( false, false );
 
-        // Show notification
-        sendOutgoingCallNotification( remoteJid );
+        // dispatch the callback
+        final int callbackCount = mCallbacks.beginBroadcast();
+        for ( int i = 0; i < callbackCount; i++ )
+        {
+            try
+            {
+                mCallbacks.getBroadcastItem( i ).handleOutgoingCall( getCurrentCall() );
+            }
+            catch ( RemoteException e )
+            {
+                //NOOP
+            }
+        }
+        mCallbacks.finishBroadcast();
+    }
+
+    private void handleOutgoingCallTerminated( long callId )
+    {
+        if ( !mCallMap.containsKey( callId ) )
+        {
+            return;
+        }
+
+        Log.d( TAG, "handleOutgoingCallTerminated: " + callId );
+        mCallMap.remove( callId );
+        stopRing();
+        resetAudio();
+
+        // dispatch the callback
+        final int callbackCount = mCallbacks.beginBroadcast();
+        for ( int i = 0; i < callbackCount; i++ )
+        {
+            try
+            {
+                mCallbacks.getBroadcastItem( i ).handleOutgoingCallTerminated();
+            }
+            catch ( RemoteException e )
+            {
+                // The RemoteCallbackList will take care of removing
+                // the dead object for us.
+            }
+        }
+        mCallbacks.finishBroadcast();
     }
 
     private void handleToggleHold( long callId )
@@ -362,64 +340,6 @@ public class CallManager
         mAudioManager.abandonAudioFocus( null );
     }
 
-    /**
-     * Sends a call progress (duration) notification.
-     *
-     * @param remoteJid The remote party.
-     * @param duration  Call duration.
-     */
-    private void sendCallInProgressNotification( String remoteJid, long duration )
-    {
-        long minutes = duration / 60;
-        long seconds = duration % 60;
-        String formattedDuration = String.format( "%02d:%02d", minutes, seconds );
-        String message =
-            String.format( mContext.getString( R.string.notification_during_call ), formattedDuration, remoteJid );
-        String tickerText = String.format( mContext.getString( R.string.notification_during_call_ticker ), remoteJid );
-
-        final int callbackCount = mCallbacks.beginBroadcast();
-        for ( int i = 0; i < callbackCount; i++ )
-        {
-            try
-            {
-                mCallbacks.getBroadcastItem( i ).handleCallInProgress();
-            }
-            catch ( RemoteException e )
-            {
-                // The RemoteCallbackList will take care of removing
-                // the dead object for us.
-            }
-        }
-        mCallbacks.finishBroadcast();
-
-        //Intent intent = getNotificationIntent( remoteJid, CallUIIntent.CALL_PROGRESS, CallInProgressActivity.class );
-        //mNotificationManager.sendCallNotification( tickerText, message, intent, CallIntent.END_CALL );
-    }
-
-    /**
-     * Sends an incoming call notification.
-     *
-     * @param remoteJid The user that is calling.
-     */
-    private void sendIncomingCallNotification( String remoteJid )
-    {
-        String message = String.format( mContext.getString( R.string.notification_incoming_call ), remoteJid );
-        //Intent intent = getNotificationIntent( remoteJid, "", IncomingCallDialog.class );
-        //mNotificationManager.sendCallNotification( message, message, intent, CallIntent.REJECT_CALL );
-    }
-
-    /**
-     * Sends an outgoing call notification.
-     *
-     * @param remoteJid The user that is being called.
-     */
-    private void sendOutgoingCallNotification( String remoteJid )
-    {
-        String message = String.format( mContext.getString( R.string.notification_outgoing_call ), remoteJid );
-        //Intent intent = getNotificationIntent( remoteJid, CallUIIntent.CALL_PROGRESS, CallInProgressActivity.class );
-        //mNotificationManager.sendCallNotification( message, message, intent, CallIntent.END_CALL );
-    }
-
     private void setAudioForCall()
     {
         mAudioManager.setMode( ( Build.VERSION.SDK_INT < 11 )
@@ -428,46 +348,10 @@ public class CallManager
         mAudioManager.requestAudioFocus( null, AudioManager.STREAM_VOICE_CALL, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT );
     }
 
-    private void startCallInProgressActivity( long callId, String remoteJid )
-    {
-        Call call = new Call( callId, remoteJid );
-
-        Intent intent = new Intent( mContext, CallInProgressActivity.class );
-        intent.putExtra( "call", call );
-        intent.addFlags( FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TOP | FLAG_FROM_BACKGROUND );
-        mContext.startActivity( intent );
-    }
-
-    /**
-     * Starts the call progress update timer.
-     */
-    private void startCallProgressTimer()
-    {
-        callProgressHandler.removeCallbacks( updateCallDurationTask );
-        callProgressHandler.postDelayed( updateCallDurationTask, CALL_UPDATE_INTERVAL );
-    }
-
-    private void startIncomingCallDialog( long callId, String remoteJid )
-    {
-        Intent intent = new Intent( mContext, IncomingCallDialog.class );
-        intent.putExtra( "callId", callId );
-        intent.putExtra( "remoteJid", remoteJid );
-        intent.addFlags( FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TOP | FLAG_FROM_BACKGROUND );
-        mContext.startActivity( intent );
-    }
-
     private void startRing( boolean isIncoming, boolean callInProgress )
     {
         stopRing();
         mRingManager = new RingManager( mContext, isIncoming, callInProgress );
-    }
-
-    /**
-     * Stops the call progress update timer.
-     */
-    private void stopCallProgressTimer()
-    {
-        callProgressHandler.removeCallbacks( updateCallDurationTask );
     }
 
     private void stopRing()

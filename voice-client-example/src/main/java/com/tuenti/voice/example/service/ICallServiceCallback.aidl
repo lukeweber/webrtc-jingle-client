@@ -5,5 +5,6 @@ import com.tuenti.voice.example.data.Call;
 oneway interface ICallServiceCallback {
 
     void handleCallInProgress();
-    void handleCallStarted( in Call call );
+    void handleOutgoingCall( in Call call );
+    void handleOutgoingCallTerminated();
 }

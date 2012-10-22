@@ -1,5 +1,6 @@
 package com.tuenti.voice.example.service;
 
+import android.content.Context;
 import android.os.IBinder;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
@@ -59,6 +60,8 @@ public class ConnectionManager
 
     private boolean mClientInited;
 
+    private final Context mContext;
+
     private boolean mReconnect;
 
     private boolean mReconnectTimerRunning;
@@ -69,10 +72,12 @@ public class ConnectionManager
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public ConnectionManager( VoiceClient client )
+    public ConnectionManager( VoiceClient client, Context context )
     {
         mClient = client;
         mClient.addConnectionListener( this );
+
+        mContext = context;
     }
 
 // ------------------------ INTERFACE METHODS ------------------------
