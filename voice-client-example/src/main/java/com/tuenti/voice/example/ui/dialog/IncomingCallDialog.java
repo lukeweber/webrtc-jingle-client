@@ -52,7 +52,12 @@ public class IncomingCallDialog
         }
 
         @Override
-        public void handleCallStarted( Call call )
+        public void handleOutgoingCall( Call call )
+        {
+        }
+
+        @Override
+        public void handleOutgoingCallTerminated()
         {
         }
     };
@@ -89,15 +94,6 @@ public class IncomingCallDialog
     };
 
     private KeyguardLock mKeyguardLock;
-
-    /*
-    if ( intent.getAction().equals( CallUIIntent.CALL_PROGRESS ) ||
-        intent.getAction().equals( CallUIIntent.CALL_ENDED ) ||
-        intent.getAction().equals( CallUIIntent.LOGGED_OUT ) )
-    {
-        finish();
-    }
-    */
 
     private WakeLockManager mWakeLock;
 

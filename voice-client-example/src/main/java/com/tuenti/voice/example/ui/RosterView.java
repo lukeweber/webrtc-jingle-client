@@ -1,25 +1,21 @@
 package com.tuenti.voice.example.ui;
 
-import android.app.ListActivity;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import com.tuenti.voice.example.data.Buddy;
-import com.tuenti.voice.example.service.ICallService;
-import com.tuenti.voice.example.service.IRosterService;
-import com.tuenti.voice.example.service.IRosterServiceCallback;
+import com.tuenti.voice.example.data.Call;
+import com.tuenti.voice.example.ui.activity.CallInProgressActivity;
 
+import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK;
+import static android.content.Intent.FLAG_ACTIVITY_NO_HISTORY;
 import static android.widget.AdapterView.OnItemClickListener;
 
 public class RosterView
-    extends ListActivity
+    extends AbstractVoiceClientListView
     implements OnItemClickListener
 {
 // ------------------------------ FIELDS ------------------------------
@@ -28,73 +24,12 @@ public class RosterView
 
     private RosterAdapter mAdapter;
 
-    private ICallService mCallService;
+// --------------------------- CONSTRUCTORS ---------------------------
 
-    private ServiceConnection mCallServiceConnection = new ServiceConnection()
+    public RosterView()
     {
-        @Override
-        public void onServiceConnected( ComponentName name, IBinder service )
-        {
-            mCallService = ICallService.Stub.asInterface( service );
-        }
-
-        @Override
-        public void onServiceDisconnected( ComponentName name )
-        {
-            mCallService = null;
-        }
-    };
-
-    private IRosterService mRosterService;
-
-    private final IRosterServiceCallback.Stub mRosterServiceCallback = new IRosterServiceCallback.Stub()
-    {
-        @Override
-        public void handleRosterUpdated( final Buddy[] buddies )
-        {
-            runOnUiThread( new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    mAdapter = new RosterAdapter( getLayoutInflater(), buddies );
-                    setListAdapter( mAdapter );
-                }
-            } );
-        }
-    };
-
-    private final ServiceConnection mRosterServiceConnection = new ServiceConnection()
-    {
-        @Override
-        public void onServiceConnected( ComponentName name, IBinder service )
-        {
-            try
-            {
-                mRosterService = IRosterService.Stub.asInterface( service );
-                mRosterService.registerCallback( mRosterServiceCallback );
-                mRosterService.requestRosterUpdate();
-            }
-            catch ( RemoteException e )
-            {
-                Log.e( TAG, "Error on ServiceConnection.onServiceConnected", e );
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected( ComponentName name )
-        {
-            try
-            {
-                mRosterService.unregisterCallback( mRosterServiceCallback );
-                mRosterService = null;
-            }
-            catch ( RemoteException e )
-            {
-                Log.e( TAG, "Error on ServiceConnection.onServiceDisconnected", e );
-            }
-        }
-    };
+        super( false, true, true );
+    }
 
 // ------------------------ INTERFACE METHODS ------------------------
 
@@ -106,7 +41,7 @@ public class RosterView
         try
         {
             Buddy buddy = mAdapter.getItem( position );
-            mCallService.call( buddy.getRemoteJid() );
+            getCallService().call( buddy.getRemoteJid() );
         }
         catch ( RemoteException e )
         {
@@ -132,24 +67,38 @@ public class RosterView
     }
 
     @Override
-    protected void onPause()
+    protected void onOutgoingCall( Call call )
     {
-        super.onPause();
-
-        // unbind the service
-        unbindService( mRosterServiceConnection );
-        unbindService( mCallServiceConnection );
+        Intent intent = new Intent( this, CallInProgressActivity.class );
+        intent.putExtra( "call", call );
+        intent.addFlags( FLAG_ACTIVITY_CLEAR_TASK | FLAG_ACTIVITY_NO_HISTORY );
+        startActivity( intent );
     }
 
     @Override
-    protected void onResume()
+    protected void onRosterServiceConnected()
     {
-        super.onResume();
+        try
+        {
+            getRosterService().requestRosterUpdate();
+        }
+        catch ( RemoteException e )
+        {
+            Log.e( TAG, e.getMessage(), e );
+        }
+    }
 
-        // bind service
-        Intent rosterIntent = new Intent( IRosterService.class.getName() );
-        bindService( rosterIntent, mRosterServiceConnection, Context.BIND_AUTO_CREATE );
-        Intent callIntent = new Intent( ICallService.class.getName() );
-        bindService( callIntent, mCallServiceConnection, Context.BIND_AUTO_CREATE );
+    @Override
+    protected void onRosterUpdated( final Buddy[] buddies )
+    {
+        runOnUiThread( new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                mAdapter = new RosterAdapter( getLayoutInflater(), buddies );
+                setListAdapter( mAdapter );
+            }
+        } );
     }
 }
