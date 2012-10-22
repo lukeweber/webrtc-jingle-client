@@ -136,6 +136,7 @@ public class ConnectionManager
         {
             case NONE:
                 handleConnectionReady();
+                break;
             case OPEN:
                 handleLoggedIn();
                 break;
@@ -178,6 +179,7 @@ public class ConnectionManager
 
     private void handleConnectionReady()
     {
+        Log.d( TAG, "handleConnectionReady" );
         mClientInited = true;
         if ( mUser != null )
         {
@@ -189,6 +191,7 @@ public class ConnectionManager
 
     private void handleLoggedIn()
     {
+        Log.d( TAG, "handleLoggedIn" );
         stopReconnectTimer();
 
         final int callbackCount = mCallbacks.beginBroadcast();
@@ -209,6 +212,8 @@ public class ConnectionManager
 
     private void handleLoggedOut()
     {
+        Log.d( TAG, "handleLoggedOut" );
+
         final int callbackCount = mCallbacks.beginBroadcast();
         for ( int i = 0; i < callbackCount; i++ )
         {
@@ -236,6 +241,7 @@ public class ConnectionManager
 
     private void handleLogin( User user )
     {
+        Log.d( TAG, "handleLogin" );
         mUser = user;
         if ( mUser != null )
         {
@@ -245,6 +251,7 @@ public class ConnectionManager
 
     private void handleLogout()
     {
+        Log.d( TAG, "handleLogout" );
         mClient.logout();
     }
 

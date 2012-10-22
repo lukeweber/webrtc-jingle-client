@@ -85,14 +85,32 @@ public class RosterManager
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public Buddy[] getBuddies()
-    {
-        return mBuddies.values().toArray( new Buddy[mBuddies.size()] );
-    }
-
     public IBinder onBind()
     {
         return mBinder;
+    }
+
+    private void broadcastRosterUpdate()
+    {
+        final int callbackCount = mCallbacks.beginBroadcast();
+        for ( int i = 0; i < callbackCount; i++ )
+        {
+            try
+            {
+                mCallbacks.getBroadcastItem( i ).handleRosterUpdated( getBuddies() );
+            }
+            catch ( RemoteException e )
+            {
+                // The RemoteCallbackList will take care of removing
+                // the dead object for us.
+            }
+        }
+        mCallbacks.finishBroadcast();
+    }
+
+    private Buddy[] getBuddies()
+    {
+        return mBuddies.values().toArray( new Buddy[mBuddies.size()] );
     }
 
     private void handleBuddyAdded( String remoteJid )
@@ -110,7 +128,7 @@ public class RosterManager
             mBuddies.put( remoteJid, buddy );
         }
 
-        handleRosterUpdated();
+        broadcastRosterUpdate();
     }
 
     private void handleBuddyRemoved( String remoteJid )
@@ -126,38 +144,22 @@ public class RosterManager
             mBuddies.remove( remoteJid );
         }
 
-        handleRosterUpdated();
+        broadcastRosterUpdate();
     }
 
     private void handleBuddyReset()
     {
+        Log.d( TAG, "handleBuddyReset" );
         synchronized ( mLock )
         {
             mBuddies.clear();
         }
-        handleRosterUpdated();
+        broadcastRosterUpdate();
     }
 
     private void handleRequestRosterUpdate()
     {
-        handleRosterUpdated();
-    }
-
-    private void handleRosterUpdated()
-    {
-        final int callbackCount = mCallbacks.beginBroadcast();
-        for ( int i = 0; i < callbackCount; i++ )
-        {
-            try
-            {
-                mCallbacks.getBroadcastItem( i ).handleRosterUpdated( getBuddies() );
-            }
-            catch ( RemoteException e )
-            {
-                // The RemoteCallbackList will take care of removing
-                // the dead object for us.
-            }
-        }
-        mCallbacks.finishBroadcast();
+        Log.d( TAG, "handleRequestRosterUpdate" );
+        broadcastRosterUpdate();
     }
 }
