@@ -106,7 +106,13 @@ public class CallView
 
         mCall = getIntent().getParcelableExtra( "call" );
 
-        mElapsedTime = (TextView) findViewById( R.id.duration_textview );
+        //mElapsedTime = (TextView) findViewById( R.id.duration_textview );
+    }
+
+    @Override
+    protected void onIncomingCallTerminated()
+    {
+        finish();
     }
 
     @Override
@@ -145,7 +151,7 @@ public class CallView
 
     private void changeStatus( String status )
     {
-        ( (TextView) findViewById( R.id.status_view ) ).setText( status );
+        //( (TextView) findViewById( R.id.status_view ) ).setText( status );
     }
 
     private void turnScreenOn( boolean on )

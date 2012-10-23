@@ -41,6 +41,11 @@ public abstract class AbstractVoiceClientListView
         }
 
         @Override
+        public void handleIncomingCallTerminated()
+        {
+        }
+
+        @Override
         public void handleOutgoingCall( Call call )
         {
             onOutgoingCall( call );

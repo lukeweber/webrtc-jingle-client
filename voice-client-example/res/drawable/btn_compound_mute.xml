@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Layers used to render the in-call "Mute" compound button. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- The standard "compound button" background. -->
+    <item android:drawable="@drawable/btn_compound_background"/>
+
+    <!-- ...and the actual icon on top.  Use an explicit <bitmap> to avoid scaling
+         the icon up to the full size of the button. -->
+    <item>
+        <bitmap android:src="@drawable/ic_mute_holo_dark"
+                android:gravity="center"/>
+    </item>
+
+</layer-list>

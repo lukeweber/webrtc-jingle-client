@@ -18,8 +18,7 @@
               android:targetSdkVersion="14"/>
 
     <application android:label="@string/app_name"
-                 android:name=".VoiceClientApplication"
-                 android:theme="@style/Theme.VoiceClient">
+                 android:name=".VoiceClientApplication">
         <activity android:name=".ui.LoginView"
                   android:label="@string/app_name"
                   android:screenOrientation="portrait">
