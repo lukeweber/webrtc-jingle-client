@@ -35,6 +35,8 @@
 #include "talk/xmpp/xmppclient.h"
 #include "talk/xmpp/xmppengine.h"
 #include "talk/xmpp/xmpptask.h"
+#include "tuenti/logging.h"
+#include "tuenti/xmpplog.h"
 
 // Simple xmpp pump
 namespace tuenti {
@@ -83,6 +85,7 @@ class TXmppPump: public talk_base::MessageHandler,
   TXmppPumpNotify *notify_;
   TXmppSocket *socket_;
   TXmppAuth *auth_;
+  XmppLog *xmpp_log_;
   bool initialized_;
 };
 

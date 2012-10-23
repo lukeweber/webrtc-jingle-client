@@ -25,10 +25,11 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "tuenti/logging.h"
+#include "tuenti/xmpplog.h"
 #include "tuenti/txmpppump.h"
 #include "tuenti/txmppauth.h"
 #include "tuenti/txmppsocket.h"
+#include "talk/base/logging.h"
 
 namespace tuenti {
 TXmppPump::TXmppPump(TXmppPumpNotify * notify)
@@ -39,7 +40,9 @@ TXmppPump::TXmppPump(TXmppPumpNotify * notify)
   client_ = NULL;
   socket_ = NULL;
   auth_ = NULL;
+  xmpp_log_ = NULL;
 }
+
 TXmppPump::~TXmppPump() {
   LOGI("TXmppPump::~TXmppPump this@(0x%x)",
           reinterpret_cast<int>(this));
@@ -51,6 +54,14 @@ void TXmppPump::DoLogin(const buzz::XmppClientSettings & xcs) {
   if ( !initialized_ ) {
     Initialize();
   }
+
+#if LOGGING
+  if (client_ ) {
+    client_->SignalLogInput.connect(xmpp_log_, &XmppLog::Input);
+    client_->SignalLogOutput.connect(xmpp_log_, &XmppLog::Output);
+  }
+#endif  // LOGGING
+
   if (client_ && !AllChildrenDone()) {
     OnStateChange(buzz::XmppEngine::STATE_START);
     LOGI("TXmppPump::DoLogin - logging on");
@@ -126,6 +137,9 @@ void TXmppPump::Initialize() {
     LOGI("TXmppPump::Initialize - new TXmppAuth client_@(0x%x)",
             reinterpret_cast<int>(client_));
   }
+#if LOGGING
+  xmpp_log_ = new XmppLog();
+#endif
 }
 void TXmppPump::Deinitialize() {
   initialized_ = false;
@@ -139,5 +153,9 @@ void TXmppPump::Deinitialize() {
   LOGI("TXmppPump::Deinitialize - forgetting client_@(0x%x)",
           reinterpret_cast<int>(client_));
   client_ = NULL;  // NOTE: deleted by TaskRunner
+#if LOGGING
+  delete xmpp_log_;
+  xmpp_log_ = NULL;
+#endif
 }
 }  // namespace tuenti

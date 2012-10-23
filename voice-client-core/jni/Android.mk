@@ -115,6 +115,7 @@ LOCAL_SRC_FILES := \
 	tuenti/txmppauth.cc \
 	tuenti/txmpppump.cc \
 	tuenti/txmppsocket.cc \
+	tuenti/xmpplog.cc \
 
 LOCAL_CFLAGS := \
 	$(WEBRTC_LOGIN_CREDENTIALS) \
