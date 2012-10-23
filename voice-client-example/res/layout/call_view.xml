@@ -1,45 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="fill_parent"
-              android:layout_height="fill_parent"
-              android:orientation="vertical">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
 
-    <TextView
-        android:id="@+id/status_view"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"/>
+    <RelativeLayout android:layout_alignParentTop="true"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="80dp"
+                    android:paddingLeft="24dp"
+                    android:paddingRight="24dp"
+                    android:paddingTop="16dp"
+                    android:paddingBottom="16dp"
+                    android:background="#A0000000">
 
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
-        <TextView
-            android:layout_width="wrap_content"
+        <!-- Name (or the phone number, if we don't have a name to display). -->
+        <TextView android:id="@+id/name"
+                  android:layout_alignParentTop="true"
+                  android:layout_alignParentLeft="true"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:paddingRight="50sp"
+                  android:textAppearance="?android:attr/textAppearanceMedium"
+                  android:textColor="#FFFFFF"
+                  android:singleLine="true"/>
+
+    </RelativeLayout>
+
+    <LinearLayout android:id="@+id/bottomButtons"
+                  android:orientation="vertical"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_alignParentBottom="true">
+
+        <ImageButton android:id="@+id/hang_up_btn"
+                     style="@style/InCallEndButton"
+                     android:layout_width="match_parent"
+                     android:src="@drawable/ic_dial_end_call"
+                     android:background="@drawable/end_call_background"/>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/duration"
-            android:paddingRight="5dip"/>
-        <TextView
-            android:id="@+id/duration_textview"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:background="@drawable/dialpad_background"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp">
+
+            <!-- Separator -->
+            <View style="@style/VerticalSeparator"/>
+
+            <!-- "Mute" -->
+            <ToggleButton android:id="@+id/mute_btn"
+                          style="@style/InCallCompoundButton"
+                          android:background="@drawable/btn_compound_mute"/>
+
+            <!-- Separator -->
+            <View style="@style/VerticalSeparator"/>
+
+            <!-- "Hold" -->
+            <ToggleButton android:id="@+id/hold_btn"
+                          style="@style/InCallCompoundButton"
+                          android:background="@drawable/btn_compound_hold"/>
+
+            <!-- Separator -->
+            <View style="@style/VerticalSeparator"/>
+
+        </LinearLayout>
 
     </LinearLayout>
 
-    <Button
-        android:id="@+id/hang_up_btn"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/hang_up">
-    </Button>
-    <Button
-        android:id="@+id/mute_btn"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/mute">
-    </Button>
-    <Button
-        android:id="@+id/hold_btn"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/hold">
-    </Button>
-</LinearLayout>
+</RelativeLayout>

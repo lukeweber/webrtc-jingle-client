@@ -60,15 +60,7 @@ public class LoginView
     {
         try
         {
-            switch ( view.getId() )
-            {
-                case R.id.login_btn:
-                    getConnectionService().login( getUser() );
-                    break;
-                case R.id.logout_btn:
-                    getConnectionService().logout();
-                    break;
-            }
+            getConnectionService().login( getUser() );
         }
         catch ( RemoteException e )
         {
@@ -85,7 +77,6 @@ public class LoginView
 
         setContentView( R.layout.login_view );
         findViewById( R.id.login_btn ).setOnClickListener( this );
-        findViewById( R.id.logout_btn ).setOnClickListener( this );
 
         // Set default preferences
         mSettings = PreferenceManager.getDefaultSharedPreferences( this );
