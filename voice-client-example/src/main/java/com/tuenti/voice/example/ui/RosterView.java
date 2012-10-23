@@ -8,9 +8,8 @@ import android.view.View;
 import android.widget.AdapterView;
 import com.tuenti.voice.example.data.Buddy;
 import com.tuenti.voice.example.data.Call;
-import com.tuenti.voice.example.ui.activity.CallInProgressActivity;
 
-import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK;
+import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP;
 import static android.content.Intent.FLAG_ACTIVITY_NO_HISTORY;
 import static android.widget.AdapterView.OnItemClickListener;
 
@@ -69,9 +68,9 @@ public class RosterView
     @Override
     protected void onOutgoingCall( Call call )
     {
-        Intent intent = new Intent( this, CallInProgressActivity.class );
+        Intent intent = new Intent( this, CallView.class );
         intent.putExtra( "call", call );
-        intent.addFlags( FLAG_ACTIVITY_CLEAR_TASK | FLAG_ACTIVITY_NO_HISTORY );
+        intent.addFlags( FLAG_ACTIVITY_CLEAR_TOP | FLAG_ACTIVITY_NO_HISTORY );
         startActivity( intent );
     }
 

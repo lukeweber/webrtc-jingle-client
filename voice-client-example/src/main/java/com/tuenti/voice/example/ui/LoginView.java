@@ -1,4 +1,4 @@
-package com.tuenti.voice.example.ui.activity;
+package com.tuenti.voice.example.ui;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,12 +10,10 @@ import android.view.View;
 import android.widget.TextView;
 import com.tuenti.voice.example.R;
 import com.tuenti.voice.example.data.User;
-import com.tuenti.voice.example.ui.AbstractVoiceClientView;
-import com.tuenti.voice.example.ui.RosterView;
 
 import static android.view.View.OnClickListener;
 
-public class VoiceClientActivity
+public class LoginView
     extends AbstractVoiceClientView
     implements OnClickListener
 {
@@ -32,7 +30,7 @@ public class VoiceClientActivity
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public VoiceClientActivity()
+    public LoginView()
     {
         super( true, false );
     }
@@ -85,7 +83,7 @@ public class VoiceClientActivity
     {
         super.onCreate( savedInstanceState );
 
-        setContentView( R.layout.main );
+        setContentView( R.layout.login_view );
         findViewById( R.id.login_btn ).setOnClickListener( this );
         findViewById( R.id.logout_btn ).setOnClickListener( this );
 
@@ -96,8 +94,22 @@ public class VoiceClientActivity
     @Override
     protected void onLoggedIn()
     {
+        changeStatus( "Logged in" );
+
         Intent intent = new Intent( this, RosterView.class );
         startActivity( intent );
+    }
+
+    @Override
+    protected void onLoggedOut()
+    {
+        changeStatus( "Logged out" );
+    }
+
+    @Override
+    protected void onLoggingIn()
+    {
+        changeStatus( "Logging in" );
     }
 
     private void changeStatus( final String status )
