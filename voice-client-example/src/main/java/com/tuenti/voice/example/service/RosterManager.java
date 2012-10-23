@@ -90,27 +90,22 @@ public class RosterManager
         return mBinder;
     }
 
-    private void broadcastRosterUpdate()
+    private void dispatchCallback()
     {
+        final Buddy[] buddies = mBuddies.values().toArray( new Buddy[mBuddies.size()] );
         final int callbackCount = mCallbacks.beginBroadcast();
         for ( int i = 0; i < callbackCount; i++ )
         {
             try
             {
-                mCallbacks.getBroadcastItem( i ).handleRosterUpdated( getBuddies() );
+                mCallbacks.getBroadcastItem( i ).handleRosterUpdated( buddies );
             }
             catch ( RemoteException e )
             {
-                // The RemoteCallbackList will take care of removing
-                // the dead object for us.
+                // NOOP
             }
         }
         mCallbacks.finishBroadcast();
-    }
-
-    private Buddy[] getBuddies()
-    {
-        return mBuddies.values().toArray( new Buddy[mBuddies.size()] );
     }
 
     private void handleBuddyAdded( String remoteJid )
@@ -128,7 +123,7 @@ public class RosterManager
             mBuddies.put( remoteJid, buddy );
         }
 
-        broadcastRosterUpdate();
+        dispatchCallback();
     }
 
     private void handleBuddyRemoved( String remoteJid )
@@ -144,7 +139,7 @@ public class RosterManager
             mBuddies.remove( remoteJid );
         }
 
-        broadcastRosterUpdate();
+        dispatchCallback();
     }
 
     private void handleBuddyReset()
@@ -154,12 +149,12 @@ public class RosterManager
         {
             mBuddies.clear();
         }
-        broadcastRosterUpdate();
+        dispatchCallback();
     }
 
     private void handleRequestRosterUpdate()
     {
         Log.d( TAG, "handleRequestRosterUpdate" );
-        broadcastRosterUpdate();
+        dispatchCallback();
     }
 }

@@ -152,16 +152,25 @@ public class CallManager
             case RECEIVED_INITIATE:
                 handleIncomingCall( callId, remoteJid );
                 break;
+            case RECEIVED_ACCEPT:
+                Log.i( TAG, "RECEIVED_ACCEPT" );
+                break;
             case RECEIVED_TERMINATE:
                 handleIncomingCallTerminated( callId );
                 break;
             case SENT_INITIATE:
                 handleOutgoingCall( callId, remoteJid );
                 break;
+            case SENT_ACCEPT:
+                Log.i( TAG, "SENT_ACCEPT" );
+                break;
             case SENT_TERMINATE:
                 handleOutgoingCallTerminated( callId );
                 break;
             case SENT_REJECT:
+                break;
+            case IN_PROGRESS:
+                handleCallInProgress();
                 break;
         }
     }
@@ -188,6 +197,39 @@ public class CallManager
         return jid;
     }
 
+    private void dispatchCallback( CallState state, Call call )
+    {
+        final int callbackCount = mCallbacks.beginBroadcast();
+        for ( int i = 0; i < callbackCount; i++ )
+        {
+            ICallServiceCallback callback = mCallbacks.getBroadcastItem( i );
+            try
+            {
+                switch ( state )
+                {
+                    case RECEIVED_TERMINATE:
+                        callback.handleIncomingCallTerminated();
+                        break;
+                    case SENT_INITIATE:
+                        callback.handleOutgoingCall( call );
+                        break;
+                    case SENT_TERMINATE:
+                        callback.handleOutgoingCallTerminated();
+                        break;
+                    case IN_PROGRESS:
+                        callback.handleCallInProgress();
+                        break;
+                }
+            }
+            catch ( RemoteException e )
+            {
+                // The RemoteCallbackList will take care of removing
+                // the dead object for us.
+            }
+        }
+        mCallbacks.finishBroadcast();
+    }
+
     private Call getCurrentCall()
     {
         return mCallMap.get( mCurrentCallId );
@@ -203,6 +245,11 @@ public class CallManager
         {
             mClient.call( remoteJid );
         }
+    }
+
+    private void handleCallInProgress()
+    {
+        dispatchCallback( CallState.IN_PROGRESS, null );
     }
 
     private void handleEndCall( long callId )
@@ -245,44 +292,20 @@ public class CallManager
 
         Log.d( TAG, "handleIncomingCallTerminated: " + callId );
         stopCall( callId );
-
-        // dispatch the callback
-        final int callbackCount = mCallbacks.beginBroadcast();
-        for ( int i = 0; i < callbackCount; i++ )
-        {
-            try
-            {
-                mCallbacks.getBroadcastItem( i ).handleIncomingCallTerminated();
-            }
-            catch ( RemoteException e )
-            {
-                // The RemoteCallbackList will take care of removing
-                // the dead object for us.
-            }
-        }
-        mCallbacks.finishBroadcast();
+        dispatchCallback( CallState.RECEIVED_TERMINATE, null );
     }
 
     private void handleOutgoingCall( long callId, String remoteJid )
     {
         initCallState( callId, remoteJid );
-
-        // dispatch the callback
-        final int callbackCount = mCallbacks.beginBroadcast();
-        for ( int i = 0; i < callbackCount; i++ )
-        {
-            try
-            {
-                mCallbacks.getBroadcastItem( i ).handleOutgoingCall( getCurrentCall() );
-            }
-            catch ( RemoteException e )
-            {
-                //NOOP
-            }
-        }
-        mCallbacks.finishBroadcast();
-
+        dispatchCallback( CallState.SENT_INITIATE, getCurrentCall() );
         startRing( false, false );
+    }
+
+    private void handleOutgoingCallAccepted()
+    {
+        stopRing();
+        setAudioForCall();
     }
 
     private void handleOutgoingCallTerminated( long callId )
@@ -294,22 +317,7 @@ public class CallManager
 
         Log.d( TAG, "handleOutgoingCallTerminated: " + callId );
         stopCall( callId );
-
-        // dispatch the callback
-        final int callbackCount = mCallbacks.beginBroadcast();
-        for ( int i = 0; i < callbackCount; i++ )
-        {
-            try
-            {
-                mCallbacks.getBroadcastItem( i ).handleOutgoingCallTerminated();
-            }
-            catch ( RemoteException e )
-            {
-                // The RemoteCallbackList will take care of removing
-                // the dead object for us.
-            }
-        }
-        mCallbacks.finishBroadcast();
+        dispatchCallback( CallState.SENT_TERMINATE, null );
     }
 
     private void handleToggleHold( long callId )

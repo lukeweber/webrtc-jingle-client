@@ -24,43 +24,63 @@
                   android:textColor="#FFFFFF"
                   android:singleLine="true"/>
 
-    </RelativeLayout>
-
-    <LinearLayout android:id="@+id/bottomButtons"
-                  android:orientation="vertical"
+        <TextView android:id="@+id/callStateLabel"
                   android:layout_width="match_parent"
                   android:layout_height="wrap_content"
-                  android:layout_alignParentBottom="true">
+                  android:paddingTop="@dimen/provider_info_top_bottom_padding"
+                  android:paddingBottom="@dimen/provider_info_top_bottom_padding"
+                  android:paddingLeft="@dimen/call_banner_side_padding"
+                  android:paddingRight="@dimen/call_banner_side_padding"
+                  android:gravity="right"
+                  android:textAppearance="?android:attr/textAppearanceSmall"
+                  android:textColor="@color/incall_call_banner_text_color"
+                  android:textAllCaps="true"
+                  android:background="@android:color/transparent"
+                  android:singleLine="true"
+                  android:ellipsize="end"/>
 
-        <ImageButton android:id="@+id/hang_up_btn"
-                     style="@style/InCallEndButton"
-                     android:layout_width="match_parent"
-                     android:src="@drawable/ic_dial_end_call"
-                     android:background="@drawable/end_call_background"/>
+    </RelativeLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true">
+
+        <ImageButton
+            android:id="@+id/hang_up_btn"
+            style="@style/InCallEndButton"
+            android:layout_width="match_parent"
+            android:src="@drawable/ic_dial_end_call"
+            android:background="@drawable/end_call_background"/>
 
         <LinearLayout
+            android:id="@+id/bottomButtons"
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/dialpad_background"
-            android:paddingLeft="20dp"
-            android:paddingRight="20dp">
+            android:paddingLeft="@dimen/button_cluster_side_padding"
+            android:paddingRight="@dimen/button_cluster_side_padding"
+            android:visibility="gone">
 
             <!-- Separator -->
             <View style="@style/VerticalSeparator"/>
 
             <!-- "Mute" -->
-            <ToggleButton android:id="@+id/mute_btn"
-                          style="@style/InCallCompoundButton"
-                          android:background="@drawable/btn_compound_mute"/>
+            <ToggleButton
+                android:id="@+id/mute_btn"
+                style="@style/InCallCompoundButton"
+                android:background="@drawable/btn_compound_mute"/>
 
             <!-- Separator -->
             <View style="@style/VerticalSeparator"/>
 
             <!-- "Hold" -->
-            <ToggleButton android:id="@+id/hold_btn"
-                          style="@style/InCallCompoundButton"
-                          android:background="@drawable/btn_compound_hold"/>
+            <ToggleButton
+                android:id="@+id/hold_btn"
+                style="@style/InCallCompoundButton"
+                android:background="@drawable/btn_compound_hold"/>
 
             <!-- Separator -->
             <View style="@style/VerticalSeparator"/>
