@@ -6,6 +6,7 @@ import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.tuenti.voice.example.R;
 import com.tuenti.voice.example.data.Call;
@@ -24,6 +25,8 @@ public class CallView
 // ------------------------------ FIELDS ------------------------------
 
     private static final String TAG = "CallInProgressActivity";
+
+    private LinearLayout mBottomButons;
 
     private Call mCall;
 
@@ -92,6 +95,12 @@ public class CallView
     }
 
     @Override
+    protected void onCallInProgress()
+    {
+        mBottomButons.setVisibility( View.VISIBLE );
+    }
+
+    @Override
     protected void onCreate( Bundle savedInstanceState )
     {
         super.onCreate( savedInstanceState );
@@ -103,6 +112,8 @@ public class CallView
         findViewById( R.id.hang_up_btn ).setOnClickListener( this );
         findViewById( R.id.mute_btn ).setOnClickListener( this );
         findViewById( R.id.hold_btn ).setOnClickListener( this );
+
+        mBottomButons = (LinearLayout) findViewById( R.id.bottomButtons );
 
         mCall = getIntent().getParcelableExtra( "call" );
 
