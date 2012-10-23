@@ -137,6 +137,9 @@ public class ConnectionManager
             case NONE:
                 handleConnectionReady();
                 break;
+            case OPENING:
+                handleLoggingIn();
+                break;
             case OPEN:
                 handleLoggedIn();
                 break;
@@ -237,6 +240,24 @@ public class ConnectionManager
         {
             stopReconnectTimer();
         }
+    }
+
+    private void handleLoggingIn()
+    {
+        final int callbackCount = mCallbacks.beginBroadcast();
+        for ( int i = 0; i < callbackCount; i++ )
+        {
+            try
+            {
+                mCallbacks.getBroadcastItem( i ).handleLoggingIn();
+            }
+            catch ( RemoteException e )
+            {
+                // The RemoteCallbackList will take care of removing
+                // the dead object for us.
+            }
+        }
+        mCallbacks.finishBroadcast();
     }
 
     private void handleLogin( User user )

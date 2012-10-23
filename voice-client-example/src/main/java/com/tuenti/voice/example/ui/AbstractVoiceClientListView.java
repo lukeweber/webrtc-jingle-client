@@ -89,6 +89,12 @@ public abstract class AbstractVoiceClientListView
     private final IConnectionServiceCallback mConnectionServiceCallback = new IConnectionServiceCallback.Stub()
     {
         @Override
+        public void handleLoggingIn()
+        {
+            onLoggingIn();
+        }
+
+        @Override
         public void handleLoggedIn()
         {
             onLoggedIn();
@@ -208,6 +214,10 @@ public abstract class AbstractVoiceClientListView
     }
 
     protected void onLoggedOut()
+    {
+    }
+
+    protected void onLoggingIn()
     {
     }
 

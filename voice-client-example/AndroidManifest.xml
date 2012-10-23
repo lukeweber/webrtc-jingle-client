@@ -18,8 +18,9 @@
               android:targetSdkVersion="14"/>
 
     <application android:label="@string/app_name"
-                 android:name=".VoiceClientApplication">
-        <activity android:name=".ui.activity.VoiceClientActivity"
+                 android:name=".VoiceClientApplication"
+                 android:theme="@style/Theme.VoiceClient">
+        <activity android:name=".ui.LoginView"
                   android:label="@string/app_name"
                   android:screenOrientation="portrait">
             <intent-filter>
@@ -27,7 +28,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".ui.activity.CallInProgressActivity"
+        <activity android:name=".ui.CallView"
                   android:label="@string/app_name"
                   android:excludeFromRecents="true"/>
         <activity android:name=".ui.dialog.IncomingCallDialog"

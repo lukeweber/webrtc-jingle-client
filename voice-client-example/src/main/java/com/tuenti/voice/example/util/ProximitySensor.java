@@ -6,7 +6,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
-import com.tuenti.voice.example.ui.activity.CallInProgressActivity;
+import com.tuenti.voice.example.ui.CallView;
 
 public class ProximitySensor implements SensorEventListener {
     private static final float ON_EAR_DISTANCE = 3.0f;
@@ -20,9 +20,9 @@ public class ProximitySensor implements SensorEventListener {
 
     private Context mContext;
 
-    private CallInProgressActivity mCallInProgressCallback;
+    private CallView mCallInProgressCallback;
 
-    public ProximitySensor(CallInProgressActivity callInProgress) {
+    public ProximitySensor(CallView callInProgress) {
         mContext = (Context) callInProgress;
         mCallInProgressCallback = callInProgress;
         mSensorManager = (SensorManager) mContext

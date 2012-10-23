@@ -1,4 +1,4 @@
-package com.tuenti.voice.example.ui.activity;
+package com.tuenti.voice.example.ui;
 
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -9,7 +9,6 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import com.tuenti.voice.example.R;
 import com.tuenti.voice.example.data.Call;
-import com.tuenti.voice.example.ui.AbstractVoiceClientView;
 import com.tuenti.voice.example.util.ProximitySensor;
 import com.tuenti.voice.example.util.WakeLockManager;
 
@@ -18,7 +17,7 @@ import static android.os.PowerManager.FULL_WAKE_LOCK;
 import static android.os.PowerManager.PARTIAL_WAKE_LOCK;
 import static android.view.View.OnClickListener;
 
-public class CallInProgressActivity
+public class CallView
     extends AbstractVoiceClientView
     implements OnClickListener
 {
@@ -39,7 +38,7 @@ public class CallInProgressActivity
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public CallInProgressActivity()
+    public CallView()
     {
         super( false, true );
     }
@@ -100,7 +99,7 @@ public class CallInProgressActivity
         getWindow().addFlags( WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED );
         getWindow().addFlags( WindowManager.LayoutParams.FLAG_IGNORE_CHEEK_PRESSES );
 
-        setContentView( R.layout.callinprogress );
+        setContentView( R.layout.call_view );
         findViewById( R.id.hang_up_btn ).setOnClickListener( this );
         findViewById( R.id.mute_btn ).setOnClickListener( this );
         findViewById( R.id.hold_btn ).setOnClickListener( this );
