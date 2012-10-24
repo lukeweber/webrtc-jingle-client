@@ -32,7 +32,14 @@ public abstract class AbstractVoiceClientView
         @Override
         public void handleCallInProgress()
         {
-            onCallInProgress();
+            runOnUiThread( new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    onCallInProgress();
+                }
+            } );
         }
 
         @Override

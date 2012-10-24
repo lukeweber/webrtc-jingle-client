@@ -150,7 +150,14 @@ public abstract class AbstractVoiceClientListView
         @Override
         public void handleRosterUpdated( final Buddy[] buddies )
         {
-            onRosterUpdated( buddies );
+            runOnUiThread( new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    onRosterUpdated( buddies );
+                }
+            } );
         }
     };
 
