@@ -6,6 +6,7 @@ import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.tuenti.voice.example.R;
@@ -24,13 +25,15 @@ public class CallView
 {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final String TAG = "CallInProgressActivity";
+    private static final String TAG = "CallView";
 
-    private LinearLayout mBottomButons;
+    private LinearLayout mBottomBar;
 
     private Call mCall;
 
     private TextView mElapsedTime;
+
+    private ImageView mPhoto;
 
     private ProximitySensor mProximitySensor;
 
@@ -97,7 +100,14 @@ public class CallView
     @Override
     protected void onCallInProgress()
     {
-        mBottomButons.setVisibility( View.VISIBLE );
+        runOnUiThread( new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                mBottomBar.setVisibility( View.VISIBLE );
+            }
+        } );
     }
 
     @Override
@@ -108,16 +118,16 @@ public class CallView
         getWindow().addFlags( WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED );
         getWindow().addFlags( WindowManager.LayoutParams.FLAG_IGNORE_CHEEK_PRESSES );
 
+        mCall = getIntent().getParcelableExtra( "call" );
+
         setContentView( R.layout.call_view );
         findViewById( R.id.hang_up_btn ).setOnClickListener( this );
         findViewById( R.id.mute_btn ).setOnClickListener( this );
         findViewById( R.id.hold_btn ).setOnClickListener( this );
 
-        mBottomButons = (LinearLayout) findViewById( R.id.bottomButtons );
-
-        mCall = getIntent().getParcelableExtra( "call" );
-
-        //mElapsedTime = (TextView) findViewById( R.id.duration_textview );
+        mPhoto = (ImageView) findViewById( R.id.photo );
+        mBottomBar = (LinearLayout) findViewById( R.id.bottom_bar );
+        mElapsedTime = (TextView) findViewById( R.id.elapsed_time );
     }
 
     @Override

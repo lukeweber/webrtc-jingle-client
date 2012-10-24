@@ -3,6 +3,7 @@ package com.tuenti.voice.example.ui;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -10,6 +11,7 @@ import android.view.View;
 import android.widget.TextView;
 import com.tuenti.voice.example.R;
 import com.tuenti.voice.example.data.User;
+import com.tuenti.voice.example.service.VoiceClientService;
 
 import static android.view.View.OnClickListener;
 
@@ -25,6 +27,8 @@ public class LoginView
     private static final String MY_PASS = "";
 
     private static final String TAG = "VoiceClientActivity";
+
+    private Handler mHandler = new Handler();
 
     private SharedPreferences mSettings;
 
@@ -75,6 +79,10 @@ public class LoginView
     {
         super.onCreate( savedInstanceState );
 
+        // start the service
+        Intent intent = new Intent( this, VoiceClientService.class );
+        startService( intent );
+
         setContentView( R.layout.login_view );
         findViewById( R.id.login_btn ).setOnClickListener( this );
 
@@ -87,8 +95,14 @@ public class LoginView
     {
         changeStatus( "Logged in" );
 
-        Intent intent = new Intent( this, RosterView.class );
-        startActivity( intent );
+        mHandler.postDelayed( new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                displayRosterView();
+            }
+        }, 2000 );
     }
 
     @Override
@@ -113,6 +127,12 @@ public class LoginView
                 ( (TextView) findViewById( R.id.status_view ) ).setText( status );
             }
         } );
+    }
+
+    private void displayRosterView()
+    {
+        Intent intent = new Intent( this, RosterView.class );
+        startActivity( intent );
     }
 
     private boolean getBooleanPref( int key, int defaultValue )

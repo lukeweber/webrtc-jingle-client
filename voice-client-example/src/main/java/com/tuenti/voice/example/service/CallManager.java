@@ -153,7 +153,7 @@ public class CallManager
                 handleIncomingCall( callId, remoteJid );
                 break;
             case RECEIVED_ACCEPT:
-                Log.i( TAG, "RECEIVED_ACCEPT" );
+                handleIncomingCallAccepted( callId );
                 break;
             case RECEIVED_TERMINATE:
                 handleIncomingCallTerminated( callId );
@@ -283,6 +283,13 @@ public class CallManager
         }
     }
 
+    private void handleIncomingCallAccepted( long callId )
+    {
+        mCurrentCallId = callId;
+        stopRing();
+        setAudioForCall();
+    }
+
     private void handleIncomingCallTerminated( long callId )
     {
         if ( !mCallMap.containsKey( callId ) )
@@ -300,12 +307,6 @@ public class CallManager
         initCallState( callId, remoteJid );
         dispatchCallback( CallState.SENT_INITIATE, getCurrentCall() );
         startRing( false, false );
-    }
-
-    private void handleOutgoingCallAccepted()
-    {
-        stopRing();
-        setAudioForCall();
     }
 
     private void handleOutgoingCallTerminated( long callId )
