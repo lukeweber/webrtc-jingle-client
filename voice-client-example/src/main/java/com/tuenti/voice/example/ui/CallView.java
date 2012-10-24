@@ -9,6 +9,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import com.tuenti.voice.example.Intents;
 import com.tuenti.voice.example.R;
 import com.tuenti.voice.example.data.Call;
 import com.tuenti.voice.example.util.ProximitySensor;
@@ -100,14 +101,10 @@ public class CallView
     @Override
     protected void onCallInProgress()
     {
-        runOnUiThread( new Runnable()
+        if ( mBottomBar.getVisibility() != View.VISIBLE )
         {
-            @Override
-            public void run()
-            {
-                mBottomBar.setVisibility( View.VISIBLE );
-            }
-        } );
+            mBottomBar.setVisibility( View.VISIBLE );
+        }
     }
 
     @Override
@@ -118,7 +115,7 @@ public class CallView
         getWindow().addFlags( WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED );
         getWindow().addFlags( WindowManager.LayoutParams.FLAG_IGNORE_CHEEK_PRESSES );
 
-        mCall = getIntent().getParcelableExtra( "call" );
+        mCall = getIntent().getParcelableExtra( Intents.EXTRA_CALL );
 
         setContentView( R.layout.call_view );
         findViewById( R.id.hang_up_btn ).setOnClickListener( this );

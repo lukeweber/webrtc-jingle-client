@@ -9,9 +9,8 @@ import android.widget.AdapterView;
 import com.tuenti.voice.example.data.Buddy;
 import com.tuenti.voice.example.data.Call;
 
-import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP;
-import static android.content.Intent.FLAG_ACTIVITY_NO_HISTORY;
 import static android.widget.AdapterView.OnItemClickListener;
+import static com.tuenti.voice.example.Intents.EXTRA_CALL;
 
 public class RosterView
     extends AbstractVoiceClientListView
@@ -69,9 +68,8 @@ public class RosterView
     protected void onOutgoingCall( Call call )
     {
         Intent intent = new Intent( this, CallView.class );
-        intent.putExtra( "call", call );
-        intent.addFlags( FLAG_ACTIVITY_CLEAR_TOP | FLAG_ACTIVITY_NO_HISTORY );
-        startActivity( intent );
+        intent.putExtra( EXTRA_CALL, call );
+        startActivityForResult( intent, 0 );
     }
 
     @Override
@@ -90,14 +88,7 @@ public class RosterView
     @Override
     protected void onRosterUpdated( final Buddy[] buddies )
     {
-        runOnUiThread( new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                mAdapter = new RosterAdapter( getLayoutInflater(), buddies );
-                setListAdapter( mAdapter );
-            }
-        } );
+        mAdapter = new RosterAdapter( getLayoutInflater(), buddies );
+        setListAdapter( mAdapter );
     }
 }
