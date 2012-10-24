@@ -45,6 +45,8 @@ public class VoiceClientService
     {
         super.onCreate();
 
+        Log.i( "VoiceClientService", "onCreate" );
+
         // VoiceClient should only be created here
         // probably init here too.
         mClient = new VoiceClient();

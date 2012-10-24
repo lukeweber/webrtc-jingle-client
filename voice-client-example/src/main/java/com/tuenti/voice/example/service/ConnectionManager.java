@@ -226,8 +226,7 @@ public class ConnectionManager
             }
             catch ( RemoteException e )
             {
-                // The RemoteCallbackList will take care of removing
-                // the dead object for us.
+                // NOOP
             }
         }
         mCallbacks.finishBroadcast();

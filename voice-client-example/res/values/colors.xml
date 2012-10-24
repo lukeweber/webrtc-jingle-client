@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="incall_call_banner_background">#A0000000</color>
     <color name="incall_call_banner_text_color">#FFFFFF</color>
 </resources>
