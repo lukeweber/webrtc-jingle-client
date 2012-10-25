@@ -55,6 +55,19 @@ public abstract class AbstractVoiceClientView
         }
 
         @Override
+        public void handleOutgoingCallAccepted()
+        {
+            runOnUiThread( new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    onOutgoingCallAccepted();
+                }
+            } );
+        }
+
+        @Override
         public void handleOutgoingCallTerminated()
         {
             onOutgoingCallTerminated();
@@ -186,6 +199,10 @@ public abstract class AbstractVoiceClientView
     }
 
     protected void onOutgoingCall( Call call )
+    {
+    }
+
+    protected void onOutgoingCallAccepted()
     {
     }
 

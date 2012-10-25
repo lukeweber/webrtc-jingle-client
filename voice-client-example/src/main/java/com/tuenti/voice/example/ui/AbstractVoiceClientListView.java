@@ -52,6 +52,12 @@ public abstract class AbstractVoiceClientListView
         }
 
         @Override
+        public void handleOutgoingCallAccepted()
+        {
+            onOutgoingCallAccepted();
+        }
+
+        @Override
         public void handleOutgoingCallTerminated()
         {
             onOutgoingCallTerminated();
@@ -234,6 +240,10 @@ public abstract class AbstractVoiceClientListView
     }
 
     protected void onOutgoingCall( Call call )
+    {
+    }
+
+    protected void onOutgoingCallAccepted()
     {
     }
 

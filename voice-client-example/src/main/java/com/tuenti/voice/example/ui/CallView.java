@@ -12,6 +12,7 @@ import android.widget.TextView;
 import com.tuenti.voice.example.Intents;
 import com.tuenti.voice.example.R;
 import com.tuenti.voice.example.data.Call;
+import com.tuenti.voice.example.util.CallTimer;
 import com.tuenti.voice.example.util.ProximitySensor;
 import com.tuenti.voice.example.util.WakeLockManager;
 
@@ -19,10 +20,11 @@ import static android.os.PowerManager.ACQUIRE_CAUSES_WAKEUP;
 import static android.os.PowerManager.FULL_WAKE_LOCK;
 import static android.os.PowerManager.PARTIAL_WAKE_LOCK;
 import static android.view.View.OnClickListener;
+import static com.tuenti.voice.example.util.CallTimer.OnTickListener;
 
 public class CallView
     extends AbstractVoiceClientView
-    implements OnClickListener
+    implements OnClickListener, OnTickListener
 {
 // ------------------------------ FIELDS ------------------------------
 
@@ -32,7 +34,11 @@ public class CallView
 
     private Call mCall;
 
+    private CallTimer mCallTimer;
+
     private TextView mElapsedTime;
+
+    private TextView mName;
 
     private ImageView mPhoto;
 
@@ -65,7 +71,6 @@ public class CallView
                 {
                     case R.id.hang_up_btn:
                         getCallService().endCall( mCall.getCallId() );
-                        finish();
                         break;
                     case R.id.mute_btn:
                         getCallService().toggleMute( mCall.getCallId() );
@@ -82,6 +87,14 @@ public class CallView
         }
     }
 
+// --------------------- Interface OnTickListener ---------------------
+
+    @Override
+    public void onTickForCallTimeElapsed( long timeElapsed )
+    {
+        mElapsedTime.setText( DateUtils.formatElapsedTime( timeElapsed ) );
+    }
+
 // -------------------------- OTHER METHODS --------------------------
 
     public void onProximity()
@@ -96,15 +109,6 @@ public class CallView
         turnScreenOn( true );
         mWakeLock.setWakeLockState( FULL_WAKE_LOCK | ACQUIRE_CAUSES_WAKEUP );
         mUILocked = false;
-    }
-
-    @Override
-    protected void onCallInProgress()
-    {
-        if ( mBottomBar.getVisibility() != View.VISIBLE )
-        {
-            mBottomBar.setVisibility( View.VISIBLE );
-        }
     }
 
     @Override
@@ -125,17 +129,33 @@ public class CallView
         mPhoto = (ImageView) findViewById( R.id.photo );
         mBottomBar = (LinearLayout) findViewById( R.id.bottom_bar );
         mElapsedTime = (TextView) findViewById( R.id.elapsed_time );
+
+        mName = (TextView) findViewById( R.id.name );
+        mName.setText( mCall.getRemoteJid() );
+
+        mCallTimer = new CallTimer( this );
     }
 
     @Override
     protected void onIncomingCallTerminated()
     {
+        mCallTimer.cancelTimer();
         finish();
+    }
+
+    @Override
+    protected void onOutgoingCallAccepted()
+    {
+        Log.d( TAG, "onOutgoingCallAccepted" );
+        mElapsedTime.setVisibility( View.VISIBLE );
+        mBottomBar.setVisibility( View.VISIBLE );
+        mCallTimer.startTimer( mCall );
     }
 
     @Override
     protected void onOutgoingCallTerminated()
     {
+        mCallTimer.cancelTimer();
         finish();
     }
 
@@ -189,10 +209,5 @@ public class CallView
             params.screenBrightness = 0.01f;
         }
         getWindow().setAttributes( params );
-    }
-
-    private void updateElapsedTime( long timeElapsed )
-    {
-        mElapsedTime.setText( DateUtils.formatElapsedTime( timeElapsed ) );
     }
 }

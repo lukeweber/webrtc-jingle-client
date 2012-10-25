@@ -8,8 +8,12 @@ import com.tuenti.voice.core.BuddyListState;
 import com.tuenti.voice.core.RosterListener;
 import com.tuenti.voice.core.VoiceClient;
 import com.tuenti.voice.example.data.Buddy;
+import com.tuenti.voice.example.util.BuddyComparator;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 public class RosterManager
     implements RosterListener
@@ -19,6 +23,8 @@ public class RosterManager
     private static final Object mLock = new Object();
 
     private static final String TAG = "RosterManager";
+
+    private BuddyComparator comparator = new BuddyComparator();
 
     private final IRosterService.Stub mBinder = new IRosterService.Stub()
     {
@@ -92,7 +98,10 @@ public class RosterManager
 
     private void dispatchCallback()
     {
-        final Buddy[] buddies = mBuddies.values().toArray( new Buddy[mBuddies.size()] );
+        List<Buddy> values = new ArrayList<Buddy>( mBuddies.values() );
+        Collections.sort( values, comparator );
+
+        final Buddy[] buddies = values.toArray( new Buddy[values.size()] );
         final int callbackCount = mCallbacks.beginBroadcast();
         for ( int i = 0; i < callbackCount; i++ )
         {
