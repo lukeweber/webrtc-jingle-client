@@ -7,5 +7,6 @@ oneway interface ICallServiceCallback {
     void handleCallInProgress();
     void handleIncomingCallTerminated();
     void handleOutgoingCall( in Call call );
+    void handleOutgoingCallAccepted();
     void handleOutgoingCallTerminated();
 }
