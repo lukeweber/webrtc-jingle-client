@@ -1,6 +1,8 @@
 package com.tuenti.voice.example.ui.activity;
 
 import android.app.Activity;
+import android.app.KeyguardManager;
+import android.app.KeyguardManager.KeyguardLock;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -24,11 +26,12 @@ import com.tuenti.voice.example.util.WakeLockManager;
 public class CallInProgressActivity extends Activity implements
 		View.OnClickListener {
 	// UI lock flag
-	private boolean mUILocked = false;
+	private boolean mUILocked;
 
-	private final String TAG = "CallInProgressActivity";
+	private final String LOG_TAG = "CallInProgressActivity";
 	private ProximitySensor mProximitySensor;
 	private WakeLockManager mWakeLock;
+	private KeyguardLock mKeyguardLock;
 
 	private long mCallId;
 	private String mRemoteJid;
@@ -48,7 +51,6 @@ public class CallInProgressActivity extends Activity implements
 			} else if (action.equals(CallUIIntent.CALL_PROGRESS)) {
 				updateCallDuration(intent.getLongExtra("duration", -1));
 			}
-
 		}
 	};
 
@@ -72,6 +74,7 @@ public class CallInProgressActivity extends Activity implements
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		mUILocked = false;
 		setContentView(R.layout.callinprogress);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_IGNORE_CHEEK_PRESSES);
@@ -84,17 +87,31 @@ public class CallInProgressActivity extends Activity implements
 	}
 
 	@Override
+	protected void onStart(){
+		super.onStart();
+		KeyguardManager mKeyGuardManager = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
+		mKeyguardLock = mKeyGuardManager.newKeyguardLock(LOG_TAG);
+		mKeyguardLock.disableKeyguard();
+
+		mWakeLock = new WakeLockManager(this);
+		mWakeLock.setWakeLock(true, true);
+		mWakeLock.setProximityWakeLock(true, false);
+
+		//fail over manual proximity management.
+		if( !mWakeLock.isProximityWakeLockEnabled() ){
+			mProximitySensor = new ProximitySensor(this);
+		}
+	}
+
+	@Override
 	protected void onResume() {
 		super.onResume();
-		Log.v(TAG, "onResume()");
-
 		Intent intent = getIntent();
 		mCallId = intent.getLongExtra("callId", 0);
 		mRemoteJid = intent.getStringExtra("remoteJid");
 		mMute = intent.getBooleanExtra("isMuted", false);
 		mHold = intent.getBooleanExtra("isHeld", false);
-		mProximitySensor = new ProximitySensor(this);
-		mWakeLock = new WakeLockManager(getBaseContext());
+
 		changeStatus("Talking to " + mRemoteJid);
 	}
 
@@ -115,18 +132,13 @@ public class CallInProgressActivity extends Activity implements
 	}
 
 	@Override
-	protected void onPause() {
-		super.onPause();
-		mProximitySensor.destroy();
-		mProximitySensor = null;
-		onUnProximity();
-		mWakeLock.releaseWakeLock();
-	}
-
-	@Override
 	protected void onStop() {
-		super.onStop();
 		mWakeLock.releaseWakeLock();
+		mKeyguardLock.reenableKeyguard();
+		if( mProximitySensor != null ){
+			mProximitySensor.destroy();
+		}
+		super.onStop();
 	}
 
 	@Override
@@ -136,32 +148,28 @@ public class CallInProgressActivity extends Activity implements
 		super.onDestroy();
 	}
 
-	public void onProximity() {
-		mUILocked = true;
-		turnScreenOn(false);
-		mWakeLock.setWakeLockState(PowerManager.PARTIAL_WAKE_LOCK);
-	}
-
 	private void changeStatus(String status) {
 		((TextView) findViewById(R.id.status_view)).setText(status);
 	}
 
-	public void onUnProximity() {
-		turnScreenOn(true);
-		mWakeLock.setWakeLockState(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP);
-		mUILocked = false;
-	}
-
-	private void turnScreenOn(boolean on) {
+	/**
+	 * Method to manually turn the screen on. Not as reliable as the internal api
+	 * used in WakeLockManager, but used by ProximitySensor to turn on and off the
+	 * screen in case of fall back.
+	 * @param screenOn - Whether to turn the screen on.
+	 */
+	public void turnScreenOn(boolean screenOn) {
+		mWakeLock.setWakeLock(true, screenOn);
+		mUILocked = !screenOn;
 		WindowManager.LayoutParams params = getWindow().getAttributes();
 		params.flags |= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
-		if (on) {
+		if (screenOn) {
 			// less than 0 returns to default behavior.
 			params.screenBrightness = -1;
 		} else {
-			// Samsung Galaxy Ace locks if you turn the screen off.
-			// To be safe, we're just going to dim. Dimming more is
-			// also considered off, i.e. 0.001f.
+			// Some phone power management ignore FLAG_KEEP_SCREEN_ON, and will
+			// shut down screen, thus locking device. Not turning the screen off
+			// avoids this case.
 			params.screenBrightness = 0.01f;
 		}
 		getWindow().setAttributes(params);
