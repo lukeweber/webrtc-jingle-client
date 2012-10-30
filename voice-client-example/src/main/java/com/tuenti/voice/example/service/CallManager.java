@@ -153,7 +153,7 @@ public class CallManager
                 handleIncomingCall( callId, remoteJid );
                 break;
             case RECEIVED_ACCEPT:
-                handleOutgoingCallAccepted();
+                handleOutgoingCallAccepted( callId );
                 break;
             case RECEIVED_TERMINATE:
                 handleIncomingCallTerminated( callId );
@@ -161,10 +161,14 @@ public class CallManager
             case SENT_INITIATE:
                 handleOutgoingCall( callId, remoteJid );
                 break;
+            case SENT_ACCEPT:
+                handleIncomingCallAccepted( callId );
+                break;
             case SENT_TERMINATE:
                 handleOutgoingCallTerminated( callId );
                 break;
-            case SENT_REJECT:
+            case IN_PROGRESS:
+                handleCallInProgress();
                 break;
         }
     }
@@ -204,14 +208,23 @@ public class CallManager
                     case RECEIVED_ACCEPT:
                         callback.handleOutgoingCallAccepted();
                         break;
+                    case RECEIVED_INITIATE:
+                        callback.handleIncomingCall( call );
+                        break;
                     case RECEIVED_TERMINATE:
                         callback.handleIncomingCallTerminated();
+                        break;
+                    case SENT_ACCEPT:
+                        callback.handleIncomingCallAccepted();
                         break;
                     case SENT_INITIATE:
                         callback.handleOutgoingCall( call );
                         break;
                     case SENT_TERMINATE:
                         callback.handleOutgoingCallTerminated();
+                        break;
+                    case IN_PROGRESS:
+                        callback.handleCallInProgress();
                         break;
                 }
             }
@@ -224,11 +237,6 @@ public class CallManager
         mCallbacks.finishBroadcast();
     }
 
-    private Call getCurrentCall()
-    {
-        return mCurrentCall;
-    }
-
     private void handleCall( String remoteJid )
     {
         if ( ConnectionMonitor.hasSlowConnection() )
@@ -239,6 +247,11 @@ public class CallManager
         {
             mClient.call( remoteJid );
         }
+    }
+
+    private void handleCallInProgress()
+    {
+        dispatchCallback( CallState.IN_PROGRESS, null );
     }
 
     private void handleEndCall( long callId )
@@ -255,7 +268,7 @@ public class CallManager
             Log.i( TAG, "Declining call because of slow connection" );
             mClient.declineCall( callId, true );
         }
-        else if ( mCurrentCall != null )
+        else if ( mCurrentCall != null || ConnectionMonitor.getInstance( mContext ).isCallInProgress() )
         {
             //TODO(Luke): Notification of missed call.
             Log.i( TAG, "Declining call because call in progress" );
@@ -263,13 +276,23 @@ public class CallManager
         }
         else
         {
-            initCallState( callId, remoteJid );
+            initCallState( callId, remoteJid, true );
+            dispatchCallback( CallState.RECEIVED_INITIATE, mCurrentCall );
             startRing( true, false );
-
-            // show alert pop up for incoming call + tray notification
-            // startIncomingCallDialog( callId, remoteJid );
-            // sendIncomingCallNotification( remoteJid );
         }
+    }
+
+    private void handleIncomingCallAccepted( long callId )
+    {
+        if ( !mCallMap.containsKey( callId ) )
+        {
+            return;
+        }
+
+        mCurrentCall = mCallMap.get( callId );
+        dispatchCallback( CallState.SENT_ACCEPT, null );
+        stopRing();
+        setAudioForCall();
     }
 
     private void handleIncomingCallTerminated( long callId )
@@ -286,16 +309,22 @@ public class CallManager
 
     private void handleOutgoingCall( long callId, String remoteJid )
     {
-        initCallState( callId, remoteJid );
-        dispatchCallback( CallState.SENT_INITIATE, getCurrentCall() );
+        initCallState( callId, remoteJid, false );
+        dispatchCallback( CallState.SENT_INITIATE, mCurrentCall );
         startRing( false, false );
     }
 
-    private void handleOutgoingCallAccepted()
+    private void handleOutgoingCallAccepted( long callId )
     {
+        if ( !mCallMap.containsKey( callId ) )
+        {
+            return;
+        }
+
+        mCurrentCall = mCallMap.get( callId );
+        dispatchCallback( CallState.RECEIVED_ACCEPT, null );
         stopRing();
         setAudioForCall();
-        dispatchCallback( CallState.RECEIVED_ACCEPT, null );
     }
 
     private void handleOutgoingCallTerminated( long callId )
@@ -330,13 +359,12 @@ public class CallManager
         }
     }
 
-    private void initCallState( long callId, String remoteJid )
+    private void initCallState( long callId, String remoteJid, boolean incoming )
     {
         mNetworkPreference.enableStickyNetworkPreference();
 
-        Call call = new Call( callId, remoteJid );
-        mCurrentCall = call;
-        mCallMap.put( callId, call );
+        mCurrentCall = new Call( callId, remoteJid, incoming );
+        mCallMap.put( callId, mCurrentCall );
     }
 
     private void resetAudio()
@@ -363,14 +391,18 @@ public class CallManager
     {
         // remove the call
         mCallMap.remove( callId );
-        if ( mCurrentCall != null && mCurrentCall.getCallId() == callId )
+
+        // reset current call ID
+        if ( mCurrentCall.getCallId() == callId )
         {
             mCurrentCall = null;
         }
 
-        // reset the audio and ringing
-        resetAudio();
+        // stop ringing
         stopRing();
+
+        // reset the audio
+        resetAudio();
     }
 
     private void stopRing()

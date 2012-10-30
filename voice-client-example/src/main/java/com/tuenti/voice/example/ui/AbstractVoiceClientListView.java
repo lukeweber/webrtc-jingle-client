@@ -41,6 +41,18 @@ public abstract class AbstractVoiceClientListView
         }
 
         @Override
+        public void handleIncomingCall( Call call )
+        {
+            onIncomingCall( call );
+        }
+
+        @Override
+        public void handleIncomingCallAccepted()
+        {
+            onIncomingCallAccepted();
+        }
+
+        @Override
         public void handleIncomingCallTerminated()
         {
         }
@@ -224,6 +236,14 @@ public abstract class AbstractVoiceClientListView
     }
 
     protected void onCallInProgress()
+    {
+    }
+
+    protected void onIncomingCall( Call call )
+    {
+    }
+
+    protected void onIncomingCallAccepted()
     {
     }
 

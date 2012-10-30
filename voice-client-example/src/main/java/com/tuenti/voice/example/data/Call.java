@@ -27,6 +27,8 @@ public class Call
 
     private boolean hold;
 
+    private boolean incoming;
+
     private boolean mute;
 
     private String remoteJid;
@@ -37,16 +39,18 @@ public class Call
     {
         callId = in.readLong();
         hold = in.readByte() == 1;
+        incoming = in.readByte() == 1;
         mute = in.readByte() == 1;
         remoteJid = in.readString();
         callStartTime = in.readLong();
     }
 
-    public Call( long callId, String remoteJid )
+    public Call( long callId, String remoteJid, boolean incoming )
     {
         this.callId = callId;
         this.remoteJid = remoteJid;
         this.hold = false;
+        this.incoming = incoming;
         this.mute = false;
     }
 
@@ -92,6 +96,16 @@ public class Call
         this.hold = hold;
     }
 
+    public boolean isIncoming()
+    {
+        return incoming;
+    }
+
+    public void setIncoming( boolean incoming )
+    {
+        this.incoming = incoming;
+    }
+
     public boolean isMute()
     {
         return mute;
@@ -117,6 +131,7 @@ public class Call
     {
         out.writeLong( callId );
         out.writeByte( (byte) ( hold ? 1 : 0 ) );
+        out.writeByte( (byte) ( incoming ? 1 : 0 ) );
         out.writeByte( ( (byte) ( mute ? 1 : 0 ) ) );
         out.writeString( remoteJid );
         out.writeLong( callStartTime );
