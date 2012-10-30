@@ -65,7 +65,15 @@ public class RosterView
     }
 
     @Override
-    protected void onOutgoingCall( Call call )
+    protected void onIncomingCall( final Call call )
+    {
+        Intent intent = new Intent( this, CallView.class );
+        intent.putExtra( EXTRA_CALL, call );
+        startActivityForResult( intent, 0 );
+    }
+
+    @Override
+    protected void onOutgoingCall( final Call call )
     {
         Intent intent = new Intent( this, CallView.class );
         intent.putExtra( EXTRA_CALL, call );

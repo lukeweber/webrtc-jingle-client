@@ -34,6 +34,8 @@ public class CallView
 
     private Call mCall;
 
+    private TextView mCallStateLabel;
+
     private CallTimer mCallTimer;
 
     private TextView mElapsedTime;
@@ -71,6 +73,7 @@ public class CallView
                 {
                     case R.id.hang_up_btn:
                         getCallService().endCall( mCall.getCallId() );
+                        finish();
                         break;
                     case R.id.mute_btn:
                         getCallService().toggleMute( mCall.getCallId() );
@@ -112,6 +115,15 @@ public class CallView
     }
 
     @Override
+    protected void onCallInProgress()
+    {
+        if ( mBottomBar.getVisibility() != View.VISIBLE )
+        {
+            mBottomBar.setVisibility( View.VISIBLE );
+        }
+    }
+
+    @Override
     protected void onCreate( Bundle savedInstanceState )
     {
         super.onCreate( savedInstanceState );
@@ -120,6 +132,7 @@ public class CallView
         getWindow().addFlags( WindowManager.LayoutParams.FLAG_IGNORE_CHEEK_PRESSES );
 
         mCall = getIntent().getParcelableExtra( Intents.EXTRA_CALL );
+        mCallTimer = new CallTimer( this );
 
         setContentView( R.layout.call_view );
         findViewById( R.id.hang_up_btn ).setOnClickListener( this );
@@ -127,13 +140,20 @@ public class CallView
         findViewById( R.id.hold_btn ).setOnClickListener( this );
 
         mPhoto = (ImageView) findViewById( R.id.photo );
-        mBottomBar = (LinearLayout) findViewById( R.id.bottom_bar );
-        mElapsedTime = (TextView) findViewById( R.id.elapsed_time );
-
         mName = (TextView) findViewById( R.id.name );
-        mName.setText( mCall.getRemoteJid() );
+        mElapsedTime = (TextView) findViewById( R.id.elapsed_time );
+        mCallStateLabel = (TextView) findViewById( R.id.callStateLabel );
+        mBottomBar = (LinearLayout) findViewById( R.id.bottom_bar );
+    }
 
-        mCallTimer = new CallTimer( this );
+    @Override
+    protected void onIncomingCallAccepted()
+    {
+        Log.d( TAG, "onIncomingCallAccepted" );
+        mCallStateLabel.setVisibility( View.GONE );
+        mElapsedTime.setVisibility( View.VISIBLE );
+        mBottomBar.setVisibility( View.VISIBLE );
+        mCallTimer.startTimer( mCall );
     }
 
     @Override
@@ -147,6 +167,7 @@ public class CallView
     protected void onOutgoingCallAccepted()
     {
         Log.d( TAG, "onOutgoingCallAccepted" );
+        mCallStateLabel.setVisibility( View.GONE );
         mElapsedTime.setVisibility( View.VISIBLE );
         mBottomBar.setVisibility( View.VISIBLE );
         mCallTimer.startTimer( mCall );
@@ -177,7 +198,8 @@ public class CallView
 
         mProximitySensor = new ProximitySensor( this );
         mWakeLock = new WakeLockManager( getBaseContext() );
-        changeStatus( "Talking to " + mCall.getRemoteJid() );
+
+        updateCallDisplay();
     }
 
     @Override
@@ -209,5 +231,12 @@ public class CallView
             params.screenBrightness = 0.01f;
         }
         getWindow().setAttributes( params );
+    }
+
+    private void updateCallDisplay()
+    {
+        mName.setText( mCall.getRemoteJid() );
+        mCallStateLabel.setText( mCall.isIncoming() ? "INCOMING CALL" : "CALLING" );
+        mCallStateLabel.setVisibility( View.VISIBLE );
     }
 }

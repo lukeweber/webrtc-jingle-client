@@ -21,6 +21,7 @@
             android:scaleType="centerCrop"/>
 
         <RelativeLayout
+            android:id="@+id/primary_call_banner"
             android:layout_alignParentTop="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -56,6 +57,35 @@
                 android:visibility="invisible"/>
 
         </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/secondary_info_container"
+            android:layout_below="@id/primary_call_banner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|right"
+            android:orientation="vertical"
+            android:background="@color/incall_secondary_info_background"
+            android:animateLayoutChanges="true">
+
+            <!-- The "call state label": In some states, this shows a special
+                 indication like "Dialing" or "Incoming call" or "Call ended".
+                 It's unused for the normal case of an active ongoing call. -->
+            <TextView android:id="@+id/callStateLabel"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:paddingTop="@dimen/provider_info_top_bottom_padding"
+                      android:paddingBottom="@dimen/provider_info_top_bottom_padding"
+                      android:paddingLeft="@dimen/call_banner_side_padding"
+                      android:paddingRight="@dimen/call_banner_side_padding"
+                      android:gravity="right"
+                      android:textAppearance="?android:attr/textAppearanceSmall"
+                      android:textColor="@color/incall_call_banner_text_color"
+                      android:textAllCaps="true"
+                      android:background="@android:color/transparent"
+                      android:singleLine="true"
+                      android:ellipsize="end"/>
+        </LinearLayout>
 
     </RelativeLayout>
 

@@ -8,7 +8,6 @@ import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 import com.tuenti.voice.example.R;
 import com.tuenti.voice.example.data.User;
@@ -30,8 +29,6 @@ public class LoginView
     private static final String TAG = "VoiceClientActivity";
 
     private Handler mHandler = new Handler();
-
-    private Button mLoginButton;
 
     private SharedPreferences mSettings;
 
@@ -67,7 +64,6 @@ public class LoginView
     {
         try
         {
-            mLoginButton.setVisibility( View.GONE );
             getConnectionService().login( getUser() );
         }
         catch ( RemoteException e )
@@ -88,9 +84,7 @@ public class LoginView
         startService( intent );
 
         setContentView( R.layout.login_view );
-
-        mLoginButton = (Button) findViewById( R.id.login_btn );
-        mLoginButton.setOnClickListener( this );
+        findViewById( R.id.login_btn ).setOnClickListener( this );
 
         // Set default preferences
         mSettings = PreferenceManager.getDefaultSharedPreferences( this );
@@ -100,13 +94,13 @@ public class LoginView
     protected void onLoggedIn()
     {
         changeStatus( "Logged in" );
+
         mHandler.postDelayed( new Runnable()
         {
             @Override
             public void run()
             {
-                Intent intent = new Intent( LoginView.this, RosterView.class );
-                startActivity( intent );
+                displayRosterView();
             }
         }, 2000 );
     }
@@ -115,7 +109,6 @@ public class LoginView
     protected void onLoggedOut()
     {
         changeStatus( "Logged out" );
-        mLoginButton.setVisibility( View.VISIBLE );
     }
 
     @Override
@@ -134,6 +127,12 @@ public class LoginView
                 ( (TextView) findViewById( R.id.status_view ) ).setText( status );
             }
         } );
+    }
+
+    private void displayRosterView()
+    {
+        Intent intent = new Intent( this, RosterView.class );
+        startActivity( intent );
     }
 
     private boolean getBooleanPref( int key, int defaultValue )
