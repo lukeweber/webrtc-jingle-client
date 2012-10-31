@@ -14,6 +14,8 @@ public class ProximitySensor implements SensorEventListener {
 	// Proximity Sensor
 	private final SensorManager mSensorManager;
 
+	private boolean mEnabled = false;
+
 	private final Sensor mProximity;
 
 	private final float mMaxRangeProximity;
@@ -30,10 +32,23 @@ public class ProximitySensor implements SensorEventListener {
 		mProximity = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
 		if (mProximity != null) {
 			mMaxRangeProximity = mProximity.getMaximumRange();
-			mSensorManager.registerListener(this, mProximity,
-					SensorManager.SENSOR_DELAY_NORMAL);
 		} else {
 			mMaxRangeProximity = 10;
+		}
+	}
+
+	public void start(){
+		if (mProximity != null && !mEnabled) {
+			mEnabled = true;
+			mSensorManager.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL);
+		}
+	}
+
+	public void stop(){
+		if (mProximity != null && mEnabled) {
+			mEnabled = false;
+			mSensorManager.unregisterListener(this);
+			mCallInProgressCallback.turnScreenOn(true);
 		}
 	}
 
@@ -53,12 +68,5 @@ public class ProximitySensor implements SensorEventListener {
 		// brightness.
 		mCallInProgressCallback.turnScreenOn(!(event.values[0] < mMaxRangeProximity
 				&& event.values[0] <= ON_EAR_DISTANCE));
-	}
-
-	public void destroy() {
-		if (mProximity != null) {
-			mSensorManager.unregisterListener(this);
-			mCallInProgressCallback.turnScreenOn(true);
-		}
 	}
 }

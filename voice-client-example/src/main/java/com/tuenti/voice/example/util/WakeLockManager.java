@@ -7,7 +7,6 @@ import android.content.Context;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.Log;
-import android.hardware.SensorManager;
 
 public class WakeLockManager {
 
@@ -17,13 +16,16 @@ public class WakeLockManager {
 	private WakeLock mPartialLock;
 	private WakeLock mFullLock;
 	private WakeLock mProximityLock;
+	private Method mPowerManagerReleaseIntMethod;
+	private final static int WAIT_FOR_PROXIMITY_NEGATIVE = 1;
+	private final static int WAKE_UP_IMMEDIATELY = 0;
 
 	public WakeLockManager(Context context){
 		mPowerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
 		mFullLock = mPowerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK
 											  | PowerManager.ACQUIRE_CAUSES_WAKEUP
 											  | PowerManager.ON_AFTER_RELEASE, LOG_TAG);
-		mPartialLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK , LOG_TAG);
+		mPartialLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, LOG_TAG);
 
 		// Check if PROXIMITY_SCREEN_OFF_WAKE_LOCK is implemented, not part of public api.
 		try {
@@ -33,10 +35,17 @@ public class WakeLockManager {
 			int proximityScreenOffWakeLock = (Integer) field.get(null);
 			if ((supportedWakeLockFlags & proximityScreenOffWakeLock) != 0x0) {
 				mProximityLock = mPowerManager.newWakeLock(proximityScreenOffWakeLock, LOG_TAG);
-				mProximityLock.setReferenceCounted(false);
 			}
 		} catch (Exception e){
-			//Failed to get proximity wake lock.
+			Log.e(LOG_TAG, "Failed to get proximity wake lock.");
+		}
+
+		if( mProximityLock != null ){
+			try {
+				mPowerManagerReleaseIntMethod = mProximityLock.getClass().getDeclaredMethod("release", int.class);
+			}catch (Exception e) {
+				Log.e(LOG_TAG, "Failed to get release method.");
+			}
 		}
 	}
 
@@ -44,7 +53,7 @@ public class WakeLockManager {
 		return mProximityLock != null;
 	}
 
-	public void setProximityWakeLock(boolean enable, boolean screenOn ){
+	public void setProximityWakeLock(boolean enable, boolean screenOnImmediately ){
 		if (isProximityWakeLockEnabled()){
 			synchronized (mProximityLock){
 				if ( enable ){
@@ -53,10 +62,14 @@ public class WakeLockManager {
 					}
 				} else {
 					if ( mProximityLock.isHeld()){
-						mProximityLock.release();
-						// TODO: If I have time. Undocumented private api.
-						//int flags = ( screenOn ? 0 : PowerManager.WAIT_FOR_PROXIMITY_NEGATIVE);
-						//mProximityLock.release(flags);
+						if (mPowerManagerReleaseIntMethod != null){
+							try {
+								int flags = screenOnImmediately ? WAKE_UP_IMMEDIATELY : WAIT_FOR_PROXIMITY_NEGATIVE;
+								mPowerManagerReleaseIntMethod.invoke(mProximityLock, flags);
+							} catch (Exception e){
+								Log.e(LOG_TAG, "Wake lock release failed");
+							}
+						}
 					}
 				}
 			}

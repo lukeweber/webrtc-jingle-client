@@ -29,9 +29,9 @@ public class CallInProgressActivity extends Activity implements
 	private boolean mUILocked;
 
 	private final String LOG_TAG = "CallInProgressActivity";
-	private ProximitySensor mProximitySensor;
 	private WakeLockManager mWakeLock;
 	private KeyguardLock mKeyguardLock;
+	private ProximitySensor mProximitySensor;
 
 	private long mCallId;
 	private String mRemoteJid;
@@ -39,6 +39,7 @@ public class CallInProgressActivity extends Activity implements
 	private boolean mHold;
 
 	private TextView durationTextView;
+	private PowerManager mPowerManager;
 
 	private BroadcastReceiver mReceiver = new BroadcastReceiver() {
 		@Override
@@ -75,12 +76,17 @@ public class CallInProgressActivity extends Activity implements
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		mUILocked = false;
+
 		setContentView(R.layout.callinprogress);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_IGNORE_CHEEK_PRESSES);
 
 		durationTextView = (TextView) findViewById(R.id.duration_textview);
 		updateCallDuration(0);
+
+		mWakeLock = new WakeLockManager(this);
+
+		mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
 
 		initClickListeners();
 		setupReceiver();
@@ -92,20 +98,17 @@ public class CallInProgressActivity extends Activity implements
 		KeyguardManager mKeyGuardManager = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
 		mKeyguardLock = mKeyGuardManager.newKeyguardLock(LOG_TAG);
 		mKeyguardLock.disableKeyguard();
-
-		mWakeLock = new WakeLockManager(this);
-		mWakeLock.setWakeLock(true, true);
-		mWakeLock.setProximityWakeLock(true, false);
-
-		//fail over manual proximity management.
-		if( !mWakeLock.isProximityWakeLockEnabled() ){
-			mProximitySensor = new ProximitySensor(this);
-		}
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
+		mWakeLock.setProximityWakeLock(true, false);
+		//fail over manual proximity management.
+		if( !mWakeLock.isProximityWakeLockEnabled() ){
+			mProximitySensor = new ProximitySensor(this);
+			mProximitySensor.start();
+		}
 		Intent intent = getIntent();
 		mCallId = intent.getLongExtra("callId", 0);
 		mRemoteJid = intent.getStringExtra("remoteJid");
@@ -113,6 +116,19 @@ public class CallInProgressActivity extends Activity implements
 		mHold = intent.getBooleanExtra("isHeld", false);
 
 		changeStatus("Talking to " + mRemoteJid);
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+
+	   // Pausing while screen is on means it's not because of proximity.
+	   if (mPowerManager.isScreenOn()){
+		   if( mProximitySensor != null ){
+			   mProximitySensor.stop();
+		   }
+		   mWakeLock.setProximityWakeLock(false, true);
+	   }
 	}
 
 	private void setupReceiver() {
@@ -133,11 +149,7 @@ public class CallInProgressActivity extends Activity implements
 
 	@Override
 	protected void onStop() {
-		mWakeLock.releaseWakeLock();
 		mKeyguardLock.reenableKeyguard();
-		if( mProximitySensor != null ){
-			mProximitySensor.destroy();
-		}
 		super.onStop();
 	}
 
@@ -145,6 +157,10 @@ public class CallInProgressActivity extends Activity implements
 	protected void onDestroy() {
 		LocalBroadcastManager.getInstance(getBaseContext()).unregisterReceiver(
 				mReceiver);
+		mWakeLock.setProximityWakeLock(false, true);
+		if( mProximitySensor != null ){
+			mProximitySensor.stop();
+		}
 		super.onDestroy();
 	}
 
@@ -159,7 +175,6 @@ public class CallInProgressActivity extends Activity implements
 	 * @param screenOn - Whether to turn the screen on.
 	 */
 	public void turnScreenOn(boolean screenOn) {
-		mWakeLock.setWakeLock(true, screenOn);
 		mUILocked = !screenOn;
 		WindowManager.LayoutParams params = getWindow().getAttributes();
 		params.flags |= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;

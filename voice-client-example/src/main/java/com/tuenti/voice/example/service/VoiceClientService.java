@@ -40,6 +40,7 @@ import com.tuenti.voice.example.util.ConnectionMonitor;
 import com.tuenti.voice.example.util.IConnectionMonitor;
 import com.tuenti.voice.example.util.NetworkPreference;
 import com.tuenti.voice.example.util.RingManager;
+import com.tuenti.voice.example.util.WakeLockManager;
 
 public class VoiceClientService extends Service implements
 		IVoiceClientServiceInt, VoiceClientEventCallback, IConnectionMonitor {
@@ -80,6 +81,8 @@ public class VoiceClientService extends Service implements
 	private boolean mReconnectTimerRunning = false;
 	private boolean mReconnect = false;
 
+	private WakeLockManager mWakeLock;
+
 	/**
 	 * This is a list of callbacks that have been registered with the service.
 	 * Note that this is package scoped (instead of private) so that it can be
@@ -94,9 +97,10 @@ public class VoiceClientService extends Service implements
 
 		// Set default preferences
 		mSettings = PreferenceManager.getDefaultSharedPreferences(this);
-
 		mNotificationManager = new CallNotification(this);
 		mNetworkPreference = new NetworkPreference(this);
+		mWakeLock = new WakeLockManager(this);
+
 		initClientWrapper();
 		initAudio();
 		initCallDurationTask();
@@ -232,6 +236,14 @@ public class VoiceClientService extends Service implements
         }
         Log.e(TAG, "call error ------------------, callid " + callId + "error " + error );
     }
+
+    /*
+    @Override
+    public void handleAudioPlayout(){
+        Log.e(TAG, "handleaudioplayout");
+        resetAudio();
+        setAudioForCall();
+    }*/
 
     @Override
     public void handleXmppError(int error) {
@@ -566,6 +578,7 @@ public class VoiceClientService extends Service implements
 
 	public void callStarted(long callId) {
 		stopRing();
+        mWakeLock.setWakeLock(true, true);
 		Call call = mCallMap.get(Long.valueOf(callId));
 		call.startCallTimer();
 		String remoteJid = call.getRemoteJid();
@@ -597,6 +610,7 @@ public class VoiceClientService extends Service implements
 		// Makes sure we don't change state for calls
 		// we decline as busy while in a call.
 		if (mCallMap.containsKey(Long.valueOf(callId))) {
+		    mWakeLock.setWakeLock(false, true);
 			mCallInProgress = false;
 			mCurrentCallId = 0;
 			mNetworkPreference.unsetNetworkPreference();
