@@ -95,12 +95,23 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true">
 
-        <ImageButton
-            android:id="@+id/hang_up_btn"
-            style="@style/InCallEndButton"
+        <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:src="@drawable/ic_dial_end_call"
-            android:background="@drawable/end_call_background"/>
+            android:layout_height="wrap_content">
+            <ImageButton
+                android:id="@+id/accept_btn"
+                style="@style/InCallEndButton"
+                android:layout_width="match_parent"
+                android:src="@drawable/ic_dial_action_call"
+                android:background="@drawable/action_call_background"/>
+            <ImageButton
+                android:id="@+id/hang_up_btn"
+                style="@style/InCallEndButton"
+                android:layout_width="match_parent"
+                android:src="@drawable/ic_dial_end_call"
+                android:background="@drawable/end_call_background"/>
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/bottom_bar"

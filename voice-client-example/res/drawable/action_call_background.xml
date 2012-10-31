@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Background drawable used to render the "end call" button. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_enabled="false">
+        <bitmap
+            android:src="@drawable/endcall_disable"
+            android:tileMode="repeat"/>
+    </item>
+
+    <item android:state_pressed="true">
+        <bitmap
+            android:src="@drawable/endcall_active"
+            android:tileMode="repeat"/>
+    </item>
+
+    <item>
+        <layer-list>
+            <item>
+                <bitmap
+                    android:src="@drawable/actioncall_background_texture"
+                    android:tileMode="repeat"/>
+            </item>
+
+            <!-- The standard "compound button" background. -->
+            <item android:drawable="@drawable/btn_compound_background"/>
+        </layer-list>
+    </item>
+
+</selector>

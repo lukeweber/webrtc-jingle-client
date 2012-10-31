@@ -32,6 +32,7 @@ public class CallManager
         @Override
         public void acceptCall( long callId )
         {
+            handleAcceptCall( callId );
         }
 
         @Override
@@ -235,6 +236,11 @@ public class CallManager
             }
         }
         mCallbacks.finishBroadcast();
+    }
+
+    private void handleAcceptCall( long callId )
+    {
+        mClient.acceptCall( callId );
     }
 
     private void handleCall( String remoteJid )

@@ -6,6 +6,8 @@ import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -29,6 +31,8 @@ public class CallView
 // ------------------------------ FIELDS ------------------------------
 
     private static final String TAG = "CallView";
+
+    private ImageButton mAcceptButton;
 
     private LinearLayout mBottomBar;
 
@@ -71,6 +75,9 @@ public class CallView
             {
                 switch ( view.getId() )
                 {
+                    case R.id.accept_btn:
+                        getCallService().acceptCall( mCall.getCallId() );
+                        break;
                     case R.id.hang_up_btn:
                         getCallService().endCall( mCall.getCallId() );
                         finish();
@@ -135,6 +142,7 @@ public class CallView
         mCallTimer = new CallTimer( this );
 
         setContentView( R.layout.call_view );
+        findViewById( R.id.accept_btn ).setOnClickListener( this );
         findViewById( R.id.hang_up_btn ).setOnClickListener( this );
         findViewById( R.id.mute_btn ).setOnClickListener( this );
         findViewById( R.id.hold_btn ).setOnClickListener( this );
@@ -144,6 +152,7 @@ public class CallView
         mElapsedTime = (TextView) findViewById( R.id.elapsed_time );
         mCallStateLabel = (TextView) findViewById( R.id.callStateLabel );
         mBottomBar = (LinearLayout) findViewById( R.id.bottom_bar );
+        mAcceptButton = (ImageButton) findViewById( R.id.accept_btn );
     }
 
     @Override
@@ -170,6 +179,7 @@ public class CallView
         mCallStateLabel.setVisibility( View.GONE );
         mElapsedTime.setVisibility( View.VISIBLE );
         mBottomBar.setVisibility( View.VISIBLE );
+        mAcceptButton.setVisibility( View.GONE );
         mCallTimer.startTimer( mCall );
     }
 
@@ -238,5 +248,6 @@ public class CallView
         mName.setText( mCall.getRemoteJid() );
         mCallStateLabel.setText( mCall.isIncoming() ? "INCOMING CALL" : "CALLING" );
         mCallStateLabel.setVisibility( View.VISIBLE );
+        mAcceptButton.setVisibility( mCall.isIncoming() ? View.VISIBLE : View.GONE );
     }
 }
