@@ -6,7 +6,6 @@ import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -18,9 +17,6 @@ import com.tuenti.voice.example.util.CallTimer;
 import com.tuenti.voice.example.util.ProximitySensor;
 import com.tuenti.voice.example.util.WakeLockManager;
 
-import static android.os.PowerManager.ACQUIRE_CAUSES_WAKEUP;
-import static android.os.PowerManager.FULL_WAKE_LOCK;
-import static android.os.PowerManager.PARTIAL_WAKE_LOCK;
 import static android.view.View.OnClickListener;
 import static com.tuenti.voice.example.util.CallTimer.OnTickListener;
 
@@ -111,13 +107,13 @@ public class CallView
     {
         mUILocked = true;
         turnScreenOn( false );
-        mWakeLock.setWakeLockState( PARTIAL_WAKE_LOCK );
+        //mWakeLock.setWakeLockState( PARTIAL_WAKE_LOCK );
     }
 
     public void onUnProximity()
     {
         turnScreenOn( true );
-        mWakeLock.setWakeLockState( FULL_WAKE_LOCK | ACQUIRE_CAUSES_WAKEUP );
+        //mWakeLock.setWakeLockState( FULL_WAKE_LOCK | ACQUIRE_CAUSES_WAKEUP );
         mUILocked = false;
     }
 
@@ -217,11 +213,6 @@ public class CallView
     {
         super.onStop();
         mWakeLock.releaseWakeLock();
-    }
-
-    private void changeStatus( String status )
-    {
-        //( (TextView) findViewById( R.id.status_view ) ).setText( status );
     }
 
     private void turnScreenOn( boolean on )
