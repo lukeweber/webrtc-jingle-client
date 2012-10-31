@@ -14,36 +14,43 @@
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 
-
     <uses-sdk android:minSdkVersion="9"
               android:targetSdkVersion="14"/>
 
-    <application android:name=".VoiceClientApplication"
-                 android:label="@string/app_name">
-        <activity android:name=".ui.activity.VoiceClientActivity"
+    <application android:label="@string/app_name">
+        <activity android:name=".ui.LoginView"
                   android:label="@string/app_name"
                   android:screenOrientation="portrait">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".ui.activity.CallInProgressActivity"
-                  android:label="@string/app_name"
-                  android:launchMode="singleTask"
-                  android:taskAffinity="" />
         <activity android:name=".ui.dialog.IncomingCallDialog"
-                  android:launchMode="singleTask"
-                  android:taskAffinity=""
                   android:excludeFromRecents="true"
-                  android:theme="@android:style/Theme.Dialog" />
+                  android:theme="@android:style/Theme.Dialog"/>
+        <activity android:name=".ui.RosterView"
+                  android:excludeFromRecents="true"
+                  android:launchMode="singleInstance"
+                  android:screenOrientation="portrait"
+                  android:configChanges="orientation|screenSize|keyboardHidden|uiMode"
+                  android:exported="false"/>
+        <activity android:name=".ui.CallView"
+                  android:label="@string/app_name"
+                  android:excludeFromRecents="true"
+                  android:launchMode="singleInstance"
+                  android:screenOrientation="portrait"
+                  android:configChanges="orientation|screenSize|keyboardHidden|uiMode"
+                  android:exported="false"/>
         <service android:enabled="true"
                  android:exported="false"
                  android:label="TuentiVoiceService"
                  android:process=":VoiceClientService"
                  android:name=".service.VoiceClientService">
             <intent-filter>
-                <action android:name="com.tuenti.voice.example.service.IVoiceClientService" />
+                <action android:name="com.tuenti.voice.example.service.IConnectionService"/>
+                <action android:name="com.tuenti.voice.example.service.IRosterService"/>
+                <action android:name="com.tuenti.voice.example.service.ICallService"/>
             </intent-filter>
         </service>
     </application>

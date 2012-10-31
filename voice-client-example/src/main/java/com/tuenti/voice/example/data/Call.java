@@ -1,46 +1,139 @@
 package com.tuenti.voice.example.data;
 
-import android.os.SystemClock;
+import android.os.Parcel;
+import android.os.Parcelable;
 
-public class Call {
-    private String mRemoteJid;
-    private long mCallId;
-    private long mTime;
-    private boolean mMute;
-    private boolean mHold;
+public class Call
+    implements Parcelable
+{
+// ------------------------------ FIELDS ------------------------------
 
-    public Call(long callId, String remoteJid) {
-        mCallId = callId;
-        mRemoteJid = remoteJid;
-        mHold = false;
-        mMute = false;
+    public static final Parcelable.Creator<Call> CREATOR = new Parcelable.Creator<Call>()
+    {
+        public Call createFromParcel( Parcel in )
+        {
+            return new Call( in );
+        }
+
+        public Call[] newArray( int size )
+        {
+            return new Call[size];
+        }
+    };
+
+    private long callId;
+
+    private long callStartTime;
+
+    private boolean hold;
+
+    private boolean incoming;
+
+    private boolean mute;
+
+    private String remoteJid;
+
+// --------------------------- CONSTRUCTORS ---------------------------
+
+    public Call( Parcel in )
+    {
+        callId = in.readLong();
+        hold = in.readByte() == 1;
+        incoming = in.readByte() == 1;
+        mute = in.readByte() == 1;
+        remoteJid = in.readString();
+        callStartTime = in.readLong();
     }
 
-    public void startCallTimer() {
-        mTime = SystemClock.elapsedRealtime();
+    public Call( long callId, String remoteJid, boolean incoming )
+    {
+        this.callId = callId;
+        this.remoteJid = remoteJid;
+        this.hold = false;
+        this.incoming = incoming;
+        this.mute = false;
     }
 
-    public long getElapsedTime() {
-        return (SystemClock.elapsedRealtime() - mTime) / 1000;
+// --------------------- GETTER / SETTER METHODS ---------------------
+
+    public long getCallId()
+    {
+        return callId;
     }
 
-    public String getRemoteJid() {
-        return mRemoteJid;
+    public void setCallId( long callId )
+    {
+        this.callId = callId;
     }
 
-    public boolean isHeld() {
-        return mHold;
+    public long getCallStartTime()
+    {
+        return callStartTime;
     }
 
-    public boolean isMuted() {
-        return mMute;
+    public void setCallStartTime( long callStartTime )
+    {
+        this.callStartTime = callStartTime;
     }
 
-    public void setHold(boolean isHeld) {
-        mHold = isHeld;
+    public String getRemoteJid()
+    {
+        return remoteJid;
     }
 
-    public void setMute(boolean isMuted) {
-        mMute = isMuted;
+    public void setRemoteJid( String remoteJid )
+    {
+        this.remoteJid = remoteJid;
+    }
+
+    public boolean isHold()
+    {
+        return hold;
+    }
+
+    public void setHold( boolean hold )
+    {
+        this.hold = hold;
+    }
+
+    public boolean isIncoming()
+    {
+        return incoming;
+    }
+
+    public void setIncoming( boolean incoming )
+    {
+        this.incoming = incoming;
+    }
+
+    public boolean isMute()
+    {
+        return mute;
+    }
+
+    public void setMute( boolean mute )
+    {
+        this.mute = mute;
+    }
+
+// ------------------------ INTERFACE METHODS ------------------------
+
+// --------------------- Interface Parcelable ---------------------
+
+    @Override
+    public int describeContents()
+    {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel( Parcel out, int flags )
+    {
+        out.writeLong( callId );
+        out.writeByte( (byte) ( hold ? 1 : 0 ) );
+        out.writeByte( (byte) ( incoming ? 1 : 0 ) );
+        out.writeByte( ( (byte) ( mute ? 1 : 0 ) ) );
+        out.writeString( remoteJid );
+        out.writeLong( callStartTime );
     }
 }

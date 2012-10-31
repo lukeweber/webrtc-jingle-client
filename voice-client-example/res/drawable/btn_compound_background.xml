@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Background resource for "compound buttons" in the in-call UI.
+     These buttons have two states (checked and unchecked), and
+     show a blue bar along the bottom edge when checked. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_pressed="true"
+          android:drawable="@drawable/list_pressed_holo_dark"/>
+    <item android:state_checked="true"
+          android:state_focused="true"
+          android:drawable="@drawable/list_selector_focused_and_checked"/>
+    <item android:state_focused="true"
+          android:drawable="@drawable/list_focused_holo"/>
+    <item android:state_checked="true"
+          android:drawable="@drawable/ic_active_state_dialer_holo_dark"/>
+
+    <item
+        android:drawable="@android:color/transparent"/>
+
+</selector>

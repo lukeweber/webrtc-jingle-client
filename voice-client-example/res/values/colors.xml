@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="incall_call_banner_background">#A0000000</color>
+    <color name="incall_call_banner_text_color">#FFFFFF</color>
+    <color name="incall_secondary_info_background">#8033b5e5</color>
+</resources>
