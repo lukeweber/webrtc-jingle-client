@@ -674,7 +674,7 @@ public class VoiceClientService extends Service implements
 
 	public void runPendingLogin() {
 		if (mUser != null) {
-			mClient.login(mUser.mUsername, mUser.mPassword, mUser.mTurnPassword , mUser.mXmppHost,
+			mClient.login(mUser.mUsername, mUser.mPassword, mUser.mStun, mUser.mTurn, mUser.mTurnPassword , mUser.mXmppHost,
 			              mUser.mXmppPort, mUser.mXmppUseSsl);
 		}
 	}
@@ -720,23 +720,18 @@ public class VoiceClientService extends Service implements
 
 	public void storeLoginAndLogin(String username, String password, String turnPassword, String xmppHost,
             int xmppPort, boolean xmppUseSsl){
-	    mUser = new User(username, password, turnPassword, xmppHost, xmppPort, xmppUseSsl);
-        internalLogin();
+	   String stunServer = getStringPref(R.string.stunserver_key, R.string.stunserver_value);
+	   String turnServer = getStringPref(R.string.turnserver_key, R.string.turnserver_value);
+
+	   mUser = new User(username, password, stunServer, turnServer, turnPassword, xmppHost, xmppPort, xmppUseSsl);
+       internalLogin();
 	}
 
 	public void internalLogin(){
 	    if (mClientInited) {
             runPendingLogin();
-        } else {// We run login after xmpp_none event, meaning our client is
-                // initialized
-            String stunServer = getStringPref(R.string.stunserver_key,
-                    R.string.stunserver_value);
-            String relayServer = getStringPref(R.string.relayserver_key,
-                    R.string.relayserver_value);
-            String turnServer = getStringPref(R.string.turnserver_key,
-                    R.string.turnserver_value);
-            mClient.init(stunServer, relayServer, relayServer, relayServer,
-                    turnServer);
+        } else {
+            mClient.init();
         }
 	}
 

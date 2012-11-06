@@ -45,17 +45,14 @@ enum {
 
 const char* msgNames[] = { "MSG_INIT", "MSG_DESTROY", };
 
-VoiceClient::VoiceClient(JavaObjectReference *reference, StunConfig *stun_config)
+VoiceClient::VoiceClient(JavaObjectReference *reference)
     : reference_(reference),
     signal_thread_(NULL),
-    client_signaling_thread_(NULL),
-    stun_config_(stun_config) {
+    client_signaling_thread_(NULL) {
   LOGI("VoiceClient::VoiceClient");
 #ifdef TUENTI_CUSTOM_BUILD
   LOG(INFO) << "LOGT RUNNING WITH TUENTI_CUSTOM_BUILD";
 #endif //TUENTI_CUSTOM_BUILD
-  LOG(INFO) << "LOGT VoiceClient Constructed with stun_config";
-  LOG(INFO) << "LOGT " << stun_config->ToString();
 
   // a few standard logs not sure why they are not working
   talk_base::LogMessage::LogThreads();
@@ -71,20 +68,12 @@ VoiceClient::VoiceClient(JavaObjectReference *reference, StunConfig *stun_config
 
 VoiceClient::~VoiceClient() {
   LOGI("VoiceClient::~VoiceClient");
-  if (signal_thread_ != NULL) {
-    signal_thread_->Quit();
-    signal_thread_ = NULL;
-  }
 }
 
-void VoiceClient::Destroy(int delay) {
-  LOGI("VoiceClient::Destroy");
-  if (signal_thread_ != NULL) {
-    if (delay <= 0) {
-      signal_thread_->Post(this, MSG_DESTROY);
-    } else {
-      signal_thread_->PostDelayed(delay, this, MSG_DESTROY);
-    }
+void VoiceClient::Destroy() {
+  signal_thread_->Post(this, MSG_DESTROY);
+  while( client_signaling_thread_ != NULL ){
+    talk_base::Thread::Current()->SleepMs(10);
   }
 }
 
@@ -92,7 +81,7 @@ void VoiceClient::InitializeS() {
   LOGI("VoiceClient::InitializeS");
   if (client_signaling_thread_ == NULL) {
     client_signaling_thread_ = new tuenti::ClientSignalingThread(
-        signal_thread_, stun_config_);
+        signal_thread_);
     LOGI("VoiceClient::VoiceClient - new ClientSignalingThread "
             "client_signaling_thread_@(0x%x)",
             reinterpret_cast<int>(client_signaling_thread_));
@@ -122,18 +111,24 @@ void VoiceClient::InitializeS() {
     OnSignalXmppStateChange(buzz::XmppEngine::STATE_NONE);
   }
 }
+
 void VoiceClient::DestroyS() {
   LOGI("VoiceClient::DestroyS");
+  talk_base::CritScope lock(&destroy_cs_);
   if (client_signaling_thread_ != NULL) {
     LOGI("VoiceClient::VoiceClient - destroy ClientSignalingThread "
             "client_signaling_thread_@(0x%x)",
             reinterpret_cast<int>(client_signaling_thread_));
-    if (client_signaling_thread_->Destroy()) {
-      // NFHACK Pretty ugly should probably call a alL
-      // good to delete callback in voiceclient_main
-      delete this;
-    } else {
-      Destroy(100);
+    LOGI("VoiceClient::DestroyS client_signaling_thread_ - Destroy()");
+    // This call, will call SignalThread::Destroy(true)
+    // This will quit the thread and join it, thus deleting client_signaling_thread
+    client_signaling_thread_->Destroy();
+    client_signaling_thread_ = NULL;
+    LOGI("VoiceClient::DestroyS client_signaling_thread_ = NULL");
+    if (signal_thread_ != NULL) {
+      signal_thread_->Clear(NULL);
+      signal_thread_->Quit();
+      signal_thread_ = NULL;
     }
   }
 }
@@ -157,12 +152,13 @@ void VoiceClient::OnMessage(talk_base::Message *msg) {
   }
 }
 
-void VoiceClient::Login(const std::string &username, 
-  const std::string &password, const std::string &turn_password,
+void VoiceClient::Login(const std::string &username,
+  const std::string &password, StunConfig* stun_config,
   const std::string &xmpp_host, int xmpp_port, bool use_ssl) {
   LOGI("VoiceClient::Login");
+  LOG(INFO) << "LOGT " << stun_config->ToString();
   if (client_signaling_thread_) {
-    client_signaling_thread_->Login(username, password, turn_password,
+    client_signaling_thread_->Login(username, password, stun_config,
         xmpp_host, xmpp_port, use_ssl);
   }
 }
