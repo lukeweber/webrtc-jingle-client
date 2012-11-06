@@ -116,6 +116,11 @@ if [ "$SYNCREPOS" == "yes" ]; then
   gclient sync;
   check_return_code "$?"
 fi
+if [ -z $FORCE_CPU_ABI ]; then
+   FORCE_CPU_ABI=`adb shell cat /system/build.prop | grep "ro.product.cpu.abi="|awk '{sub("="," ");print $2}'`
+   echo "FORCE_CPU_ABI=$FORCE_CPU_ABI"
+fi
+
 if [ "$BUILDSYSTEM" == "gyp" ]; then
   echo -e "-------------------------------\nRUNNING_HOOKS\n-------------------------------"
   gclient runhooks;
@@ -170,7 +175,9 @@ elif [ "$BUILDSYSTEM" == "mvn" ]; then
   check_return_code "$?"
 
   echo -e "-------------------------------\nDEBUGGING\n-------------------------------"
-  $TRUNKDIR/build/android/gdb_apk -p com.tuenti.voice.example -s VoiceClientService -l voice-client-core/obj/$BUILD_PROFILE/local/armeabi-v7a
+  DBG_CMD="$TRUNKDIR/build/android/gdb_apk -p com.tuenti.voice.example -s VoiceClientService -l voice-client-core/obj/$BUILD_PROFILE/local/$FORCE_CPU_ABI"
+  echo "DBG_CMD:$DBG_CMD"
+  $DBG_CMD
   check_return_code "$?"
 else
   print_usage "Only gyp & mvn build systems available for now"
