@@ -180,23 +180,23 @@ class ClientSignalingThread: public talk_base::SignalThread,
   talk_base::scoped_ptr<tuenti::TXmppPump> sp_pump_;
   talk_base::scoped_ptr<talk_base::BasicNetworkManager> sp_network_manager_;
 
-  cricket::SessionManagerTask *session_manager_task_;
   talk_base::Thread *signal_thread_;
-  StunConfig *stun_config_;
   RosterMap *roster_;
   BuddyListMap *buddy_list_;
   buzz::PresencePushTask* presence_push_;
   buzz::PresenceOutTask* presence_out_;
   buzz::PingTask* ping_;
+  cricket::SessionManagerTask *session_manager_task_;
   cricket::Call* call_;
-  cricket::DataEngine *data_engine_;
   uint32 port_allocator_flags_;
   bool use_ssl_;
   bool auto_accept_;
+  buzz::XmppEngine::State xmpp_state_;
+  StunConfig *stun_config_;
+  cricket::DataEngine *data_engine_;
   // use default constructors
   buzz::Status my_status_;
   buzz::XmppClientSettings xcs_;
-  buzz::XmppEngine::State xmpp_state_;
   DISALLOW_COPY_AND_ASSIGN(ClientSignalingThread);
 };
 
