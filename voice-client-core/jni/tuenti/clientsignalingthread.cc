@@ -85,7 +85,7 @@ ClientSignalingThread::ClientSignalingThread(
     use_ssl_(false),
     auto_accept_(false),
     xmpp_state_(buzz::XmppEngine::STATE_NONE) {
-  int numRelayPorts = 0;
+  // int numRelayPorts = 0;
   LOGI("ClientSignalingThread::ClientSignalingThread");
   assert(talk_base::Thread::Current() == signal_thread_);
 
