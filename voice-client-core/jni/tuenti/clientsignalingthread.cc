@@ -395,17 +395,10 @@ void ClientSignalingThread::EndCall(uint32 call_id) {
 void ClientSignalingThread::Destroy() {
   LOGI("ClientSignalingThread::Destroy");
   assert(talk_base::Thread::Current() == signal_thread_);
-
-  Disconnect();//Calls DisconnectS via message.
-
+  DisconnectS();
   // These depend on SignalThred::worker(), so delete them first.
   sp_session_manager_.reset(NULL);
   sp_socket_factory_.reset(NULL);
-
-  while (xmpp_state_ !=  buzz::XmppEngine::STATE_CLOSED) {
-    talk_base::Thread::Current()->SleepMs(10);
-  }
-
   SignalThread::Destroy(true);
 }
 
@@ -470,13 +463,11 @@ void ClientSignalingThread::DoWork() {
 }
 
 void ClientSignalingThread::ResetMedia() {
-  LOGI("ClientSignalingThread::OnStateChange - State (STATE_CLOSED) "
-            "cleaning up ssl, deleting media client & clearing roster...");
+  LOGI("ClientSignalingThread::ResetMedia");
+  // Remove everyone from your roster
   if (xcs_.use_tls() == buzz::TLS_REQUIRED) {
     talk_base::CleanupSSL();
   }
-
-  // Remove everyone from your roster
   if (roster_) {
     roster_->clear();
   }
