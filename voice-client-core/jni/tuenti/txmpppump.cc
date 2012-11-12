@@ -32,8 +32,7 @@
 #include "talk/base/logging.h"
 
 namespace tuenti {
-TXmppPump::TXmppPump(TXmppPumpNotify * notify)
-: initialized_(false) {
+TXmppPump::TXmppPump(TXmppPumpNotify * notify){
   LOGI("TXmppPump::TXmppPump");
   state_ = buzz::XmppEngine::STATE_NONE;
   notify_ = notify;
@@ -51,11 +50,19 @@ TXmppPump::~TXmppPump() {
 void TXmppPump::DoLogin(const buzz::XmppClientSettings & xcs) {
   LOGI("TXmppPump::DoLogin");
   xcs_ = xcs;
-  if ( !initialized_ ) {
-    Initialize();
+
+  if (socket_ == NULL) {
+    socket_ = new TXmppSocket(xcs_.use_tls());  // NOTE: deleted by TaskRunner
+  }
+  if (auth_ == NULL) {
+    auth_ = new TXmppAuth();  // NOTE: deleted by TaskRunner
+  }
+  if (client_ == NULL) {
+    client_ = new buzz::XmppClient(this);  // NOTE: deleted by TaskRunner
   }
 
 #if LOGGING
+  xmpp_log_ = new XmppLog();
   if (client_ ) {
     client_->SignalLogInput.connect(xmpp_log_, &XmppLog::Input);
     client_->SignalLogOutput.connect(xmpp_log_, &XmppLog::Output);
@@ -75,10 +82,12 @@ void TXmppPump::DoLogin(const buzz::XmppClientSettings & xcs) {
 void TXmppPump::DoDisconnect() {
   LOGI("TXmppPump::DoDisconnect");
   // Maybe we don't need both conditions
-  if (client_ && initialized_ && !AllChildrenDone()) {
-    LOGI("TXmppPump::DoDisconnect - disconnecting");
+  if (client_ && !AllChildrenDone()) {
     client_->Disconnect();
-    Deinitialize();
+#if LOGGING
+    delete xmpp_log_;
+    xmpp_log_ = NULL;
+#endif
   }
   OnStateChange(buzz::XmppEngine::STATE_CLOSED);
 }
@@ -88,9 +97,9 @@ void TXmppPump::OnStateChange(buzz::XmppEngine::State state) {
     return;
   state_ = state;
   if (notify_ != NULL) {
-      if ( state_ == buzz::XmppEngine::STATE_CLOSED) {
-        notify_->OnXmppError(client_->GetError(NULL));
-      }
+    if ( state_ == buzz::XmppEngine::STATE_CLOSED) {
+      notify_->OnXmppError(client_->GetError(NULL));
+    }
     notify_->OnStateChange(state);
   }
 }
@@ -117,45 +126,5 @@ buzz::XmppReturnStatus TXmppPump::SendStanza(const buzz::XmlElement *stanza) {
   if (client_ && !AllChildrenDone())
     return client_->SendStanza(stanza);
   return buzz::XMPP_RETURN_BADSTATE;
-}
-
-void TXmppPump::Initialize() {
-  initialized_ = true;
-  if (socket_ == NULL) {
-    socket_ = new TXmppSocket(xcs_.use_tls());  // NOTE: deleted by TaskRunner
-    LOGI("TXmppPump::Initialize - new TXmppSocket socket_@(0x%x)",
-            reinterpret_cast<int>(socket_));
-  }
-  if (auth_ == NULL) {
-    auth_ = new TXmppAuth();  // NOTE: deleted by TaskRunner
-    LOGI("TXmppPump::Initialize - new TXmppAuth auth_@(0x%x)",
-            reinterpret_cast<int>(auth_));
-  }
-  // NFHACK where does this get deleted?
-  if (client_ == NULL) {
-    client_ = new buzz::XmppClient(this);  // NOTE: deleted by TaskRunner
-    LOGI("TXmppPump::Initialize - new TXmppAuth client_@(0x%x)",
-            reinterpret_cast<int>(client_));
-  }
-#if LOGGING
-  xmpp_log_ = new XmppLog();
-#endif
-}
-void TXmppPump::Deinitialize() {
-  initialized_ = false;
-  // NFHACK we should have a signal that makes deletes these
-  LOGI("TXmppPump::Deinitialize - forgetting socket_@(0x%x)",
-          reinterpret_cast<int>(socket_));
-  socket_ = NULL;  // NOTE: deleted by TaskRunner
-  LOGI("TXmppPump::Deinitialize - forgetting auth_@(0x%x)",
-          reinterpret_cast<int>(auth_));
-  auth_ = NULL;  // NOTE: deleted by TaskRunner
-  LOGI("TXmppPump::Deinitialize - forgetting client_@(0x%x)",
-          reinterpret_cast<int>(client_));
-  client_ = NULL;  // NOTE: deleted by TaskRunner
-#if LOGGING
-  delete xmpp_log_;
-  xmpp_log_ = NULL;
-#endif
 }
 }  // namespace tuenti
