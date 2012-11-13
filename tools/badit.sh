@@ -117,7 +117,7 @@ if [ "$SYNCREPOS" == "yes" ]; then
   check_return_code "$?"
 fi
 if [ -z $FORCE_CPU_ABI ]; then
-   FORCE_CPU_ABI=`adb shell cat /system/build.prop | grep "ro.product.cpu.abi="|awk '{sub("="," ");print $2}'`
+   FORCE_CPU_ABI=`adb shell cat /system/build.prop | grep "ro.product.cpu.abi="|awk '{sub("="," ");sub("\r","");sub("\n","");print $2}'`
    echo "FORCE_CPU_ABI=$FORCE_CPU_ABI"
 fi
 
