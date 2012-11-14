@@ -72,103 +72,32 @@ struct ClientSignalingData: public talk_base::MessageData {
 ///////////////////////////////////////////////////////////////////////////////
 
 ClientSignalingThread::ClientSignalingThread(
-    talk_base::Thread *signal_thread, StunConfig *stun_config)
-    : talk_base::SignalThread(),
-    signal_thread_(signal_thread),
+    talk_base::Thread *signal_thread)
+    : signal_thread_(signal_thread),
     roster_(NULL),
     buddy_list_(NULL),
-    pump_(NULL),
     presence_push_(NULL),
     presence_out_(NULL),
     ping_(NULL),
-    network_manager_(NULL),
-    port_allocator_(NULL),
-    session_manager_(NULL),
     session_manager_task_(NULL),
     call_(NULL),
-    media_client_(NULL),
     port_allocator_flags_(0),
     use_ssl_(false),
-    auto_accept_(false) {
-  int numRelayPorts = 0;
+    auto_accept_(false),
+    xmpp_state_(buzz::XmppEngine::STATE_NONE) {
+  // int numRelayPorts = 0;
   LOGI("ClientSignalingThread::ClientSignalingThread");
   assert(talk_base::Thread::Current() == signal_thread_);
-  // Overriding name
-  // worker_.SetName("ClientSignalingThread", this);
-  // simple initializers
+
   if (roster_ == NULL) {
     roster_ = new RosterMap();
     LOGI("ClientSignalingThread::ClientSignalingThread - new RosterMap "
             "roster_@(0x%x)", reinterpret_cast<int>(roster_));
   }
-
   if (buddy_list_ == NULL) {
     buddy_list_ = new BuddyListMap();
   }
-  if (network_manager_ == NULL) {
-    network_manager_ = new talk_base::BasicNetworkManager();
-    LOGI("ClientSignalingThread::ClientSignalingThread - new "
-            "BasicNetworkManager network_manager_@(0x%x)",
-            reinterpret_cast<int>(network_manager_));
-  }
-  if (port_allocator_ == NULL) {
-    talk_base::SocketAddress stun = talk_base::SocketAddress();
-    talk_base::SocketAddress relay_udp = talk_base::SocketAddress();
-    talk_base::SocketAddress relay_tcp = talk_base::SocketAddress();
-    talk_base::SocketAddress relay_ssl = talk_base::SocketAddress();
-    talk_base::SocketAddress turn = talk_base::SocketAddress();
-
-    if (stun_config->stun.empty() || !stun.FromString(stun_config->stun)) {
-      stun.Clear();
-      port_allocator_flags_ |= cricket::PORTALLOCATOR_DISABLE_STUN;
-    }
-    if (stun_config->relay_udp.empty() ||
-            !relay_udp.FromString(stun_config->relay_udp)) {
-      relay_udp.Clear();
-      ++numRelayPorts;
-    }
-
-    if (stun_config->relay_tcp.empty() ||
-            !relay_tcp.FromString(stun_config->relay_tcp)) {
-      relay_tcp.Clear();
-      ++numRelayPorts;
-    }
-    if (stun_config->relay_ssl.empty() ||
-            !relay_ssl.FromString(stun_config->relay_ssl)) {
-      relay_ssl.Clear();
-      ++numRelayPorts;
-    }
-    if (stun_config->turn.empty() ||
-            !turn.FromString(stun_config->turn)) {
-      turn.Clear();
-      port_allocator_flags_ |= cricket::PORTALLOCATOR_DISABLE_TURN;
-    }
-    if (numRelayPorts == 0) {
-      port_allocator_flags_ |= cricket::PORTALLOCATOR_DISABLE_RELAY;
-    }
-
-    port_allocator_ = new cricket::BasicPortAllocator(network_manager_,
-        stun, relay_udp, relay_tcp, relay_ssl, turn);
-    LOGI("ClientSignalingThread::ClientSignalingThread - "
-        "new BasicPortAllocator port_allocator_@(0x%x)",
-        reinterpret_cast<int>(port_allocator_));
-    if (port_allocator_flags_ != 0) {
-      LOGI("LOGT ClientSignalingThread::ClientSignalingThread - "
-        "setting port_allocator_flags_=%d", port_allocator_flags_);
-      port_allocator_->set_flags(port_allocator_flags_);
-    }
-  }
-  if (session_manager_ == NULL) {
-    session_manager_ = new cricket::SessionManager(port_allocator_, worker());
-    LOGI("ClientSignalingThread::ClientSignalingThread - new "
-      "SessionManager session_manager_@(0x%x)",
-      reinterpret_cast<int>(session_manager_));
-  }
-  if (pump_ == NULL) {
-    pump_ = new TXmppPump(this);
-    LOGI("ClientSignalingThread::ClientSignalingThread - new TXmppPump "
-      "pump_@(0x%x)", reinterpret_cast<int>(pump_));
-  }
+  sp_network_manager_.reset(new talk_base::BasicNetworkManager());
   my_status_.set_caps_node("http://github.com/lukeweber/webrtc-jingle");
   my_status_.set_version("1.0-SNAPSHOT");
 }
@@ -186,33 +115,8 @@ ClientSignalingThread::~ClientSignalingThread() {
     delete buddy_list_;
     buddy_list_ = NULL;
   }
-  if (network_manager_ != NULL) {
-    LOGI("ClientSignalingThread::~ClientSignalingThread - "
-            "deleting network_manager_@(0x%x)",
-            reinterpret_cast<int>(network_manager_));
-    delete network_manager_;
-    network_manager_ = NULL;
-  }
-  if (port_allocator_ != NULL) {
-    LOGI("ClientSignalingThread::~ClientSignalingThread - "
-            "deleting port_allocator_@(0x%x)",
-            reinterpret_cast<int>(port_allocator_));
-    delete port_allocator_;
-    port_allocator_ = NULL;
-  }
-  if (session_manager_ != NULL) {
-    LOGI("ClientSignalingThread::~ClientSignalingThread - "
-            "deleting session_manager_@(0x%x)",
-            reinterpret_cast<int>(session_manager_));
-    delete session_manager_;
-    session_manager_ = NULL;
-  }
-  if (pump_ != NULL) {
-    LOGI("ClientSignalingThread::~ClientSignalingThread - "
-            "deleting pump_@(0x%x)", reinterpret_cast<int>(pump_));
-    delete pump_;
-    pump_ = NULL;
-  }
+
+  LOGI("ClientSignalingThread::~ClientSignalingThread - done");
 }
 
 void ClientSignalingThread::OnStatusUpdate(const buzz::Status& status) {
@@ -340,7 +244,6 @@ void ClientSignalingThread::OnSessionError(cricket::Call* call,
   SignalCallError(error, call->id());
 }
 
-
 void ClientSignalingThread::OnXmppError(buzz::XmppEngine::Error error) {
   SignalXmppError(error);
 }
@@ -377,33 +280,17 @@ void ClientSignalingThread::OnStateChange(buzz::XmppEngine::State state) {
     InitPing();
     break;
   case buzz::XmppEngine::STATE_CLOSED:
-    LOGI("ClientSignalingThread::OnStateChange - State (STATE_CLOSED) "
-            "cleaning up ssl, deleting media client & clearing roster...");
-    if (xcs_.use_tls() == buzz::TLS_REQUIRED) {
-      talk_base::CleanupSSL();
-    }
-    // Remove everyone from your roster
-    if (roster_) {
-      roster_->clear();
-    }
-    if (buddy_list_) {
-      SignalBuddyListReset();
-      buddy_list_->clear();
-    }
-    // NFHACK we should probably do something with the media_client_ here
-    if (media_client_) {
-      delete media_client_;
-      media_client_ = NULL;
-    }
+    ResetMedia();
     break;
   }
+  xmpp_state_ = state;
   SignalXmppStateChange(state);
 }
 
 void ClientSignalingThread::OnRequestSignaling() {
   LOGI("ClientSignalingThread::OnRequestSignaling");
   assert(talk_base::Thread::Current() == signal_thread_);
-  session_manager_->OnSignalingReady();
+  sp_session_manager_->OnSignalingReady();
 }
 
 void ClientSignalingThread::OnSessionCreate(cricket::Session* session,
@@ -446,20 +333,13 @@ void ClientSignalingThread::OnPingTimeout() {
 // THESE ARE THE ONLY FUNCTIONS THAT CAN BE CALLED USING ANY THREAD
 // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 void ClientSignalingThread::Login(const std::string &username,
-    const std::string &password, const std::string &turn_password,
+    const std::string &password, StunConfig* stun_config,
     const std::string &xmpp_host, int xmpp_port, bool use_ssl) {
   LOGI("ClientSignalingThread::Login");
 
-  size_t pos = username.find("@"); 
-  if (pos != std::string::npos) {
-    std::string turn_username = username.substr(0, pos);
-    port_allocator_->set_turn_username(turn_username.c_str());
-  } else {
-    port_allocator_->set_turn_username(username.c_str());
-  }
-  port_allocator_->set_turn_password(turn_password.c_str());
-  buzz::Jid jid = buzz::Jid(username);
+  stun_config_ = stun_config;
 
+  buzz::Jid jid = buzz::Jid(username);
   talk_base::InsecureCryptStringImpl pass;
   pass.password() = password;
 
@@ -474,13 +354,11 @@ void ClientSignalingThread::Login(const std::string &username,
 
 void ClientSignalingThread::Disconnect() {
   LOGI("ClientSignalingThread::Disconnect");
-  // assert(talk_base::Thread::Current() == signal_thread_);
   signal_thread_->Post(this, MSG_DISCONNECT);
 }
 
 void ClientSignalingThread::Call(std::string remoteJid) {
   LOGI("ClientSignalingThread::Call");
-  // assert(talk_base::Thread::Current() == signal_thread_);
   signal_thread_->Post(this, MSG_CALL, new ClientSignalingData(remoteJid));
 }
 
@@ -496,20 +374,17 @@ void ClientSignalingThread::HoldCall(uint32 call_id, bool hold) {
 
 void ClientSignalingThread::AcceptCall(uint32 call_id) {
   LOGI("ClientSignalingThread::AcceptCall %d", call_id);
-  // assert(talk_base::Thread::Current() == signal_thread_);
   signal_thread_->Post(this, MSG_ACCEPT_CALL, new ClientSignalingData(call_id));
 }
 
 void ClientSignalingThread::DeclineCall(uint32 call_id, bool busy) {
   LOGI("ClientSignalingThread::DeclineCall %d", call_id);
-  // assert(talk_base::Thread::Current() == signal_thread_);
   signal_thread_->Post(this, MSG_DECLINE_CALL, new ClientSignalingData(call_id,
       busy));
 }
 
 void ClientSignalingThread::EndCall(uint32 call_id) {
   LOGI("ClientSignalingThread::EndCall %d", call_id);
-  // assert(talk_base::Thread::Current() == signal_thread_);
   signal_thread_->Post(this, MSG_END_CALL, new ClientSignalingData(call_id));
 }
 
@@ -517,17 +392,21 @@ void ClientSignalingThread::EndCall(uint32 call_id) {
 // THESE ARE THE ONLY FUNCTIONS THAT CAN BE CALLED USING ANY THREAD
 // ================================================================
 
-bool ClientSignalingThread::Destroy() {
+void ClientSignalingThread::Destroy() {
   LOGI("ClientSignalingThread::Destroy");
   assert(talk_base::Thread::Current() == signal_thread_);
-  bool destroyed = false;
-  // Single threaded shuts everything down
-  Disconnect();
-  if (media_client_ == NULL) {
-    SignalThread::Destroy(true);
-    destroyed = true;
+
+  Disconnect();//Calls DisconnectS via message.
+
+  // These depend on SignalThred::worker(), so delete them first.
+  sp_session_manager_.reset(NULL);
+  sp_socket_factory_.reset(NULL);
+
+  while (xmpp_state_ !=  buzz::XmppEngine::STATE_CLOSED) {
+    talk_base::Thread::Current()->SleepMs(10);
   }
-  return destroyed;
+
+  SignalThread::Destroy(true);
 }
 
 void ClientSignalingThread::OnMessage(talk_base::Message* message) {
@@ -590,20 +469,78 @@ void ClientSignalingThread::DoWork() {
   worker()->ProcessMessages(talk_base::kForever);
 }
 
+void ClientSignalingThread::ResetMedia() {
+  LOGI("ClientSignalingThread::OnStateChange - State (STATE_CLOSED) "
+            "cleaning up ssl, deleting media client & clearing roster...");
+  if (xcs_.use_tls() == buzz::TLS_REQUIRED) {
+    talk_base::CleanupSSL();
+  }
+
+  // Remove everyone from your roster
+  if (roster_) {
+    roster_->clear();
+  }
+  if (buddy_list_) {
+    SignalBuddyListReset();
+    buddy_list_->clear();
+  }
+
+  sp_media_client_.reset(NULL);
+}
+
 void ClientSignalingThread::LoginS() {
   LOGI("ClientSignalingThread::LoginS");
   assert(talk_base::Thread::Current() == signal_thread_);
-  if (media_client_ == NULL) {
-    if (xcs_.use_tls() == buzz::TLS_REQUIRED) {
-      talk_base::InitializeSSL();
-    }
 
-    if (pump_->AllChildrenDone()) {
-      LOGE("AllChildrenDone doing required "
-        "{delete pump_;pump_ = new TXmppPump(this);} yet...");
-    }
-    pump_->DoLogin(xcs_);
+  if (xmpp_state_ != buzz::XmppEngine::STATE_CLOSED
+      && xmpp_state_ != buzz::XmppEngine::STATE_NONE) {
+    // Media client needs to be reinitialized, but since we're not forcing
+    // STATE_CLOSED, by calling DisconnectS, it won't happen without this.
+    ResetMedia();
   }
+
+  talk_base::SocketAddress stun = talk_base::SocketAddress();
+  if (stun_config_->stun.empty() || !stun.FromString(stun_config_->stun)) {
+    stun.Clear();
+    port_allocator_flags_ |= cricket::PORTALLOCATOR_DISABLE_STUN;
+  }
+
+  // TODO(Luke): Add option to force relay, ie DISABLE_UDP,DISABLE_TCP,
+  // DISABLE_STUN
+  sp_socket_factory_.reset(new talk_base::BasicPacketSocketFactory(worker()));
+  sp_port_allocator_.reset(
+          new cricket::BasicPortAllocator(sp_network_manager_.get(),
+                                          sp_socket_factory_.get(), stun));
+
+  talk_base::SocketAddress turn_socket = talk_base::SocketAddress();
+  if (!stun_config_->turn.empty() &&
+      turn_socket.FromString(stun_config_->turn)) {
+    port_allocator_flags_ |= cricket::PORTALLOCATOR_ENABLE_TURN;
+    cricket::RelayCredentials credentials(stun_config_->turn_username,
+                                          stun_config_->turn_password);
+    cricket::RelayServerConfig relay_server;
+    relay_server.ports.push_back(cricket::ProtocolAddress(
+        turn_socket, cricket::PROTO_UDP));
+    relay_server.credentials = credentials;
+    sp_port_allocator_->AddRelay(relay_server);
+  } else {
+    turn_socket.Clear();
+  }
+
+  if (port_allocator_flags_ != 0) {
+    LOGI("LOGT ClientSignalingThread::ClientSignalingThread - "
+      "setting port_allocator_flags_=%d", port_allocator_flags_);
+    sp_port_allocator_->set_flags(port_allocator_flags_);
+  }
+  sp_session_manager_.reset(
+      new cricket::SessionManager(sp_port_allocator_.get(), worker()));
+
+  if (xcs_.use_tls() == buzz::TLS_REQUIRED) {
+    talk_base::InitializeSSL();
+  }
+
+  sp_pump_.reset(new TXmppPump(this));
+  sp_pump_->DoLogin(xcs_);
 }
 
 void ClientSignalingThread::DisconnectS() {
@@ -614,16 +551,14 @@ void ClientSignalingThread::DisconnectS() {
     // On a shutdown, it should only be called once otherwise, you'll
     // end up with asyncronous double deletes of call objects/SEGFAULT.
     EndAllCalls();
-    signal_thread_->PostDelayed(100, this, MSG_DISCONNECT);
-  } else if (media_client_) {
-    if (pump_->AllChildrenDone()) {
+  }
+  if (xmpp_state_ != buzz::XmppEngine::STATE_CLOSED &&
+      xmpp_state_ != buzz::XmppEngine::STATE_NONE && sp_pump_.get() != NULL) {
+    if (sp_pump_->AllChildrenDone()) {
       LOGE("AllChildrenDone NOT doing required "
-              "{delete pump_;pump_ = new TXmppPump(this);} yet...");
+              "{delete sp_pump_;sp_pump_ = new TXmppPump(this);} yet...");
     }
-    pump_->DoDisconnect();
-    signal_thread_->PostDelayed(100, this, MSG_DISCONNECT);
-  } else {
-    LOGI("Already disconnected nothing to do");
+    sp_pump_->DoDisconnect();
   }
 }
 
@@ -651,10 +586,10 @@ void ClientSignalingThread::CallS(const std::string &remoteJid) {
   if (found) {
     LOGI("Found online friend '%s'", found_jid.Str().c_str());
     if (!call_) {
-      call_ = media_client_->CreateCall();
-      call_->InitiateSession(found_jid, media_client_->jid(), options);  // REQ_MAIN_THREAD
+      call_ = sp_media_client_->CreateCall();
+      call_->InitiateSession(found_jid, sp_media_client_->jid(), options);  // REQ_MAIN_THREAD
     }
-    media_client_->SetFocus(call_);
+    sp_media_client_->SetFocus(call_);
   } else {
     LOGI("Could not find online friend '%s'", remoteJid.c_str());
   }
@@ -672,10 +607,10 @@ void ClientSignalingThread::HoldCallS(uint32 call_id, bool hold) {
   cricket::Call* call = GetCall(call_id);
   if(call) {
     if(hold && call == call_) {
-      media_client_->SetFocus(NULL);
+      sp_media_client_->SetFocus(NULL);
       call_ = NULL;
     } else if (!hold) {
-      media_client_->SetFocus(call);
+      sp_media_client_->SetFocus(call);
       call_ = call;
     }
     LOGI("Toggled hold call_id %d", call_id);
@@ -690,7 +625,7 @@ void ClientSignalingThread::AcceptCallS(uint32 call_id) {
     call_ = call;
     cricket::CallOptions options;
     call->AcceptSession(call->sessions()[0], options);
-    media_client_->SetFocus(call);
+    sp_media_client_->SetFocus(call);
   } else {
     LOGE("ClientSignalingThread::AcceptCallW - No incoming call to accept");
   }
@@ -719,51 +654,54 @@ void ClientSignalingThread::EndCallS(uint32 call_id) {
 void ClientSignalingThread::InitMedia() {
   LOGI("ClientSignalingThread::InitMedia");
   assert(talk_base::Thread::Current() == signal_thread_);
-  std::string client_unique = pump_->client()->jid().Str();
+  std::string client_unique = sp_pump_->client()->jid().Str();
   talk_base::InitRandom(client_unique.c_str(), client_unique.size());
 
   // TODO(alex) We need to modify the last params of this to add TURN servers
-  session_manager_->SignalRequestSignaling.connect(this,
+  sp_session_manager_->SignalRequestSignaling.connect(this,
       &ClientSignalingThread::OnRequestSignaling);
-  session_manager_->SignalSessionCreate.connect(this,
+  sp_session_manager_->SignalSessionCreate.connect(this,
       &ClientSignalingThread::OnSessionCreate);
-  session_manager_->OnSignalingReady();
+  sp_session_manager_->OnSignalingReady();
 
+  // This is deleted by the task runner.
   session_manager_task_ =
-      new cricket::SessionManagerTask(pump_->client(), session_manager_);
+      new cricket::SessionManagerTask(sp_pump_->client(),
+                                      sp_session_manager_.get());
   session_manager_task_->EnableOutgoingMessages();
   session_manager_task_->Start();
 
-  media_client_ =
-      new cricket::MediaSessionClient(pump_->client()->jid(), session_manager_);
-  media_client_->SignalCallCreate.connect(this,
+  sp_media_client_.reset(new cricket::MediaSessionClient(
+                                      sp_pump_->client()->jid(),
+                                      sp_session_manager_.get()));
+  sp_media_client_->SignalCallCreate.connect(this,
       &ClientSignalingThread::OnCallCreate);
-  media_client_->SignalCallDestroy.connect(this,
+  sp_media_client_->SignalCallDestroy.connect(this,
       &ClientSignalingThread::OnCallDestroy);
-  media_client_->set_secure(cricket::SEC_DISABLED);
+  sp_media_client_->set_secure(cricket::SEC_DISABLED);
 }
 
 void ClientSignalingThread::InitPresence() {
   // NFHACK Fix the news
   LOGI("ClientSignalingThread::InitPresence");
   assert(talk_base::Thread::Current() == signal_thread_);
-  presence_push_ = new buzz::PresencePushTask(pump_->client());
+  presence_push_ = new buzz::PresencePushTask(sp_pump_->client());
   presence_push_->SignalStatusUpdate.connect(this,
       &ClientSignalingThread::OnStatusUpdate);
   presence_push_->Start();
 
-  my_status_.set_jid(pump_->client()->jid());
+  my_status_.set_jid(sp_pump_->client()->jid());
   my_status_.set_available(true);
   my_status_.set_show(buzz::Status::SHOW_ONLINE);
   my_status_.set_know_capabilities(true);
   my_status_.set_pmuc_capability(false);
 
-  int capabilities = media_client_->GetCapabilities();
+  int capabilities = sp_media_client_->GetCapabilities();
   my_status_.set_voice_capability((capabilities & cricket::AUDIO_RECV) != 0);
   my_status_.set_video_capability((capabilities & cricket::VIDEO_RECV) != 0);
   my_status_.set_camera_capability((capabilities & cricket::VIDEO_SEND) != 0);
 
-  presence_out_ = new buzz::PresenceOutTask(pump_->client());
+  presence_out_ = new buzz::PresenceOutTask(sp_pump_->client());
   presence_out_->Send(my_status_);
   presence_out_->Start();
 }
@@ -771,14 +709,14 @@ void ClientSignalingThread::InitPresence() {
 void ClientSignalingThread::InitPing() {
   LOGI("ClientSignalingThread::InitPing");
   assert(talk_base::Thread::Current() == signal_thread_);
-  ping_ = new buzz::PingTask(pump_->client(), talk_base::Thread::Current(),
+  ping_ = new buzz::PingTask(sp_pump_->client(), talk_base::Thread::Current(),
       100000, 10000);//Every 100 seconds, 10 second timeout
   ping_->SignalTimeout.connect(this, &ClientSignalingThread::OnPingTimeout);
   ping_->Start();
 }
 
 cricket::Call* ClientSignalingThread::GetCall(uint32 call_id) {
-  const std::map<uint32, cricket::Call*>& calls = media_client_->calls();
+  const std::map<uint32, cricket::Call*>& calls = sp_media_client_->calls();
   for (std::map<uint32, cricket::Call*>::const_iterator i = calls.begin();
        i != calls.end(); ++i) {
     if (i->first == call_id) {
@@ -789,11 +727,12 @@ cricket::Call* ClientSignalingThread::GetCall(uint32 call_id) {
 }
 
 bool ClientSignalingThread::EndAllCalls() {
+  assert(talk_base::Thread::Current() == signal_thread_);
   bool calls_processed = false;
-  const std::map<uint32, cricket::Call*>& calls = media_client_->calls();
+  const std::map<uint32, cricket::Call*>& calls = sp_media_client_->calls();
   for (std::map<uint32, cricket::Call*>::const_iterator i = calls.begin();
        i != calls.end(); ++i) {
-    signal_thread_->Post(this, MSG_END_CALL, new ClientSignalingData(i->first));
+    EndCallS(i->first);
     calls_processed = true;
   }
   call_  = NULL;

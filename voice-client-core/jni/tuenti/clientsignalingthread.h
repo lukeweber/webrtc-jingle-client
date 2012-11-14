@@ -37,6 +37,8 @@
 #include "tuenti/txmpppump.h"  // Needed for TXmppPumpNotify
 #include "talk/p2p/base/session.h"  // Needed for enum cricket::Session::State
 #include "talk/media/base/mediachannel.h"  // Needed for enum cricket::ReceiveDataParams
+#include "talk/base/basicpacketsocketfactory.h"
+#include "talk/base/scoped_ptr.h"
 #include "talk/xmpp/pingtask.h"
 
 #include "tuenti/status.h"
@@ -96,7 +98,8 @@ class ClientSignalingThread: public talk_base::SignalThread,
     public TXmppPumpNotify {
  public:
   ClientSignalingThread(
-      talk_base::Thread *signal_thread, StunConfig *stun_config);
+      talk_base::Thread *signal_thread);
+  virtual ~ClientSignalingThread();
   // Public Library Callbacks
   void OnSessionState(cricket::Call* call, cricket::Session* session,
                       cricket::Session::State state);
@@ -116,7 +119,7 @@ class ClientSignalingThread: public talk_base::SignalThread,
   // These are signal thread entry points that will be farmed
   // out to the worker equivilent functions
   void Login(const std::string &username, const std::string &password,
-             const std::string &turn_password, const std::string &xmpp_host,
+             StunConfig* stun_config, const std::string &xmpp_host,
              int xmpp_port, bool use_ssl);
   void Disconnect();
   void Call(std::string remoteJid);
@@ -125,7 +128,7 @@ class ClientSignalingThread: public talk_base::SignalThread,
   void EndCall(uint32 call_id);
   void MuteCall(uint32 call_id, bool mute);
   void HoldCall(uint32 call_id, bool hold);
-  bool Destroy();
+  void Destroy();
 
   // signals
   sigslot::signal3<int, const char *, int> SignalCallStateChange;
@@ -140,7 +143,6 @@ class ClientSignalingThread: public talk_base::SignalThread,
   sigslot::signal2<const char *, const char *> SignalBuddyListAdd;
 
  protected:
-  virtual ~ClientSignalingThread();
   virtual void OnMessage(talk_base::Message* message);
   // Context: Worker Thread.
   virtual void DoWork();
@@ -160,6 +162,7 @@ class ClientSignalingThread: public talk_base::SignalThread,
 
   // These should live inside of the TXmppPump
   void InitMedia();
+  void ResetMedia();
   void InitPresence();
   void InitPing();
 
@@ -167,25 +170,30 @@ class ClientSignalingThread: public talk_base::SignalThread,
   typedef std::map<std::string, RosterItem> RosterMap;
   typedef std::map<std::string, int> BuddyListMap;
 
+  std::string turn_username_;
+  std::string turn_password_;
+
+  talk_base::scoped_ptr<cricket::MediaSessionClient> sp_media_client_;
+  talk_base::scoped_ptr<cricket::BasicPortAllocator> sp_port_allocator_;
+  talk_base::scoped_ptr<talk_base::BasicPacketSocketFactory> sp_socket_factory_;
+  talk_base::scoped_ptr<cricket::SessionManager> sp_session_manager_;
+  talk_base::scoped_ptr<tuenti::TXmppPump> sp_pump_;
+  talk_base::scoped_ptr<talk_base::BasicNetworkManager> sp_network_manager_;
+
   talk_base::Thread *signal_thread_;
-  StunConfig *stun_confg_;
   RosterMap *roster_;
   BuddyListMap *buddy_list_;
-  TXmppPump *pump_;
   buzz::PresencePushTask* presence_push_;
   buzz::PresenceOutTask* presence_out_;
   buzz::PingTask* ping_;
-  talk_base::BasicNetworkManager *network_manager_;
-  cricket::BasicPortAllocator *port_allocator_;
-  cricket::SessionManager *session_manager_;
-  cricket::SessionManagerTask* session_manager_task_;
+  cricket::SessionManagerTask *session_manager_task_;
   cricket::Call* call_;
-  cricket::MediaSessionClient* media_client_;
-  cricket::MediaEngineInterface* media_engine_;
-  cricket::DataEngine *data_engine_;
   uint32 port_allocator_flags_;
   bool use_ssl_;
   bool auto_accept_;
+  buzz::XmppEngine::State xmpp_state_;
+  StunConfig *stun_config_;
+  cricket::DataEngine *data_engine_;
   // use default constructors
   buzz::Status my_status_;
   buzz::XmppClientSettings xcs_;

@@ -36,6 +36,7 @@
 #include "talk/session/media/mediasessionclient.h"
 #include "talk/xmpp/xmppclient.h"
 #include "talk/examples/login/xmpppump.h"
+#include "talk/base/criticalsection.h"
 
 #include "tuenti/helpers.h"
 #include "tuenti/status.h"
@@ -50,16 +51,12 @@ typedef enum {
 
 typedef struct {
   std::string stun;
-  std::string relay_udp;
-  std::string relay_tcp;
-  std::string relay_ssl;
   std::string turn;
+  std::string turn_username;
+  std::string turn_password;
   std::string ToString() {
     std::stringstream stream;
     stream << "[stun=(" << stun << "),";
-    stream << "relay_udp=(" << relay_udp << "),";
-    stream << "relay_tcp=(" << relay_tcp << "),";
-    stream << "relay_ssl=(" << relay_ssl << "),";
     stream << "turn=(" << turn << "),";
     return stream.str();
   }
@@ -70,13 +67,13 @@ class ClientSignalingThread;
 class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
  public:
   // initialization
-  explicit VoiceClient(JavaObjectReference *reference, StunConfig *stun_config);
+  explicit VoiceClient(JavaObjectReference *reference);
   ~VoiceClient();
-  void Destroy(int delay);  // Deletes self after deleting threads
+  void Destroy();
 
   // passthru functions
   void Login(const std::string &username, const std::string &password,
-    const std::string &turn_password, const std::string &xmpp_host,
+    StunConfig *stun_config, const std::string &xmpp_host,
     int xmpp_port, bool use_ssl);
   void Disconnect();
   void Call(std::string remoteJid);
@@ -109,10 +106,11 @@ class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
 
   std::string stunserver_;
   std::string relayserver_;
-  talk_base::Thread *signal_thread_;
   JavaObjectReference *reference_;
+  talk_base::Thread *signal_thread_;
   tuenti::ClientSignalingThread *client_signaling_thread_;
   StunConfig *stun_config_;
+  talk_base::CriticalSection destroy_cs_;
 };
 
 }  // namespace tuenti
