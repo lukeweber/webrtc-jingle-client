@@ -34,6 +34,7 @@
         <android.api.version>14</android.api.version>
         <android.version>4.0.1.2</android.version>
 
+        <aspectj.version>1.7.1</aspectj.version>
         <android-maven-plugin.version>3.3.3-SNAPSHOT</android-maven-plugin.version>
         <maven-compiler-plugin.version>2.3.2</maven-compiler-plugin.version>
         <maven-jarsigner-plugin.version>1.2</maven-jarsigner-plugin.version>
@@ -59,6 +60,39 @@
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>aspectj-maven-plugin</artifactId>
+                    <version>1.4</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <complianceLevel>${java.version}</complianceLevel>
+                        <forceAjcCompile>true</forceAjcCompile>
+                        <verbose>true</verbose>
+                        <showWeaveInfo>true</showWeaveInfo>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <phase>process-sources</phase>
+                            <goals>
+                                <goal>compile</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.aspectj</groupId>
+                            <artifactId>aspectjrt</artifactId>
+                            <version>${aspectj.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.aspectj</groupId>
+                            <artifactId>aspectjtools</artifactId>
+                            <version>${aspectj.version}</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+                <plugin>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven-compiler-plugin.version}</version>
                     <configuration>
@@ -83,7 +117,8 @@
                             <platform>${android.api.version}</platform>
                             <path>${env.ANDROID_HOME}</path>
                         </sdk>
-                        <ndkBuildAdditionalCommandline>NDK_APP_OUT=${project.basedir}/obj/${android.liboutdir}</ndkBuildAdditionalCommandline>
+                        <ndkBuildAdditionalCommandline>NDK_APP_OUT=${project.basedir}/obj/${android.liboutdir}
+                        </ndkBuildAdditionalCommandline>
                         <undeployBeforeDeploy>true</undeployBeforeDeploy>
                         <nativeLibrariesDependenciesHardwareArchitectureOverrides>
                             <nativeLibrariesDependenciesHardwareArchitectureOverride>

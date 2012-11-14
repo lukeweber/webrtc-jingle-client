@@ -1,4 +1,4 @@
-package com.tuenti.voice.example.service;
+package com.tuenti.voice.core.manager.aidl;
 
 import android.content.Context;
 import android.media.AudioManager;
@@ -8,22 +8,21 @@ import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.util.Log;
 import com.tuenti.voice.core.CallError;
-import com.tuenti.voice.core.CallListener;
 import com.tuenti.voice.core.CallState;
 import com.tuenti.voice.core.VoiceClient;
-import com.tuenti.voice.example.data.Call;
-import com.tuenti.voice.example.util.ConnectionMonitor;
-import com.tuenti.voice.example.util.NetworkPreference;
-import com.tuenti.voice.example.util.RingManager;
+import com.tuenti.voice.core.data.Call;
+import com.tuenti.voice.core.manager.CallManager;
+import com.tuenti.voice.core.service.ICallService;
+import com.tuenti.voice.core.service.ICallServiceCallback;
 
 import java.util.LinkedHashMap;
 
-public class CallManager
-    implements CallListener
+public class CallManagerImpl
+    implements CallManager
 {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final String TAG = "CallManager";
+    private static final String TAG = "CallManagerImpl";
 
     private AudioManager mAudioManager;
 
@@ -89,30 +88,21 @@ public class CallManager
 
     private final VoiceClient mClient;
 
-    private final Context mContext;
-
     private Call mCurrentCall;
-
-    private NetworkPreference mNetworkPreference;
-
-    private RingManager mRingManager;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public CallManager( VoiceClient client, Context context )
+    public CallManagerImpl( VoiceClient client, Context context )
     {
         mClient = client;
-        mClient.addCallListener( this );
-
-        mContext = context;
+        mClient.setCallManager( this );
 
         mAudioManager = (AudioManager) context.getSystemService( Context.AUDIO_SERVICE );
-        mNetworkPreference = new NetworkPreference( context );
     }
 
 // ------------------------ INTERFACE METHODS ------------------------
 
-// --------------------- Interface CallListener ---------------------
+// --------------------- Interface CallManager ---------------------
 
     @Override
     public void handleCallError( int error, long callId )
@@ -171,6 +161,8 @@ public class CallManager
             case IN_PROGRESS:
                 handleCallInProgress();
                 break;
+            default:
+                break;
         }
     }
 
@@ -227,6 +219,8 @@ public class CallManager
                     case IN_PROGRESS:
                         callback.handleCallInProgress();
                         break;
+                    default:
+                        break;
                 }
             }
             catch ( RemoteException e )
@@ -245,14 +239,7 @@ public class CallManager
 
     private void handleCall( String remoteJid )
     {
-        if ( ConnectionMonitor.hasSlowConnection() )
-        {
-            //Throw warning to user.
-        }
-        else
-        {
-            mClient.call( remoteJid );
-        }
+        mClient.call( remoteJid );
     }
 
     private void handleCallInProgress()
@@ -267,25 +254,8 @@ public class CallManager
 
     private void handleIncomingCall( long callId, String remoteJid )
     {
-        if ( ConnectionMonitor.hasSlowConnection() )
-        {
-            //Warn that you can't accept the incoming call
-            //TODO(Luke): Notification of missed call./Explanation about bad connection
-            Log.i( TAG, "Declining call because of slow connection" );
-            mClient.declineCall( callId, true );
-        }
-        else if ( mCurrentCall != null || ConnectionMonitor.getInstance( mContext ).isCallInProgress() )
-        {
-            //TODO(Luke): Notification of missed call.
-            Log.i( TAG, "Declining call because call in progress" );
-            mClient.declineCall( callId, true );
-        }
-        else
-        {
-            initCallState( callId, remoteJid, true );
-            dispatchCallback( CallState.RECEIVED_INITIATE, mCurrentCall );
-            startRing( true, false );
-        }
+        initCallState( callId, remoteJid, true );
+        dispatchCallback( CallState.RECEIVED_INITIATE, mCurrentCall );
     }
 
     private void handleIncomingCallAccepted( long callId )
@@ -297,7 +267,6 @@ public class CallManager
 
         mCurrentCall = mCallMap.get( callId );
         dispatchCallback( CallState.SENT_ACCEPT, null );
-        stopRing();
         setAudioForCall();
     }
 
@@ -317,7 +286,6 @@ public class CallManager
     {
         initCallState( callId, remoteJid, false );
         dispatchCallback( CallState.SENT_INITIATE, mCurrentCall );
-        startRing( false, false );
     }
 
     private void handleOutgoingCallAccepted( long callId )
@@ -329,7 +297,6 @@ public class CallManager
 
         mCurrentCall = mCallMap.get( callId );
         dispatchCallback( CallState.RECEIVED_ACCEPT, null );
-        stopRing();
         setAudioForCall();
     }
 
@@ -367,8 +334,6 @@ public class CallManager
 
     private void initCallState( long callId, String remoteJid, boolean incoming )
     {
-        mNetworkPreference.enableStickyNetworkPreference();
-
         mCurrentCall = new Call( callId, remoteJid, incoming );
         mCallMap.put( callId, mCurrentCall );
     }
@@ -387,12 +352,6 @@ public class CallManager
         mAudioManager.requestAudioFocus( null, AudioManager.STREAM_VOICE_CALL, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT );
     }
 
-    private void startRing( boolean isIncoming, boolean callInProgress )
-    {
-        stopRing();
-        mRingManager = new RingManager( mContext, isIncoming, callInProgress );
-    }
-
     private void stopCall( long callId )
     {
         // remove the call
@@ -404,19 +363,7 @@ public class CallManager
             mCurrentCall = null;
         }
 
-        // stop ringing
-        stopRing();
-
         // reset the audio
         resetAudio();
-    }
-
-    private void stopRing()
-    {
-        if ( mRingManager != null )
-        {
-            mRingManager.stop();
-            mRingManager = null;
-        }
     }
 }

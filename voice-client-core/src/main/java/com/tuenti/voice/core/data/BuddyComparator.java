@@ -1,6 +1,4 @@
-package com.tuenti.voice.example.util;
-
-import com.tuenti.voice.example.data.Buddy;
+package com.tuenti.voice.core.data;
 
 import java.util.Comparator;
 

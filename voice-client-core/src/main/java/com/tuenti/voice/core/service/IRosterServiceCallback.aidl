@@ -1,6 +1,6 @@
-package com.tuenti.voice.example.service;
+package com.tuenti.voice.core.service;
 
-import com.tuenti.voice.example.data.Buddy;
+import com.tuenti.voice.core.data.Buddy;
 
 oneway interface IRosterServiceCallback {
 

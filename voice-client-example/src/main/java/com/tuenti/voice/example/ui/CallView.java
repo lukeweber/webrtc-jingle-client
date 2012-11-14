@@ -1,18 +1,19 @@
 package com.tuenti.voice.example.ui;
 
+import android.app.Activity;
 import android.os.Bundle;
-import android.os.RemoteException;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import com.tuenti.voice.core.OnCallListener;
+import com.tuenti.voice.core.annotations.CallListener;
+import com.tuenti.voice.core.data.Call;
 import com.tuenti.voice.example.Intents;
 import com.tuenti.voice.example.R;
-import com.tuenti.voice.example.data.Call;
 import com.tuenti.voice.example.util.CallTimer;
 import com.tuenti.voice.example.util.ProximitySensor;
 import com.tuenti.voice.example.util.WakeLockManager;
@@ -20,8 +21,9 @@ import com.tuenti.voice.example.util.WakeLockManager;
 import static android.view.View.OnClickListener;
 import static com.tuenti.voice.example.util.CallTimer.OnTickListener;
 
+@CallListener
 public class CallView
-    extends AbstractVoiceClientView
+    extends Activity
     implements OnClickListener, OnTickListener
 {
 // ------------------------------ FIELDS ------------------------------
@@ -42,21 +44,12 @@ public class CallView
 
     private TextView mName;
 
-    private ImageView mPhoto;
-
     private ProximitySensor mProximitySensor;
 
     // UI lock flag
     private boolean mUILocked;
 
     private WakeLockManager mWakeLock;
-
-// --------------------------- CONSTRUCTORS ---------------------------
-
-    public CallView()
-    {
-        super( false, true );
-    }
 
 // ------------------------ INTERFACE METHODS ------------------------
 
@@ -67,28 +60,21 @@ public class CallView
     {
         if ( !mUILocked )
         {
-            try
+            switch ( view.getId() )
             {
-                switch ( view.getId() )
-                {
-                    case R.id.accept_btn:
-                        getCallService().acceptCall( mCall.getCallId() );
-                        break;
-                    case R.id.hang_up_btn:
-                        getCallService().endCall( mCall.getCallId() );
-                        finish();
-                        break;
-                    case R.id.mute_btn:
-                        getCallService().toggleMute( mCall.getCallId() );
-                        break;
-                    case R.id.hold_btn:
-                        getCallService().toggleHold( mCall.getCallId() );
-                        break;
-                }
-            }
-            catch ( RemoteException e )
-            {
-                Log.e( TAG, e.getMessage(), e );
+                case R.id.accept_btn:
+                    getOnCallListener().acceptCall( mCall.getCallId() );
+                    break;
+                case R.id.hang_up_btn:
+                    getOnCallListener().endCall( mCall.getCallId() );
+                    finish();
+                    break;
+                case R.id.mute_btn:
+                    getOnCallListener().toggleMute( mCall.getCallId() );
+                    break;
+                case R.id.hold_btn:
+                    getOnCallListener().toggleHold( mCall.getCallId() );
+                    break;
             }
         }
     }
@@ -103,6 +89,50 @@ public class CallView
 
 // -------------------------- OTHER METHODS --------------------------
 
+    @SuppressWarnings("UnusedDeclaration")
+    public void onCallInProgress()
+    {
+        if ( mBottomBar.getVisibility() != View.VISIBLE )
+        {
+            mBottomBar.setVisibility( View.VISIBLE );
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public void onIncomingCallAccepted()
+    {
+        Log.d( TAG, "onIncomingCallAccepted" );
+        mCallStateLabel.setVisibility( View.GONE );
+        mElapsedTime.setVisibility( View.VISIBLE );
+        mBottomBar.setVisibility( View.VISIBLE );
+        mCallTimer.startTimer( mCall );
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public void onIncomingCallTerminated()
+    {
+        mCallTimer.cancelTimer();
+        finish();
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public void onOutgoingCallAccepted()
+    {
+        Log.d( TAG, "onOutgoingCallAccepted" );
+        mCallStateLabel.setVisibility( View.GONE );
+        mElapsedTime.setVisibility( View.VISIBLE );
+        mBottomBar.setVisibility( View.VISIBLE );
+        mAcceptButton.setVisibility( View.GONE );
+        mCallTimer.startTimer( mCall );
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public void onOutgoingCallTerminated()
+    {
+        mCallTimer.cancelTimer();
+        finish();
+    }
+
     public void onProximity()
     {
         mUILocked = true;
@@ -115,15 +145,6 @@ public class CallView
         turnScreenOn( true );
         //mWakeLock.setWakeLockState( FULL_WAKE_LOCK | ACQUIRE_CAUSES_WAKEUP );
         mUILocked = false;
-    }
-
-    @Override
-    protected void onCallInProgress()
-    {
-        if ( mBottomBar.getVisibility() != View.VISIBLE )
-        {
-            mBottomBar.setVisibility( View.VISIBLE );
-        }
     }
 
     @Override
@@ -143,47 +164,12 @@ public class CallView
         findViewById( R.id.mute_btn ).setOnClickListener( this );
         findViewById( R.id.hold_btn ).setOnClickListener( this );
 
-        mPhoto = (ImageView) findViewById( R.id.photo );
+        //mPhoto = (ImageView) findViewById( R.id.photo );
         mName = (TextView) findViewById( R.id.name );
         mElapsedTime = (TextView) findViewById( R.id.elapsed_time );
         mCallStateLabel = (TextView) findViewById( R.id.callStateLabel );
         mBottomBar = (LinearLayout) findViewById( R.id.bottom_bar );
         mAcceptButton = (ImageButton) findViewById( R.id.accept_btn );
-    }
-
-    @Override
-    protected void onIncomingCallAccepted()
-    {
-        Log.d( TAG, "onIncomingCallAccepted" );
-        mCallStateLabel.setVisibility( View.GONE );
-        mElapsedTime.setVisibility( View.VISIBLE );
-        mBottomBar.setVisibility( View.VISIBLE );
-        mCallTimer.startTimer( mCall );
-    }
-
-    @Override
-    protected void onIncomingCallTerminated()
-    {
-        mCallTimer.cancelTimer();
-        finish();
-    }
-
-    @Override
-    protected void onOutgoingCallAccepted()
-    {
-        Log.d( TAG, "onOutgoingCallAccepted" );
-        mCallStateLabel.setVisibility( View.GONE );
-        mElapsedTime.setVisibility( View.VISIBLE );
-        mBottomBar.setVisibility( View.VISIBLE );
-        mAcceptButton.setVisibility( View.GONE );
-        mCallTimer.startTimer( mCall );
-    }
-
-    @Override
-    protected void onOutgoingCallTerminated()
-    {
-        mCallTimer.cancelTimer();
-        finish();
     }
 
     @Override
@@ -213,6 +199,11 @@ public class CallView
     {
         super.onStop();
         mWakeLock.releaseWakeLock();
+    }
+
+    private OnCallListener getOnCallListener()
+    {
+        return (OnCallListener) this;
     }
 
     private void turnScreenOn( boolean on )

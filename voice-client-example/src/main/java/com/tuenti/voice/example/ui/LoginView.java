@@ -1,22 +1,24 @@
 package com.tuenti.voice.example.ui;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.RemoteException;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import com.tuenti.voice.core.OnConnectionListener;
+import com.tuenti.voice.core.annotations.ConnectionListener;
+import com.tuenti.voice.core.data.User;
+import com.tuenti.voice.core.service.VoiceClientService;
 import com.tuenti.voice.example.R;
-import com.tuenti.voice.example.data.User;
-import com.tuenti.voice.example.service.VoiceClientService;
 
 import static android.view.View.OnClickListener;
 
+@ConnectionListener
 public class LoginView
-    extends AbstractVoiceClientView
+    extends Activity
     implements OnClickListener
 {
 // ------------------------------ FIELDS ------------------------------
@@ -26,18 +28,9 @@ public class LoginView
 
     private static final String MY_PASS = "";
 
-    private static final String TAG = "VoiceClientActivity";
-
     private Handler mHandler = new Handler();
 
     private SharedPreferences mSettings;
-
-// --------------------------- CONSTRUCTORS ---------------------------
-
-    public LoginView()
-    {
-        super( true, false );
-    }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -62,14 +55,7 @@ public class LoginView
 
     public void onClick( View view )
     {
-        try
-        {
-            getConnectionService().login( getUser() );
-        }
-        catch ( RemoteException e )
-        {
-            Log.e( TAG, e.getMessage(), e );
-        }
+        ( (OnConnectionListener) this ).login( getUser() );
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -90,11 +76,10 @@ public class LoginView
         mSettings = PreferenceManager.getDefaultSharedPreferences( this );
     }
 
-    @Override
-    protected void onLoggedIn()
+    @SuppressWarnings("UnusedDeclaration")
+    public void onLoggedIn()
     {
         changeStatus( "Logged in" );
-
         mHandler.postDelayed( new Runnable()
         {
             @Override
@@ -105,16 +90,28 @@ public class LoginView
         }, 2000 );
     }
 
-    @Override
-    protected void onLoggedOut()
+    @SuppressWarnings("UnusedDeclaration")
+    public void onLoggedOut()
     {
         changeStatus( "Logged out" );
     }
 
-    @Override
-    protected void onLoggingIn()
+    @SuppressWarnings("UnusedDeclaration")
+    public void onLoggingIn()
     {
         changeStatus( "Logging in" );
+    }
+
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
     }
 
     private void changeStatus( final String status )

@@ -16,8 +16,9 @@
 package com.tuenti.voice.core;
 
 import android.util.Log;
-
-import java.util.LinkedList;
+import com.tuenti.voice.core.manager.CallManager;
+import com.tuenti.voice.core.manager.ConnectionManager;
+import com.tuenti.voice.core.manager.RosterManager;
 
 public class VoiceClient
 {
@@ -44,11 +45,11 @@ public class VoiceClient
 
     private boolean initialized;
 
-    private LinkedList<CallListener> mCallListeners = new LinkedList<CallListener>();
+    private CallManager mCallManager;
 
-    private LinkedList<ConnectionListener> mConnectionListeners = new LinkedList<ConnectionListener>();
+    private ConnectionManager mConnectionManager;
 
-    private LinkedList<RosterListener> mRosterListeners = new LinkedList<RosterListener>();
+    private RosterManager mRosterManager;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -66,45 +67,6 @@ public class VoiceClient
     {
         Log.i( TAG, "native accept call " + call_id );
         nativeAcceptCall( call_id );
-    }
-
-    /**
-     * Add a listener for call changes
-     *
-     * @param l CallListener
-     */
-    public void addCallListener( CallListener l )
-    {
-        synchronized ( mLock )
-        {
-            mCallListeners.add( l );
-        }
-    }
-
-    /**
-     * Add a listener for connection changes
-     *
-     * @param l ConnectionListener
-     */
-    public void addConnectionListener( ConnectionListener l )
-    {
-        synchronized ( mLock )
-        {
-            mConnectionListeners.add( l );
-        }
-    }
-
-    /**
-     * Add a listener for roster changes
-     *
-     * @param l RosterListener
-     */
-    public void addRosterListener( RosterListener l )
-    {
-        synchronized ( mLock )
-        {
-            mRosterListeners.add( l );
-        }
     }
 
     public void call( String remoteUsername )
@@ -162,126 +124,84 @@ public class VoiceClient
         }
     }
 
-    /**
-     * Removes the call listener
-     *
-     * @param l CallListener
-     */
-    public void removeCallListener( CallListener l )
+    public void setCallManager( CallManager callManager )
     {
-        synchronized ( mLock )
-        {
-            mCallListeners.remove( l );
-        }
+        mCallManager = callManager;
+    }
+
+    public void setConnectionManager( ConnectionManager connectionManager )
+    {
+        mConnectionManager = connectionManager;
+    }
+
+    public void setRosterManager( RosterManager rosterManager )
+    {
+        mRosterManager = rosterManager;
     }
 
     /**
-     * Removes the connection listener
-     *
-     * @param l ConnectionListener
-     */
-    public void removeConnectionListener( ConnectionListener l )
-    {
-        synchronized ( mLock )
-        {
-            mConnectionListeners.remove( l );
-        }
-    }
-
-    /**
-     * Removes the roster listener
-     *
-     * @param l RosterListener
-     */
-    public void removeRosterListener( RosterListener l )
-    {
-        synchronized ( mLock )
-        {
-            mRosterListeners.remove( l );
-        }
-    }
-
-    /**
-     * @see RosterListener#handleBuddyListChanged(int, String)
+     * @see RosterManager#handleBuddyListChanged(int, String)
      */
     protected void handleBuddyListChanged( int state, String remoteJid )
     {
         synchronized ( mLock )
         {
-            for ( RosterListener l : mRosterListeners )
-            {
-                l.handleBuddyListChanged( state, remoteJid );
-            }
+            mRosterManager.handleBuddyListChanged( state, remoteJid );
         }
     }
 
     /**
-     * @see CallListener#handleCallError(int, long)
+     * @see CallManager#handleCallError(int, long)
      */
     protected void handleCallError( int error, long callId )
     {
         synchronized ( mLock )
         {
-            for ( CallListener l : mCallListeners )
-            {
-                l.handleCallError( error, callId );
-            }
+            mCallManager.handleCallError( error, callId );
         }
     }
 
     /**
-     * @see CallListener#handleCallStateChanged(int, String, long)
+     * @see CallManager#handleCallStateChanged(int, String, long)
      */
     protected void handleCallStateChanged( int state, String remoteJid, long callId )
     {
         synchronized ( mLock )
         {
-            for ( CallListener l : mCallListeners )
-            {
-                l.handleCallStateChanged( state, remoteJid, callId );
-            }
+            mCallManager.handleCallStateChanged( state, remoteJid, callId );
         }
     }
 
     /**
-     * @see ConnectionListener#handleXmppError(int)
+     * @see ConnectionManager#handleXmppError(int)
      */
     protected void handleXmppError( int error )
     {
         synchronized ( mLock )
         {
-            for ( ConnectionListener l : mConnectionListeners )
-            {
-                l.handleXmppError( error );
-            }
+            mConnectionManager.handleXmppError( error );
         }
     }
 
     /**
-     * @see ConnectionListener#handleXmppSocketClose(int)
+     * @see ConnectionManager#handleXmppSocketClose(int)
      */
     protected void handleXmppSocketClose( int state )
     {
         synchronized ( mLock )
         {
-            for ( ConnectionListener l : mConnectionListeners )
-            {
-                l.handleXmppSocketClose( state );
-            }
+            mConnectionManager.handleXmppSocketClose( state );
         }
     }
 
     /**
-     * @see ConnectionListener#handleXmppStateChanged(int)
+     * @see ConnectionManager#handleXmppStateChanged(int)
      */
     protected void handleXmppStateChanged( int state )
     {
         synchronized ( mLock )
         {
-            for ( ConnectionListener l : mConnectionListeners )
-            {
-                l.handleXmppStateChanged( state );
-            }
+            mConnectionManager.handleXmppStateChanged( state );
         }
     }
 

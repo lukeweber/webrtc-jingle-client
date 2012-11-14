@@ -1,20 +1,19 @@
-package com.tuenti.voice.example.service;
+package com.tuenti.voice.core.manager.aidl;
 
-import android.content.Context;
 import android.os.IBinder;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.util.Log;
-import com.tuenti.voice.core.ConnectionListener;
 import com.tuenti.voice.core.VoiceClient;
 import com.tuenti.voice.core.XmppError;
 import com.tuenti.voice.core.XmppState;
-import com.tuenti.voice.example.data.User;
-import com.tuenti.voice.example.util.ConnectionMonitor;
-import com.tuenti.voice.example.util.IConnectionMonitor;
+import com.tuenti.voice.core.data.User;
+import com.tuenti.voice.core.manager.ConnectionManager;
+import com.tuenti.voice.core.service.IConnectionService;
+import com.tuenti.voice.core.service.IConnectionServiceCallback;
 
-public class ConnectionManager
-    implements ConnectionListener, IConnectionMonitor
+public class ConnectionManagerImpl
+    implements ConnectionManager
 {
 // ------------------------------ FIELDS ------------------------------
 
@@ -60,29 +59,19 @@ public class ConnectionManager
 
     private boolean mClientInited;
 
-    private final Context mContext;
-
-    private boolean mReconnect;
-
-    private boolean mReconnectTimerRunning;
-
     private User mUser;
-
-    private int mXmppState;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public ConnectionManager( VoiceClient client, Context context )
+    public ConnectionManagerImpl( VoiceClient client )
     {
         mClient = client;
-        mClient.addConnectionListener( this );
-
-        mContext = context;
+        mClient.setConnectionManager( this );
     }
 
 // ------------------------ INTERFACE METHODS ------------------------
 
-// --------------------- Interface ConnectionListener ---------------------
+// --------------------- Interface ConnectionManager ---------------------
 
     @Override
     public void handleXmppError( int error )
@@ -119,6 +108,8 @@ public class ConnectionManager
             case SOCKET:
                 Log.e( TAG, "Socket error" );
                 break;
+            default:
+                break;
         }
     }
 
@@ -131,7 +122,6 @@ public class ConnectionManager
     @Override
     public void handleXmppStateChanged( int state )
     {
-        mXmppState = state;
         switch ( XmppState.fromInteger( state ) )
         {
             case NONE:
@@ -146,31 +136,9 @@ public class ConnectionManager
             case CLOSED:
                 handleLoggedOut();
                 break;
+            default:
+                break;
         }
-    }
-
-// --------------------- Interface IConnectionMonitor ---------------------
-
-    @Override
-    public void onConnectionEstablished()
-    {
-        if ( mReconnect && XmppState.fromInteger( mXmppState ) == XmppState.CLOSED )
-        {
-            internalLogin();
-        }
-    }
-
-    @Override
-    public void onConnectionLost()
-    {
-    }
-
-    @Override
-    public void onConnectivityLost()
-    {
-        stopReconnectTimer();
-        //Could blank out voip icons as being available.
-        Log.i( TAG, "Connectivity lost" );
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -195,7 +163,6 @@ public class ConnectionManager
     private void handleLoggedIn()
     {
         Log.d( TAG, "handleLoggedIn" );
-        stopReconnectTimer();
 
         final int callbackCount = mCallbacks.beginBroadcast();
         for ( int i = 0; i < callbackCount; i++ )
@@ -230,15 +197,6 @@ public class ConnectionManager
             }
         }
         mCallbacks.finishBroadcast();
-
-        if ( ConnectionMonitor.isOnline() && mReconnect )
-        {
-            startReconnectTimer();
-        }
-        else
-        {
-            stopReconnectTimer();
-        }
     }
 
     private void handleLoggingIn()
@@ -296,19 +254,5 @@ public class ConnectionManager
                           mUser.getRelayHost(),
                           mUser.getTurnHost() );
         }
-    }
-
-    private void startReconnectTimer()
-    {
-        // Reconnect in 10 seconds if there isn't already one running.
-        if ( !mReconnectTimerRunning )
-        {
-            mReconnectTimerRunning = true;
-        }
-    }
-
-    private void stopReconnectTimer()
-    {
-        mReconnectTimerRunning = false;
     }
 }

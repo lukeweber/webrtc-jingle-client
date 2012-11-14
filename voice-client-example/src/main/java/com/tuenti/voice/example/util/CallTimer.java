@@ -2,7 +2,7 @@ package com.tuenti.voice.example.util;
 
 import android.os.Handler;
 import android.os.SystemClock;
-import com.tuenti.voice.example.data.Call;
+import com.tuenti.voice.core.data.Call;
 
 public class CallTimer
     extends Handler

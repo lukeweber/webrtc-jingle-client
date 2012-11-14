@@ -1,7 +1,7 @@
-package com.tuenti.voice.example.service;
+package com.tuenti.voice.core.service;
 
-import com.tuenti.voice.example.data.User;
-import com.tuenti.voice.example.service.IConnectionServiceCallback;
+import com.tuenti.voice.core.data.User;
+import com.tuenti.voice.core.service.IConnectionServiceCallback;
 
 interface IConnectionService {
 

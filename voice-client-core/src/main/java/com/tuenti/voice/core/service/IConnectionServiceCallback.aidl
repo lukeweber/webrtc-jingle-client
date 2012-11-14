@@ -1,4 +1,4 @@
-package com.tuenti.voice.example.service;
+package com.tuenti.voice.core.service;
 
 oneway interface IConnectionServiceCallback {
 

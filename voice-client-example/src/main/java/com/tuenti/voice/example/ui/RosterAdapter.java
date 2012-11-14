@@ -1,27 +1,29 @@
 package com.tuenti.voice.example.ui;
 
 import android.R;
+import android.app.Activity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
+import android.widget.ArrayAdapter;
 import android.widget.TextView;
-import com.tuenti.voice.example.data.Buddy;
+import com.tuenti.voice.core.data.Buddy;
 
 public class RosterAdapter
-    extends BaseAdapter
+    extends ArrayAdapter<Buddy>
 {
 // ------------------------------ FIELDS ------------------------------
 
-    private final Buddy[] mBuddies;
+    private final Activity mActivity;
 
-    private final LayoutInflater mInflater;
+    private final Buddy[] mBuddies;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public RosterAdapter( final LayoutInflater inflater, final Buddy[] buddies )
+    public RosterAdapter( Activity activity, final Buddy[] buddies )
     {
-        mInflater = inflater;
+        super( activity, R.layout.simple_list_item_1, buddies );
+        mActivity = activity;
         mBuddies = buddies;
     }
 
@@ -30,29 +32,27 @@ public class RosterAdapter
 // --------------------- Interface Adapter ---------------------
 
     @Override
-    public int getCount()
-    {
-        return mBuddies.length;
-    }
-
-    @Override
-    public Buddy getItem( int position )
-    {
-        return mBuddies[position];
-    }
-
-    @Override
-    public long getItemId( int position )
-    {
-        return position;
-    }
-
-    @Override
     public View getView( int position, View convertView, ViewGroup parent )
     {
-        View rowView = mInflater.inflate( R.layout.simple_list_item_1, null );
-        TextView textView = (TextView) rowView.findViewById( R.id.text1 );
-        textView.setText( getItem( position ).getRemoteJid() );
+        View rowView = convertView;
+        if ( rowView == null )
+        {
+            LayoutInflater inflater = mActivity.getLayoutInflater();
+            rowView = inflater.inflate( R.layout.simple_list_item_1, null );
+            ViewHolder holder = new ViewHolder();
+            holder.text = (TextView) rowView.findViewById( R.id.text1 );
+            rowView.setTag( holder );
+        }
+
+        ViewHolder holder = (ViewHolder) rowView.getTag();
+        holder.text.setText( mBuddies[position].getRemoteJid() );
         return rowView;
+    }
+
+// -------------------------- INNER CLASSES --------------------------
+
+    static class ViewHolder
+    {
+        TextView text;
     }
 }

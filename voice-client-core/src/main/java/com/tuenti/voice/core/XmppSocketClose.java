@@ -6,7 +6,7 @@ public enum XmppSocketClose
 
 // ------------------------------ FIELDS ------------------------------
 
-    private static final XmppSocketClose[] xmppSocketCloseValues = XmppSocketClose.values();
+    
 
 // -------------------------- STATIC METHODS --------------------------
 

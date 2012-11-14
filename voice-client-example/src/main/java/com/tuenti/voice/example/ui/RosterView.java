@@ -1,33 +1,29 @@
 package com.tuenti.voice.example.ui;
 
+import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.RemoteException;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import com.tuenti.voice.example.data.Buddy;
-import com.tuenti.voice.example.data.Call;
+import com.tuenti.voice.core.OnCallListener;
+import com.tuenti.voice.core.OnRosterListener;
+import com.tuenti.voice.core.annotations.CallListener;
+import com.tuenti.voice.core.annotations.RosterListener;
+import com.tuenti.voice.core.data.Buddy;
+import com.tuenti.voice.core.data.Call;
 
 import static android.widget.AdapterView.OnItemClickListener;
 import static com.tuenti.voice.example.Intents.EXTRA_CALL;
 
+@RosterListener
+@CallListener
 public class RosterView
-    extends AbstractVoiceClientListView
+    extends ListActivity
     implements OnItemClickListener
 {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final String TAG = "RosterView";
-
     private RosterAdapter mAdapter;
-
-// --------------------------- CONSTRUCTORS ---------------------------
-
-    public RosterView()
-    {
-        super( false, true, true );
-    }
 
 // ------------------------ INTERFACE METHODS ------------------------
 
@@ -36,67 +32,74 @@ public class RosterView
     @Override
     public void onItemClick( AdapterView<?> parent, View view, int position, long id )
     {
-        try
+        Buddy buddy = mAdapter.getItem( position );
+        getOnCallListener().call( buddy.getRemoteJid() );
+    }
+
+// -------------------------- OTHER METHODS --------------------------
+
+    @SuppressWarnings("UnusedDeclaration")
+    public void onIncomingCall( final Call call )
+    {
+        Intent intent = new Intent( this, CallView.class );
+        intent.putExtra( EXTRA_CALL, call );
+        startActivityForResult( intent, 0 );
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public void onOutgoingCall( final Call call )
+    {
+        Intent intent = new Intent( this, CallView.class );
+        intent.putExtra( EXTRA_CALL, call );
+        startActivityForResult( intent, 0 );
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public void onRegisterOnRosterListener()
+    {
+        getOnRosterListener().requestRosterUpdate();
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public void onRosterUpdated( final Buddy[] buddies )
+    {
+        mAdapter = new RosterAdapter( this, buddies );
+        runOnUiThread( new Runnable()
         {
-            Buddy buddy = mAdapter.getItem( position );
-            getCallService().call( buddy.getRemoteJid() );
-        }
-        catch ( RemoteException e )
-        {
-            Log.e( TAG, e.getMessage(), e );
-        }
-        
-        /*
-        if ( buddy.isOnline() )
-        {
-            Intent intent = new Intent( this, CallView.class );
-            intent.putExtra( Intents.EXTRA_ROSTER_ITEM, item );
-            startActivityForResult( intent, 1 );
-        }
-        */
+            @Override
+            public void run()
+            {
+                setListAdapter( mAdapter );
+            }
+        } );
     }
 
     @Override
     protected void onCreate( Bundle savedInstanceState )
     {
         super.onCreate( savedInstanceState );
-
         getListView().setOnItemClickListener( this );
     }
 
     @Override
-    protected void onIncomingCall( final Call call )
+    protected void onPause()
     {
-        Intent intent = new Intent( this, CallView.class );
-        intent.putExtra( EXTRA_CALL, call );
-        startActivityForResult( intent, 0 );
+        super.onPause();
     }
 
     @Override
-    protected void onOutgoingCall( final Call call )
+    protected void onResume()
     {
-        Intent intent = new Intent( this, CallView.class );
-        intent.putExtra( EXTRA_CALL, call );
-        startActivityForResult( intent, 0 );
+        super.onResume();
     }
 
-    @Override
-    protected void onRosterServiceConnected()
+    private OnCallListener getOnCallListener()
     {
-        try
-        {
-            getRosterService().requestRosterUpdate();
-        }
-        catch ( RemoteException e )
-        {
-            Log.e( TAG, e.getMessage(), e );
-        }
+        return (OnCallListener) this;
     }
 
-    @Override
-    protected void onRosterUpdated( final Buddy[] buddies )
+    private OnRosterListener getOnRosterListener()
     {
-        mAdapter = new RosterAdapter( getLayoutInflater(), buddies );
-        setListAdapter( mAdapter );
+        return (OnRosterListener) this;
     }
 }

@@ -1,22 +1,24 @@
-package com.tuenti.voice.example.service;
+package com.tuenti.voice.core.manager.aidl;
 
 import android.os.IBinder;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.util.Log;
 import com.tuenti.voice.core.BuddyListState;
-import com.tuenti.voice.core.RosterListener;
 import com.tuenti.voice.core.VoiceClient;
-import com.tuenti.voice.example.data.Buddy;
-import com.tuenti.voice.example.util.BuddyComparator;
+import com.tuenti.voice.core.data.Buddy;
+import com.tuenti.voice.core.data.BuddyComparator;
+import com.tuenti.voice.core.manager.RosterManager;
+import com.tuenti.voice.core.service.IRosterService;
+import com.tuenti.voice.core.service.IRosterServiceCallback;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-public class RosterManager
-    implements RosterListener
+public class RosterManagerImpl
+    implements RosterManager
 {
 // ------------------------------ FIELDS ------------------------------
 
@@ -62,15 +64,15 @@ public class RosterManager
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public RosterManager( VoiceClient client )
+    public RosterManagerImpl( VoiceClient client )
     {
         mClient = client;
-        mClient.addRosterListener( this );
+        mClient.setRosterManager( this );
     }
 
 // ------------------------ INTERFACE METHODS ------------------------
 
-// --------------------- Interface RosterListener ---------------------
+// --------------------- Interface RosterManager ---------------------
 
     @Override
     public void handleBuddyListChanged( int state, String remoteJid )

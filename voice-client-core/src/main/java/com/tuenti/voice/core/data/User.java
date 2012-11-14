@@ -1,4 +1,4 @@
-package com.tuenti.voice.example.data;
+package com.tuenti.voice.core.data;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -8,7 +8,7 @@ public class User
 {
 // ------------------------------ FIELDS ------------------------------
 
-    public static final Parcelable.Creator<User> CREATOR = new Parcelable.Creator<User>()
+    public static final Creator<User> CREATOR = new Creator<User>()
     {
         public User createFromParcel( Parcel in )
         {

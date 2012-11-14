@@ -1,24 +1,25 @@
-package com.tuenti.voice.example.service;
+package com.tuenti.voice.core.service;
 
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
-import android.util.Log;
 import com.tuenti.voice.core.VoiceClient;
-import com.tuenti.voice.example.util.ConnectionMonitor;
+import com.tuenti.voice.core.manager.aidl.CallManagerImpl;
+import com.tuenti.voice.core.manager.aidl.ConnectionManagerImpl;
+import com.tuenti.voice.core.manager.aidl.RosterManagerImpl;
 
 public class VoiceClientService
     extends Service
 {
 // ------------------------------ FIELDS ------------------------------
 
-    private CallManager mCallManager;
+    private CallManagerImpl mCallManager;
 
     private VoiceClient mClient;
 
-    private ConnectionManager mConnectionManager;
+    private ConnectionManagerImpl mConnectionManager;
 
-    private RosterManager mRosterManager;
+    private RosterManagerImpl mRosterManager;
 
 // -------------------------- OTHER METHODS --------------------------
 
@@ -45,35 +46,24 @@ public class VoiceClientService
     {
         super.onCreate();
 
-        Log.i( "VoiceClientService", "onCreate" );
-
         // VoiceClient should only be created here
         // probably init here too.
         mClient = new VoiceClient();
 
         // init managers
-        mConnectionManager = new ConnectionManager( mClient, getBaseContext() );
-        mRosterManager = new RosterManager( mClient );
-        mCallManager = new CallManager( mClient, getBaseContext() );
-
-        // TODO to be moved probably to ConnectionManager
-        ConnectionMonitor.getInstance( getApplicationContext() );
-        ConnectionMonitor.registerCallback( mConnectionManager );
+        mConnectionManager = new ConnectionManagerImpl( mClient );
+        mRosterManager = new RosterManagerImpl( mClient );
+        mCallManager = new CallManagerImpl( mClient, getBaseContext() );
     }
 
     @Override
     public void onDestroy()
     {
-        Log.d( "VoiceClientService", "onDestroy" );
-
         super.onDestroy();
 
         // destroy the client
         mClient.release();
         mClient = null;
-
-        // TODO to be moved probably to ConnectionManager
-        ConnectionMonitor.getInstance( getApplicationContext() ).destroy();
     }
 
     @Override
