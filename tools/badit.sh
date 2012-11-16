@@ -9,8 +9,9 @@
 ##  -m             maven. do the maven build (this depends on the ndk build)
 ##  -c             clean. do a clean install
 ##  -s             sync. sync before doing the build
-##  -j             jobs. force the number of processes
 ##  -p             patch. apply required patch for ssl
+##  -l             llvm. use the llvm compiler instead of gcc
+##  -j             jobs. force the number of processes
 #
 # default variables
 #
@@ -51,7 +52,7 @@ validate_optarg(){
 
 
 
-while getopts "hgmcsj:" opt
+while getopts "hgmcsplj:" opt
 do
   case $opt in
     h ) #help
@@ -81,6 +82,9 @@ do
                # We do not use TLS over UDP on Chromium so far.
                'OPENSSL_NO_DTLS1',
              ],"
+      ;;
+    l ) #llvm
+      NDK_TOOLCHAIN_VERSION=clang3.1
       ;;
     j ) #jobs
       num_of_cores="${OPTARG}"
@@ -147,6 +151,12 @@ elif [ "$BUILDSYSTEM" == "mvn" ]; then
   fi
   
   echo -e "-------------------------------\nBUILDING/INSTALLING\n-------------------------------";
+  mkdir -p $TRUNKDIR/voice-client-core/libs/armeabi
+  mkdir -p $TRUNKDIR/voice-client-core/libs/armeabi-v7a
+  mkdir -p $TRUNKDIR/voice-client-core/libs/x86
+  mkdir -p $TRUNKDIR/voice-client-core/obj/armeabi
+  mkdir -p $TRUNKDIR/voice-client-core/obj/armeabi-v7a
+  mkdir -p $TRUNKDIR/voice-client-core/obj/x86
   #$TRUNKDIR/voice-client-core/build.sh
   mvn $CLEAN install -P $BUILD_PROFILE
   check_return_code "$?"
