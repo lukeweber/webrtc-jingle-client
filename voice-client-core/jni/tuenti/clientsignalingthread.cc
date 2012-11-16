@@ -510,16 +510,8 @@ void ClientSignalingThread::LoginS() {
   talk_base::SocketAddress turn_socket = talk_base::SocketAddress();
   if (!stun_config_->turn.empty() &&
       turn_socket.FromString(stun_config_->turn)) {
-    cricket::RelayCredentials credentials(
-#define NFHACK_FAKEPASS
-#ifdef NFHACK_FAKEPASS
-                                          "fakeuser",
-                                          "fakepass"
-#else
-                                          stun_config_->turn_username,
-                                          stun_config_->turn_password
-#endif
-);
+    cricket::RelayCredentials credentials(stun_config_->turn_username,
+                                          stun_config_->turn_password);
     cricket::RelayServerConfig relay_server(cricket::RELAY_TURN);
     relay_server.ports.push_back(cricket::ProtocolAddress(
         turn_socket, cricket::PROTO_UDP));
