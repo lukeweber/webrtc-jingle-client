@@ -30,6 +30,7 @@
 #include "tuenti/presenceouttask.h"
 #include "tuenti/presencepushtask.h"
 #include "tuenti/voiceclient.h"  // Needed for notify_ would be nice to remove
+#include "talk/base/logging.h"
 #include "talk/base/signalthread.h"
 #include "talk/base/ssladapter.h"
 #include "talk/p2p/base/session.h"
@@ -88,7 +89,10 @@ ClientSignalingThread::ClientSignalingThread(
   // int numRelayPorts = 0;
   LOGI("ClientSignalingThread::ClientSignalingThread");
   assert(talk_base::Thread::Current() == signal_thread_);
-
+#if LOGGING
+  // Set debugging to verbose in libjingle if LOGGING on android.
+  talk_base::LogMessage::LogToDebug(talk_base::LS_VERBOSE);
+#endif
   if (roster_ == NULL) {
     roster_ = new RosterMap();
     LOGI("ClientSignalingThread::ClientSignalingThread - new RosterMap "
@@ -506,10 +510,17 @@ void ClientSignalingThread::LoginS() {
   talk_base::SocketAddress turn_socket = talk_base::SocketAddress();
   if (!stun_config_->turn.empty() &&
       turn_socket.FromString(stun_config_->turn)) {
-    port_allocator_flags_ |= cricket::PORTALLOCATOR_ENABLE_TURN;
-    cricket::RelayCredentials credentials(stun_config_->turn_username,
-                                          stun_config_->turn_password);
-    cricket::RelayServerConfig relay_server;
+    cricket::RelayCredentials credentials(
+#define NFHACK_FAKEPASS
+#ifdef NFHACK_FAKEPASS
+                                          "fakeuser",
+                                          "fakepass"
+#else
+                                          stun_config_->turn_username,
+                                          stun_config_->turn_password
+#endif
+);
+    cricket::RelayServerConfig relay_server(cricket::RELAY_TURN);
     relay_server.ports.push_back(cricket::ProtocolAddress(
         turn_socket, cricket::PROTO_UDP));
     relay_server.credentials = credentials;
