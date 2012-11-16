@@ -116,14 +116,15 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeInit(
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin(
     JNIEnv *env, jobject object, jstring username, jstring password,
-    jstring stun, jstring turn, jstring turnPassword, jstring xmppHost,
-    jint xmppPort, jboolean useSSL) {
+    jstring stun, jstring turn, jstring turnUsername, jstring turnPassword,
+    jstring xmppHost, jint xmppPort, jboolean useSSL) {
   if (!client_) {
     LOGE("client not initialized");
     return;
   }
   const char* nativeUsername = env->GetStringUTFChars(username, NULL);
   const char* nativePassword = env->GetStringUTFChars(password, NULL);
+  const char* nativeTurnUsername = env->GetStringUTFChars(turnUsername, NULL);
   const char* nativeTurnPassword = env->GetStringUTFChars(turnPassword, NULL);
   const char* nativeXmppHost = env->GetStringUTFChars(xmppHost, NULL);
   const char* nativeStun = env->GetStringUTFChars(stun, NULL);
@@ -131,22 +132,13 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin(
 
   std::string nativeUsernameS(nativeUsername);
   std::string nativePasswordS(nativePassword);
-  std::string nativeTurnPasswordS(nativeTurnPassword);
   std::string nativeXmppHostS(nativeXmppHost);
-
-  size_t pos = nativeUsernameS.find("@");
-  std::string turn_username;
-  if (pos != std::string::npos) {
-    turn_username = std::string(nativeUsernameS.substr(0, pos));
-  } else {
-    turn_username = std::string(nativeUsernameS);
-  }
 
   stun_config_ = new tuenti::StunConfig;
   stun_config_->stun = std::string(nativeStun);
   stun_config_->turn = std::string(nativeTurn);
-  stun_config_->turn_username = turn_username;
-  stun_config_->turn_password = nativeTurnPasswordS;
+  stun_config_->turn_username = std::string(nativeTurnUsername);
+  stun_config_->turn_password = std::string(nativeTurnPassword);
 
   // login
   client_->Login(nativeUsernameS, nativePasswordS, stun_config_,
@@ -158,6 +150,7 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin(
   env->ReleaseStringUTFChars(xmppHost, nativeXmppHost);
   env->ReleaseStringUTFChars(stun, nativeStun);
   env->ReleaseStringUTFChars(turn, nativeTurn);
+  env->ReleaseStringUTFChars(turnPassword, nativeTurnUsername);
   env->ReleaseStringUTFChars(turnPassword, nativeTurnPassword);
 }
 

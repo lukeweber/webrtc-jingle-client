@@ -70,10 +70,10 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeInit
 /*
  * Class:     com_tuenti_voice_core_VoiceClient
  * Method:    nativeLogin
- * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IZ)V
+ * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IZ)V
  */
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin
-  (JNIEnv *, jobject, jstring, jstring, jstring, jstring, jstring, jstring, jint, jboolean);
+  (JNIEnv *, jobject, jstring, jstring, jstring, jstring, jstring, jstring, jstring, jint, jboolean);
 
 /*
  * Class:     com_tuenti_voice_core_VoiceClient

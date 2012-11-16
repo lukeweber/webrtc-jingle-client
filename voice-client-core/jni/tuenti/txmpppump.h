@@ -77,8 +77,6 @@ class TXmppPump: public talk_base::MessageHandler,
 
   buzz::XmppReturnStatus SendStanza(const buzz::XmlElement *stanza);
  private:
-  void Initialize();
-  void Deinitialize();
   buzz::XmppClient *client_;
   buzz::XmppEngine::State state_;
   buzz::XmppClientSettings xcs_;
@@ -86,7 +84,6 @@ class TXmppPump: public talk_base::MessageHandler,
   TXmppSocket *socket_;
   TXmppAuth *auth_;
   XmppLog *xmpp_log_;
-  bool initialized_;
 };
 
 }  // namespace tuenti

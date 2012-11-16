@@ -71,8 +71,10 @@ VoiceClient::~VoiceClient() {
 }
 
 void VoiceClient::Destroy() {
+  LOGI("VoiceClient::Destroy");
   signal_thread_->Post(this, MSG_DESTROY);
   while( client_signaling_thread_ != NULL ){
+    LOGI("VoiceClient::Destroy - loop");
     talk_base::Thread::Current()->SleepMs(10);
   }
 }

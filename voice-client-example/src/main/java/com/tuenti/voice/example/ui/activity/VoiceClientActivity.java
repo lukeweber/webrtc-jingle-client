@@ -23,12 +23,13 @@ public class VoiceClientActivity extends Activity implements
     // ------------------------------ FIELDS ------------------------------
 
     // Template Google Settings
-
     private static final String TO_USER = "user@gmail.com";
 
     private static final String MY_USER = "username@mydomain.com";
 
     private static final String MY_PASS = "pass";
+
+    private static final String MY_TURN_USER = new String(MY_USER);
 
     private static final String MY_TURN_PASS = new String(MY_PASS);
 
@@ -61,6 +62,7 @@ public class VoiceClientActivity extends Activity implements
             changeStatus("Logging in");
             intent.putExtra("username", MY_USER);
             intent.putExtra("password", MY_PASS);
+            intent.putExtra("turnUsername", MY_TURN_USER);
             intent.putExtra("turnPassword", MY_TURN_PASS);
             intent.putExtra(
                     "xmppHost",
