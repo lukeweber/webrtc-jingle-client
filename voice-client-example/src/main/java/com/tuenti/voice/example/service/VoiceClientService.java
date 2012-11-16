@@ -674,7 +674,7 @@ public class VoiceClientService extends Service implements
 
 	public void runPendingLogin() {
 		if (mUser != null) {
-			mClient.login(mUser.mUsername, mUser.mPassword, mUser.mStun, mUser.mTurn, mUser.mTurnPassword , mUser.mXmppHost,
+			mClient.login(mUser.mUsername, mUser.mPassword, mUser.mStun, mUser.mTurn, mUser.mTurnUsername, mUser.mTurnPassword , mUser.mXmppHost,
 			              mUser.mXmppPort, mUser.mXmppUseSsl);
 		}
 	}
@@ -718,12 +718,12 @@ public class VoiceClientService extends Service implements
 		mCallbacks.finishBroadcast();
 	}
 
-	public void storeLoginAndLogin(String username, String password, String turnPassword, String xmppHost,
-            int xmppPort, boolean xmppUseSsl){
+	public void storeLoginAndLogin(String username, String password, String turnUsername, 
+            String turnPassword, String xmppHost, int xmppPort, boolean xmppUseSsl){
 	   String stunServer = getStringPref(R.string.stunserver_key, R.string.stunserver_value);
 	   String turnServer = getStringPref(R.string.turnserver_key, R.string.turnserver_value);
 
-	   mUser = new User(username, password, stunServer, turnServer, turnPassword, xmppHost, xmppPort, xmppUseSsl);
+	   mUser = new User(username, password, stunServer, turnServer, turnUsername, turnPassword, xmppHost, xmppPort, xmppUseSsl);
        internalLogin();
 	}
 
@@ -776,11 +776,11 @@ public class VoiceClientService extends Service implements
 			mClient.endCall(callId);
 		}
 
-		public void login(String username, String password, String turnPassword,
+		public void login(String username, String password, String turnUsername, String turnPassword,
 				String xmppHost, int xmppPort, boolean xmppUseSsl)
 				throws RemoteException {
 		    mReconnect = true;
-		    storeLoginAndLogin(username, password, turnPassword, xmppHost, xmppPort, xmppUseSsl);
+		    storeLoginAndLogin(username, password, turnUsername, turnPassword, xmppHost, xmppPort, xmppUseSsl);
 		}
 
 		public void logout() throws RemoteException {
