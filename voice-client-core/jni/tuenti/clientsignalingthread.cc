@@ -40,6 +40,10 @@
 #include "talk/p2p/client/basicportallocator.h"
 #include "talk/p2p/client/sessionmanagertask.h"
 
+
+#include "talk/xmllite/xmlelement.h"
+#include "talk/xmpp/constants.h"
+
 namespace tuenti {
 
 enum {
@@ -198,6 +202,9 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
   case cricket::Session::STATE_RECEIVEDACCEPT:
     LOGI("VoiceClient::OnSessionState - "
       "STATE_RECEIVEDACCEPT transfering data.");
+    //Last accept has focus
+    sp_media_client_->SetFocus(call);
+    call_ = call;
     break;
   case cricket::Session::STATE_RECEIVEDREJECT:
     LOGI("VoiceClient::OnSessionState - STATE_RECEIVEDREJECT doing nothing...");
@@ -348,7 +355,10 @@ void ClientSignalingThread::Login(const std::string &username,
   pass.password() = password;
 
   xcs_.set_user(jid.node());
-  xcs_.set_resource("TuentiVoice");
+  xcs_.set_resource("voice");
+#ifdef TUENTI_CUSTOM_BUILD
+  xcs_.set_resource("voice-" + talk_base::CreateRandomString(10));
+#endif
   xcs_.set_host(jid.domain());
   xcs_.set_use_tls(use_ssl ? buzz::TLS_REQUIRED : buzz::TLS_DISABLED);
   xcs_.set_pass(talk_base::CryptString(pass));
@@ -560,9 +570,16 @@ void ClientSignalingThread::CallS(const std::string &remoteJid) {
   LOGI("ClientSignalingThread::CallS");
   assert(talk_base::Thread::Current() == signal_thread_);
 
+  cricket::Call* call;
   cricket::CallOptions options;
   options.is_muc = false;
 
+#ifdef TUENTI_CUSTOM_BUILD
+  //We rely on a primary buddy list.
+  buzz::Jid remote_jid(remoteJid);
+  call = sp_media_client_->CreateCall();
+  call->InitiateSession(remote_jid, sp_media_client_->jid(), options);  // REQ_MAIN_THREAD
+#else
   bool found = false;
   buzz::Jid callto_jid(remoteJid);
   buzz::Jid found_jid;
@@ -579,14 +596,12 @@ void ClientSignalingThread::CallS(const std::string &remoteJid) {
 
   if (found) {
     LOGI("Found online friend '%s'", found_jid.Str().c_str());
-    if (!call_) {
-      call_ = sp_media_client_->CreateCall();
-      call_->InitiateSession(found_jid, sp_media_client_->jid(), options);  // REQ_MAIN_THREAD
-    }
-    sp_media_client_->SetFocus(call_);
+    call = sp_media_client_->CreateCall();
+    call->InitiateSession(found_jid, sp_media_client_->jid(), options);  // REQ_MAIN_THREAD
   } else {
     LOGI("Could not find online friend '%s'", remoteJid.c_str());
   }
+#endif  // !TUENTI_CUSTOM_BUILD
 }
 
 void ClientSignalingThread::MuteCallS(uint32 call_id, bool mute) {
@@ -679,16 +694,37 @@ void ClientSignalingThread::InitPresence() {
   // NFHACK Fix the news
   LOGI("ClientSignalingThread::InitPresence");
   assert(talk_base::Thread::Current() == signal_thread_);
+
+  my_status_.set_jid(sp_pump_->client()->jid());
+  my_status_.set_available(true);
+  my_status_.set_know_capabilities(true);
+  my_status_.set_pmuc_capability(false);
+
+#ifdef TUENTI_CUSTOM_BUILD
+  //Set status to negative to not interfere with messaging clients.
+  my_status_.set_priority(-25);
+
+  //Set away so we don't interfere with custom activity logic
+  my_status_.set_show(buzz::Status::SHOW_AWAY);
+
+  //Ignore incoming presence.
+  buzz::XmlElement* xmlblockpresence = new buzz::XmlElement(buzz::QN_IQ);
+  xmlblockpresence->AddAttr(buzz::QN_TYPE, buzz::STR_SET);
+  xmlblockpresence->AddElement(new buzz::XmlElement(buzz::QN_PRIVACY_QUERY, true));
+  buzz::XmlElement* xmlprivacylist = new buzz::XmlElement(buzz::QN_PRIVACY_LIST, true);
+  buzz::XmlElement* xmlprivacyitem = new buzz::XmlElement(buzz::QN_PRIVACY_ITEM, true);
+  xmlprivacyitem->AddAttr(buzz::QN_ACTION, "deny");
+  xmlprivacyitem->AddElement(new buzz::XmlElement(buzz::QN_PRIVACY_PRESENCE_IN, true));
+  xmlprivacylist->AddElement(xmlprivacyitem);
+  xmlblockpresence->AddElement(xmlprivacylist);
+  sp_pump_->client()->SendStanza(xmlblockpresence);
+#else
+  my_status_.set_show(buzz::Status::SHOW_ONLINE);
   presence_push_ = new buzz::PresencePushTask(sp_pump_->client());
   presence_push_->SignalStatusUpdate.connect(this,
       &ClientSignalingThread::OnStatusUpdate);
   presence_push_->Start();
-
-  my_status_.set_jid(sp_pump_->client()->jid());
-  my_status_.set_available(true);
-  my_status_.set_show(buzz::Status::SHOW_ONLINE);
-  my_status_.set_know_capabilities(true);
-  my_status_.set_pmuc_capability(false);
+#endif
 
   int capabilities = sp_media_client_->GetCapabilities();
   my_status_.set_voice_capability((capabilities & cricket::AUDIO_RECV) != 0);
