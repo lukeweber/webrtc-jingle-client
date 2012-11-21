@@ -52,6 +52,9 @@ public class VoiceClientEventHandler
             case VoiceClient.XMPP_SOCKET_CLOSE_EVENT:
                 mCallback.handleXmppSocketClose( code );
                 break;
+            case VoiceClient.AUDIO_PLAYOUT_EVENT:
+                mCallback.handleAudioPlayout();
+                break;
         }
     }
 }

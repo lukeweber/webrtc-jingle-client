@@ -26,6 +26,8 @@ public class VoiceClient
 
     //Event constants
     /* Event Types */
+    public static final int AUDIO_PLAYOUT_EVENT = 6;
+
     public static final int BUDDY_LIST_EVENT = 3;
 
     public static final int CALL_STATE_EVENT = 0;

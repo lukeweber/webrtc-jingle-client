@@ -291,6 +291,10 @@ void ClientSignalingThread::OnStateChange(buzz::XmppEngine::State state) {
   SignalXmppStateChange(state);
 }
 
+void ClientSignalingThread::OnAudioPlayout(){
+  SignalAudioPlayout();
+}
+
 void ClientSignalingThread::OnRequestSignaling() {
   LOGI("ClientSignalingThread::OnRequestSignaling");
   assert(talk_base::Thread::Current() == signal_thread_);
@@ -311,6 +315,8 @@ void ClientSignalingThread::OnCallCreate(cricket::Call* call) {
       &ClientSignalingThread::OnSessionState);
   call->SignalSessionError.connect(this,
       &ClientSignalingThread::OnSessionError);
+  call->SignalAudioPlayout.connect(this,
+      &ClientSignalingThread::OnAudioPlayout);
 }
 
 void ClientSignalingThread::OnCallDestroy(cricket::Call* call) {

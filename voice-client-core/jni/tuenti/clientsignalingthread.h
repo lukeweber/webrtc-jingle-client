@@ -116,6 +116,7 @@ class ClientSignalingThread: public talk_base::SignalThread,
   void OnCallDestroy(cricket::Call* call);
   void OnMediaEngineTerminate();
   void OnPingTimeout();
+  void OnAudioPlayout();
   // These are signal thread entry points that will be farmed
   // out to the worker equivilent functions
   void Login(const std::string &username, const std::string &password,
@@ -138,6 +139,7 @@ class ClientSignalingThread: public talk_base::SignalThread,
   sigslot::signal1<int> SignalXmppSocketClose;
   sigslot::signal1<int> SignalXmppStateChange;
 
+  sigslot::signal0<> SignalAudioPlayout;
   sigslot::signal0<> SignalBuddyListReset;
   sigslot::signal1<const char *> SignalBuddyListRemove;
   sigslot::signal2<const char *, const char *> SignalBuddyListAdd;

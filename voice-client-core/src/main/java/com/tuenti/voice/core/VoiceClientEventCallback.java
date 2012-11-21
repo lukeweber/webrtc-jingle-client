@@ -4,6 +4,8 @@ public interface VoiceClientEventCallback
 {
 // -------------------------- OTHER METHODS --------------------------
 
+    void handleAudioPlayout();
+
     void handleCallStateChanged( int state, String remoteJid, long callId );
 
     void handleCallError( int error, long callId );

@@ -237,13 +237,11 @@ public class VoiceClientService extends Service implements
         Log.e(TAG, "call error ------------------, callid " + callId + "error " + error );
     }
 
-    /*
+
     @Override
     public void handleAudioPlayout(){
-        Log.e(TAG, "handleaudioplayout");
-        resetAudio();
         setAudioForCall();
-    }*/
+    }
 
     @Override
     public void handleXmppError(int error) {
@@ -398,11 +396,14 @@ public class VoiceClientService extends Service implements
 		mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 	}
 
+  private void setInCallAudio() {
+		mAudioManager.requestAudioFocus(null, AudioManager.STREAM_VOICE_CALL,
+				AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+  }
+
 	private void setAudioForCall() {
 		mAudioManager.setMode((Build.VERSION.SDK_INT < 11) ? AudioManager.MODE_NORMAL
 						: AudioManager.MODE_IN_COMMUNICATION);
-		mAudioManager.requestAudioFocus(null, AudioManager.STREAM_VOICE_CALL,
-				AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
 	}
 
 	private void resetAudio() {
@@ -582,7 +583,7 @@ public class VoiceClientService extends Service implements
 		Call call = mCallMap.get(Long.valueOf(callId));
 		call.startCallTimer();
 		String remoteJid = call.getRemoteJid();
-		setAudioForCall();
+		setInCallAudio();
 		startCallInProgressActivity(callId, remoteJid);
 		dispatchCallState(CallUIIntent.CALL_STARTED, callId,
 				call.getRemoteJid());
@@ -747,7 +748,7 @@ public class VoiceClientService extends Service implements
 		    if (ConnectionMonitor.hasSlowConnection()) {
 		        //Throw warning to user.
 		    } else {
-		        mClient.call(remoteJid);
+            mClient.call(remoteJid);
 		    }
 		}
 
