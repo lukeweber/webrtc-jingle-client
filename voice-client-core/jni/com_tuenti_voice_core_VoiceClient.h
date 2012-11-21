@@ -7,6 +7,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#undef com_tuenti_voice_core_VoiceClient_AUDIO_PLAYOUT_EVENT
+#define com_tuenti_voice_core_VoiceClient_AUDIO_PLAYOUT_EVENT 6L
 #undef com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT
 #define com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT 3L
 #undef com_tuenti_voice_core_VoiceClient_CALL_STATE_EVENT
