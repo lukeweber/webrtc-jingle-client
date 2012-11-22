@@ -17,3 +17,4 @@ APP_CFLAGS += \
 	-DXMPP_COMPATIBILITY=1
 APP_STL := stlport_static
 APP_OPTIM := debug
+ENABLE_WEBRTC_TRACE := 1

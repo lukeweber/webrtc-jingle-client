@@ -15,3 +15,4 @@ APP_CFLAGS += \
 	-DWEBRTC_ANDROID_DEBUG=1
 APP_STL := stlport_static
 APP_OPTIM := debug
+ENABLE_WEBRTC_TRACE := 1

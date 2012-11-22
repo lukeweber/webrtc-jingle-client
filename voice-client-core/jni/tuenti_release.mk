@@ -5,6 +5,7 @@
 # tree. An additional intellectual property rights grant can be found
 # in the file PATENTS.  All contributing project authors may
 # be found in the AUTHORS file in the root of the source tree.
+NDK_TOOLCHAIN_VERSION=clang3.1
 APP_ABI := armeabi armeabi-v7a
 APP_PLATFORM := android-9
 APP_CPPFLAGS += -fno-rtti
@@ -15,3 +16,4 @@ APP_CFLAGS += \
 	-DXMPP_COMPATIBILITY=1
 APP_STL := stlport_static
 APP_OPTIM := release
+ENABLE_WEBRTC_TRACE := 0
