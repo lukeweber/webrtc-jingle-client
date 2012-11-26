@@ -9,6 +9,7 @@ local_src_files := \
 	openssl/ssl/d1_meth.c \
 	openssl/ssl/d1_pkt.c \
 	openssl/ssl/d1_srvr.c \
+	openssl/ssl/d1_srtp.c \
 	openssl/ssl/kssl.c \
 	openssl/ssl/s23_clnt.c \
 	openssl/ssl/s23_lib.c \
@@ -45,9 +46,8 @@ local_src_files := \
 	openssl/ssl/t1_meth.c \
 	openssl/ssl/t1_reneg.c \
 	openssl/ssl/t1_srvr.c \
-	openssl/crypto/aes/aes_cbc.c \
+	openssl/ssl/tls_srp.c \
 	openssl/crypto/aes/aes_cfb.c \
-	openssl/crypto/aes/aes_core.c \
 	openssl/crypto/aes/aes_ctr.c \
 	openssl/crypto/aes/aes_ecb.c \
 	openssl/crypto/aes/aes_ige.c \
@@ -133,7 +133,6 @@ local_src_files := \
 	openssl/crypto/asn1/x_x509a.c \
 	openssl/crypto/bf/bf_cfb64.c \
 	openssl/crypto/bf/bf_ecb.c \
-	openssl/crypto/bf/bf_enc.c \
 	openssl/crypto/bf/bf_ofb64.c \
 	openssl/crypto/bf/bf_skey.c \
 	openssl/crypto/bio/b_dump.c \
@@ -156,11 +155,9 @@ local_src_files := \
 	openssl/crypto/bio/bss_null.c \
 	openssl/crypto/bio/bss_sock.c \
 	openssl/crypto/bn/bn_add.c \
-	openssl/crypto/bn/bn_asm.c \
 	openssl/crypto/bn/bn_blind.c \
 	openssl/crypto/bn/bn_const.c \
 	openssl/crypto/bn/bn_ctx.c \
-	openssl/crypto/bn/bn_depr.c \
 	openssl/crypto/bn/bn_div.c \
 	openssl/crypto/bn/bn_err.c \
 	openssl/crypto/bn/bn_exp.c \
@@ -183,26 +180,11 @@ local_src_files := \
 	openssl/crypto/bn/bn_sqrt.c \
 	openssl/crypto/bn/bn_word.c \
 	openssl/crypto/buffer/buf_err.c \
+	openssl/crypto/buffer/buf_str.c \
 	openssl/crypto/buffer/buffer.c \
-	openssl/crypto/camellia/camellia.c \
-	openssl/crypto/camellia/cmll_cbc.c \
-	openssl/crypto/camellia/cmll_cfb.c \
-	openssl/crypto/camellia/cmll_ctr.c \
-	openssl/crypto/camellia/cmll_ecb.c \
-	openssl/crypto/camellia/cmll_misc.c \
-	openssl/crypto/camellia/cmll_ofb.c \
-	openssl/crypto/cms/cms_asn1.c \
-	openssl/crypto/cms/cms_att.c \
-	openssl/crypto/cms/cms_cd.c \
-	openssl/crypto/cms/cms_dd.c \
-	openssl/crypto/cms/cms_enc.c \
-	openssl/crypto/cms/cms_env.c \
-	openssl/crypto/cms/cms_err.c \
-	openssl/crypto/cms/cms_ess.c \
-	openssl/crypto/cms/cms_io.c \
-	openssl/crypto/cms/cms_lib.c \
-	openssl/crypto/cms/cms_sd.c \
-	openssl/crypto/cms/cms_smime.c \
+	openssl/crypto/cmac/cm_ameth.c \
+	openssl/crypto/cmac/cm_pmeth.c \
+	openssl/crypto/cmac/cmac.c \
 	openssl/crypto/comp/c_rle.c \
 	openssl/crypto/comp/c_zlib.c \
 	openssl/crypto/comp/comp_err.c \
@@ -222,7 +204,6 @@ local_src_files := \
 	openssl/crypto/des/cfb64ede.c \
 	openssl/crypto/des/cfb64enc.c \
 	openssl/crypto/des/cfb_enc.c \
-	openssl/crypto/des/des_enc.c \
 	openssl/crypto/des/des_old.c \
 	openssl/crypto/des/des_old2.c \
 	openssl/crypto/des/ecb3_enc.c \
@@ -231,7 +212,6 @@ local_src_files := \
 	openssl/crypto/des/enc_read.c \
 	openssl/crypto/des/enc_writ.c \
 	openssl/crypto/des/fcrypt.c \
-	openssl/crypto/des/fcrypt_b.c \
 	openssl/crypto/des/ofb64ede.c \
 	openssl/crypto/des/ofb64enc.c \
 	openssl/crypto/des/ofb_enc.c \
@@ -252,7 +232,6 @@ local_src_files := \
 	openssl/crypto/dh/dh_key.c \
 	openssl/crypto/dh/dh_lib.c \
 	openssl/crypto/dh/dh_pmeth.c \
-	openssl/crypto/dh/dh_prn.c \
 	openssl/crypto/dsa/dsa_ameth.c \
 	openssl/crypto/dsa/dsa_asn1.c \
 	openssl/crypto/dsa/dsa_depr.c \
@@ -265,16 +244,18 @@ local_src_files := \
 	openssl/crypto/dsa/dsa_prn.c \
 	openssl/crypto/dsa/dsa_sign.c \
 	openssl/crypto/dsa/dsa_vrf.c \
-	openssl/crypto/dso/dso_beos.c \
+	openssl/crypto/dso/dso_dl.c \
+	openssl/crypto/dso/dso_dlfcn.c \
 	openssl/crypto/dso/dso_err.c \
 	openssl/crypto/dso/dso_lib.c \
 	openssl/crypto/dso/dso_null.c \
 	openssl/crypto/dso/dso_openssl.c \
 	openssl/crypto/ebcdic.c \
 	openssl/crypto/ec/ec2_mult.c \
+	openssl/crypto/ec/ec2_oct.c \
 	openssl/crypto/ec/ec2_smpl.c \
-	openssl/crypto/ec/ec_asn1.c \
 	openssl/crypto/ec/ec_ameth.c \
+	openssl/crypto/ec/ec_asn1.c \
 	openssl/crypto/ec/ec_check.c \
 	openssl/crypto/ec/ec_curve.c \
 	openssl/crypto/ec/ec_cvt.c \
@@ -282,11 +263,13 @@ local_src_files := \
 	openssl/crypto/ec/ec_key.c \
 	openssl/crypto/ec/ec_lib.c \
 	openssl/crypto/ec/ec_mult.c \
+	openssl/crypto/ec/ec_oct.c \
 	openssl/crypto/ec/ec_pmeth.c \
 	openssl/crypto/ec/ec_print.c \
 	openssl/crypto/ec/eck_prn.c \
 	openssl/crypto/ec/ecp_mont.c \
 	openssl/crypto/ec/ecp_nist.c \
+	openssl/crypto/ec/ecp_oct.c \
 	openssl/crypto/ec/ecp_smpl.c \
 	openssl/crypto/ecdh/ech_err.c \
 	openssl/crypto/ecdh/ech_key.c \
@@ -300,7 +283,6 @@ local_src_files := \
 	openssl/crypto/ecdsa/ecs_vrf.c \
 	openssl/crypto/engine/eng_all.c \
 	openssl/crypto/engine/eng_cnf.c \
-	openssl/crypto/engine/eng_cryptodev.c \
 	openssl/crypto/engine/eng_ctrl.c \
 	openssl/crypto/engine/eng_dyn.c \
 	openssl/crypto/engine/eng_err.c \
@@ -308,8 +290,9 @@ local_src_files := \
 	openssl/crypto/engine/eng_init.c \
 	openssl/crypto/engine/eng_lib.c \
 	openssl/crypto/engine/eng_list.c \
-	openssl/crypto/engine/eng_openssl.c \
 	openssl/crypto/engine/eng_pkey.c \
+	openssl/crypto/engine/eng_rsax.c \
+	openssl/crypto/engine/eng_rdrand.c \
 	openssl/crypto/engine/eng_table.c \
 	openssl/crypto/engine/tb_asnmth.c \
 	openssl/crypto/engine/tb_cipher.c \
@@ -334,17 +317,16 @@ local_src_files := \
 	openssl/crypto/evp/c_alld.c \
 	openssl/crypto/evp/digest.c \
 	openssl/crypto/evp/e_aes.c \
+	openssl/crypto/evp/e_aes_cbc_hmac_sha1.c \
 	openssl/crypto/evp/e_bf.c \
-	openssl/crypto/evp/e_camellia.c \
-	openssl/crypto/evp/e_cast.c \
 	openssl/crypto/evp/e_des.c \
 	openssl/crypto/evp/e_des3.c \
 	openssl/crypto/evp/e_null.c \
 	openssl/crypto/evp/e_old.c \
 	openssl/crypto/evp/e_rc2.c \
 	openssl/crypto/evp/e_rc4.c \
+	openssl/crypto/evp/e_rc4_hmac_md5.c \
 	openssl/crypto/evp/e_rc5.c \
-	openssl/crypto/evp/e_seed.c \
 	openssl/crypto/evp/e_xcbc_d.c \
 	openssl/crypto/evp/encode.c \
 	openssl/crypto/evp/evp_acnf.c \
@@ -357,13 +339,11 @@ local_src_files := \
 	openssl/crypto/evp/m_dss.c \
 	openssl/crypto/evp/m_dss1.c \
 	openssl/crypto/evp/m_ecdsa.c \
-	openssl/crypto/evp/m_md2.c \
 	openssl/crypto/evp/m_md4.c \
 	openssl/crypto/evp/m_md5.c \
 	openssl/crypto/evp/m_mdc2.c \
 	openssl/crypto/evp/m_null.c \
 	openssl/crypto/evp/m_ripemd.c \
-	openssl/crypto/evp/m_sha.c \
 	openssl/crypto/evp/m_sha1.c \
 	openssl/crypto/evp/m_sigver.c \
 	openssl/crypto/evp/m_wp.c \
@@ -391,17 +371,18 @@ local_src_files := \
 	openssl/crypto/md4/md4_one.c \
 	openssl/crypto/md5/md5_dgst.c \
 	openssl/crypto/md5/md5_one.c \
-	openssl/crypto/mdc2/mdc2dgst.c \
-	openssl/crypto/mdc2/mdc2_one.c \
 	openssl/crypto/mem.c \
 	openssl/crypto/mem_clr.c \
 	openssl/crypto/mem_dbg.c \
 	openssl/crypto/modes/cbc128.c \
+	openssl/crypto/modes/ccm128.c \
 	openssl/crypto/modes/cfb128.c \
 	openssl/crypto/modes/ctr128.c \
-	openssl/crypto/modes/cts128.c \
+	openssl/crypto/modes/gcm128.c \
 	openssl/crypto/modes/ofb128.c \
+	openssl/crypto/modes/xts128.c \
 	openssl/crypto/o_dir.c \
+	openssl/crypto/o_init.c \
 	openssl/crypto/o_str.c \
 	openssl/crypto/o_time.c \
 	openssl/crypto/objects/o_names.c \
@@ -445,7 +426,6 @@ local_src_files := \
 	openssl/crypto/pkcs12/p12_p8e.c \
 	openssl/crypto/pkcs12/p12_utl.c \
 	openssl/crypto/pkcs12/pk12err.c \
-	openssl/crypto/pkcs7/bio_pk7.c \
 	openssl/crypto/pkcs7/pk7_asn1.c \
 	openssl/crypto/pkcs7/pk7_attr.c \
 	openssl/crypto/pkcs7/pk7_doit.c \
@@ -458,10 +438,7 @@ local_src_files := \
 	openssl/crypto/rand/rand_egd.c \
 	openssl/crypto/rand/rand_err.c \
 	openssl/crypto/rand/rand_lib.c \
-	openssl/crypto/rand/rand_nw.c \
-	openssl/crypto/rand/rand_os2.c \
 	openssl/crypto/rand/rand_unix.c \
-	openssl/crypto/rand/rand_win.c \
 	openssl/crypto/rand/randfile.c \
 	openssl/crypto/rc2/rc2_cbc.c \
 	openssl/crypto/rc2/rc2_ecb.c \
@@ -470,12 +447,13 @@ local_src_files := \
 	openssl/crypto/rc2/rc2ofb64.c \
 	openssl/crypto/rc4/rc4_enc.c \
 	openssl/crypto/rc4/rc4_skey.c \
+	openssl/crypto/rc4/rc4_utl.c \
 	openssl/crypto/ripemd/rmd_dgst.c \
 	openssl/crypto/ripemd/rmd_one.c \
 	openssl/crypto/rsa/rsa_ameth.c \
 	openssl/crypto/rsa/rsa_asn1.c \
 	openssl/crypto/rsa/rsa_chk.c \
-	openssl/crypto/rsa/rsa_depr.c \
+	openssl/crypto/rsa/rsa_crpt.c \
 	openssl/crypto/rsa/rsa_eay.c \
 	openssl/crypto/rsa/rsa_err.c \
 	openssl/crypto/rsa/rsa_gen.c \
@@ -496,19 +474,10 @@ local_src_files := \
 	openssl/crypto/sha/sha256.c \
 	openssl/crypto/sha/sha512.c \
 	openssl/crypto/sha/sha_dgst.c \
-	openssl/crypto/sha/sha_one.c \
+	openssl/crypto/srp/srp_lib.c \
+	openssl/crypto/srp/srp_vfy.c \
 	openssl/crypto/stack/stack.c \
-	openssl/crypto/ts/ts_asn1.c \
-	openssl/crypto/ts/ts_conf.c \
 	openssl/crypto/ts/ts_err.c \
-	openssl/crypto/ts/ts_lib.c \
-	openssl/crypto/ts/ts_req_print.c \
-	openssl/crypto/ts/ts_req_utils.c \
-	openssl/crypto/ts/ts_rsp_print.c \
-	openssl/crypto/ts/ts_rsp_sign.c \
-	openssl/crypto/ts/ts_rsp_utils.c \
-	openssl/crypto/ts/ts_rsp_verify.c \
-	openssl/crypto/ts/ts_verify_ctx.c \
 	openssl/crypto/txt_db/txt_db.c \
 	openssl/crypto/ui/ui_compat.c \
 	openssl/crypto/ui/ui_err.c \
@@ -546,11 +515,9 @@ local_src_files := \
 	openssl/crypto/x509v3/pcy_map.c \
 	openssl/crypto/x509v3/pcy_node.c \
 	openssl/crypto/x509v3/pcy_tree.c \
-	openssl/crypto/x509v3/v3_addr.c \
 	openssl/crypto/x509v3/v3_akey.c \
 	openssl/crypto/x509v3/v3_akeya.c \
 	openssl/crypto/x509v3/v3_alt.c \
-	openssl/crypto/x509v3/v3_asid.c \
 	openssl/crypto/x509v3/v3_bcons.c \
 	openssl/crypto/x509v3/v3_bitst.c \
 	openssl/crypto/x509v3/v3_conf.c \
@@ -575,26 +542,64 @@ local_src_files := \
 	openssl/crypto/x509v3/v3_skey.c \
 	openssl/crypto/x509v3/v3_sxnet.c \
 	openssl/crypto/x509v3/v3_utl.c \
-	openssl/crypto/x509v3/v3err.c \
-	openssl/engines/e_4758cca.c \
-	openssl/engines/e_aep.c \
-	openssl/engines/e_atalla.c \
-	openssl/engines/e_capi.c \
-	openssl/engines/e_chil.c \
-	openssl/engines/e_cswift.c \
-	openssl/engines/e_gmp.c \
-	openssl/engines/e_nuron.c \
-	openssl/engines/e_sureware.c \
-	openssl/engines/e_ubsec.c
+	openssl/crypto/x509v3/v3err.c
+
+ifeq ($(TARGET_ARCH),x86)
+	local_src_files += \
+		openssl/crypto/aes/asm/aes-586.S \
+		openssl/crypto/aes/asm/aesni-x86.S \
+		openssl/crypto/aes/asm/vpaes-x86.S \
+		openssl/crypto/bf/asm/bf-586.S \
+		openssl/crypto/bn/asm/bn-586.S \
+		openssl/crypto/bn/asm/co-586.S \
+		openssl/crypto/bn/asm/x86-gf2m.S \
+		openssl/crypto/bn/asm/x86-mont.S \
+		openssl/crypto/des/asm/crypt586.S \
+		openssl/crypto/des/asm/des-586.S \
+		openssl/crypto/md5/asm/md5-586.S \
+		openssl/crypto/modes/asm/ghash-x86.S \
+		openssl/crypto/sha/asm/sha1-586.S \
+		openssl/crypto/sha/asm/sha256-586.S \
+		openssl/crypto/sha/asm/sha512-586.S
+endif
+
+ifeq ($(TARGET_ARCH),arm)
+	local_src_files += \
+	openssl/crypto/aes/asm/aes-armv4.S \
+	openssl/crypto/bn/asm/armv4-gf2m.S \
+	openssl/crypto/bn/asm/armv4-mont.S \
+	openssl/crypto/modes/asm/ghash-armv4.S \
+	openssl/crypto/sha/asm/sha1-armv4-large.S \
+	openssl/crypto/sha/asm/sha256-armv4.S \
+	openssl/crypto/sha/asm/sha512-armv4.S \
+	openssl/crypto/aes/aes_cbc.c \
+	openssl/crypto/des/des_enc.c \
+	openssl/crypto/des/fcrypt_b.c \
+	openssl/crypto/bf/bf_enc.c \
+	openssl/crypto/bn/bn_asm.c
+endif
+
+ifeq ($(TARGET_ARCH),mips)
+	local_src_files += \
+	openssl/crypto/aes/asm/aes-mips.S \
+	openssl/crypto/bn/asm/bn-mips.S \
+	openssl/crypto/bn/asm/mips-mont.S \
+	openssl/crypto/sha/asm/sha1-mips.S \
+	openssl/crypto/sha/asm/sha256-mips.S \
+	openssl/crypto/aes/aes_cbc.c \
+	openssl/crypto/des/des_enc.c \
+	openssl/crypto/des/fcrypt_b.c \
+	openssl/crypto/bf/bf_enc.c
+endif
 
 local_c_includes := \
 	$(LOCAL_PATH)/openssl \
 	$(LOCAL_PATH)/openssl/crypto \
 	$(LOCAL_PATH)/openssl/crypto/asn1 \
 	$(LOCAL_PATH)/openssl/crypto/evp \
-	$(LOCAL_PATH)/openssl/crypto/store \
-	$(LOCAL_PATH)/openssl/include \
-	$(LOCAL_PATH)/config/android
+	$(LOCAL_PATH)/openssl/crypto/modes \
+	$(LOCAL_PATH)/config/android \
+	$(LOCAL_PATH)/openssl/include
 
 # From GYP file
 local_c_flags += \
@@ -622,7 +627,6 @@ local_c_flags += \
 	-DOPENSSL_NO_SHA0 \
 	-DOPENSSL_NO_STORE \
 	-DOPENSSL_NO_WHRLPOOL \
-	-DOPENSSL_NO_WHIRLPOOL \
 	-DOPENSSL_NO_DYNAMIC_ENGINE
 
 ########################################
