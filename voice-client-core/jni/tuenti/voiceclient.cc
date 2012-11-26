@@ -53,6 +53,8 @@ VoiceClient::VoiceClient(JavaObjectReference *reference)
 #ifdef TUENTI_CUSTOM_BUILD
   LOG(INFO) << "LOGT RUNNING WITH TUENTI_CUSTOM_BUILD";
 #endif //TUENTI_CUSTOM_BUILD
+  //We enforce that it returns from this method before it returns from InitializeS()
+  talk_base::CritScope lock(&init_cs_);
 
   // a few standard logs not sure why they are not working
   talk_base::LogMessage::LogThreads();
@@ -80,6 +82,9 @@ void VoiceClient::Destroy() {
 }
 
 void VoiceClient::InitializeS() {
+  //We enforce that VoiceClient::VoiceClient() returns first, otherwise we don't have a client set.
+  talk_base::CritScope lock(&init_cs_);
+
   LOGI("VoiceClient::InitializeS");
   if (client_signaling_thread_ == NULL) {
     client_signaling_thread_ = new tuenti::ClientSignalingThread(
