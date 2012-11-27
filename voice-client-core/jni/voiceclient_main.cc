@@ -39,6 +39,7 @@
 tuenti::VoiceClient *client_;
 tuenti::StunConfig *stun_config_;
 talk_base::CriticalSection native_release_cs_;
+talk_base::CriticalSection init_cs_;
 
 jint JNI_OnLoad(JavaVM* vm, void* /*reserved*/) {
   if (!vm) {
@@ -110,6 +111,8 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeInit(
     RETURN_IF_FAIL(instance != NULL);
     SetJavaObject(instance, env, object);
 
+    //We enforce that we have a client_ and VoiceClient returns before we allow events.
+    talk_base::CritScope lock(&init_cs_);
     client_ = new tuenti::VoiceClient(instance);
   }
 }
@@ -118,6 +121,9 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin(
     JNIEnv *env, jobject object, jstring username, jstring password,
     jstring stun, jstring turn, jstring turnUsername, jstring turnPassword,
     jstring xmppHost, jint xmppPort, jboolean useSSL) {
+
+  //We enforce that we have a client_ and VoiceClient returns before we allow a login.
+  talk_base::CritScope lock(&init_cs_);
   if (!client_) {
     LOGE("client not initialized");
     return;
@@ -164,6 +170,7 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogout(
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeRelease(
   JNIEnv *env, jobject object) {
   talk_base::CritScope lock(&native_release_cs_);
+  LOGI("Java_com_tuenti_voice_core_VoiceClient_nativeRelease");
   if (client_) {
     client_->Destroy();
     delete client_;
