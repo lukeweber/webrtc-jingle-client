@@ -53,7 +53,6 @@ VoiceClient::VoiceClient(JavaObjectReference *reference)
 #ifdef TUENTI_CUSTOM_BUILD
   LOG(INFO) << "LOGT RUNNING WITH TUENTI_CUSTOM_BUILD";
 #endif //TUENTI_CUSTOM_BUILD
-
   // a few standard logs not sure why they are not working
   talk_base::LogMessage::LogThreads();
   talk_base::LogMessage::LogTimestamps();
@@ -61,8 +60,8 @@ VoiceClient::VoiceClient(JavaObjectReference *reference)
   // this creates all objects on the signaling thread
   if (signal_thread_ == NULL) {
     signal_thread_ = new talk_base::Thread();
-    signal_thread_->Post(this, MSG_INIT);
     signal_thread_->Start();
+    signal_thread_->Post(this, MSG_INIT);
   }
 }
 
@@ -75,12 +74,16 @@ void VoiceClient::Destroy() {
   signal_thread_->Post(this, MSG_DESTROY);
   while( client_signaling_thread_ != NULL ){
     LOGI("VoiceClient::Destroy - loop");
+    // Investigate if we could add Chromium base thread logic
+    // PlatformThread::YieldCurrentThread()
     talk_base::Thread::Current()->SleepMs(10);
   }
 }
 
 void VoiceClient::InitializeS() {
+  assert(talk_base::Thread::Current() == signal_thread_);
   LOGI("VoiceClient::InitializeS");
+
   if (client_signaling_thread_ == NULL) {
     client_signaling_thread_ = new tuenti::ClientSignalingThread(
         signal_thread_);
