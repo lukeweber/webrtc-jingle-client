@@ -223,8 +223,13 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
     LOGI("VoiceClient::OnSessionState - Received Busy");
     break;
   }
-  buzz::Jid jid(session->remote_name());
-  SignalCallStateChange(state, jid.Str().c_str(), call->id());
+
+  std::string jid_str = "";
+  //Session has already been terminated, so lets not do this.
+  if (cricket::Session::STATE_RECEIVEDTERMINATE != state) {
+    jid_str = session->remote_name();
+  }
+  SignalCallStateChange(state, jid_str.c_str(), call->id());
 }
 
 void ClientSignalingThread::OnSessionError(cricket::Call* call,

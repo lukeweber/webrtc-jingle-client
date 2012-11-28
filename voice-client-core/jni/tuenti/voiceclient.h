@@ -111,7 +111,6 @@ class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
   tuenti::ClientSignalingThread *client_signaling_thread_;
   StunConfig *stun_config_;
   talk_base::CriticalSection destroy_cs_;
-  talk_base::CriticalSection init_cs_;
 };
 
 }  // namespace tuenti
