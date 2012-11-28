@@ -30,7 +30,6 @@ LOCAL_SRC_FILES := \
 LOCAL_CFLAGS := \
 	-DHAVE_STDLIB_H \
 	-DHAVE_STRING_H \
-	-DCPU_RISC \
 	-DSIZEOF_UNSIGNED_LONG=4 \
 	-DSIZEOF_UNSIGNED_LONG_LONG=8 \
 	-DHAVE_STDINT_H \
@@ -41,6 +40,14 @@ LOCAL_CFLAGS := \
 	-DHAVE_UINT16_T \
 	-DHAVE_UINT8_T \
 	-DHAVE_UINT_T
+
+
+# CPU_RISC doesn't work properly on android/arm
+# self test for aes failed. CPU_RISC is used for optimization only,
+# and CPU_CISC should just work just fine, it has been tested on android/arm with srtp
+# test applications and libjingle.
+# More info here http://src.chromium.org/svn/trunk/deps/third_party/libsrtp/libsrtp.gyp
+LOCAL_CFLAGS += -DCPU_CISC
 
 LOCAL_C_INCLUDES += \
 	$(LOCAL_PATH)/source/config \
