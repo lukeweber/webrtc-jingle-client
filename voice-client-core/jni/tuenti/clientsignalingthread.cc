@@ -693,7 +693,7 @@ void ClientSignalingThread::InitMedia() {
       &ClientSignalingThread::OnCallCreate);
   sp_media_client_->SignalCallDestroy.connect(this,
       &ClientSignalingThread::OnCallDestroy);
-  sp_media_client_->set_secure(cricket::SEC_DISABLED);
+  sp_media_client_->set_secure(cricket::SEC_ENABLED);
 }
 
 void ClientSignalingThread::InitPresence() {
