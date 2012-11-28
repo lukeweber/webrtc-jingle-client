@@ -15,10 +15,10 @@
 
 package com.tuenti.voice.core;
 
-import android.os.Bundle;
-import android.os.Message;
-import android.os.Handler;
 import android.util.Log;
+import com.tuenti.voice.core.manager.BuddyManager;
+import com.tuenti.voice.core.manager.CallManager;
+import com.tuenti.voice.core.manager.ConnectionManager;
 
 public class VoiceClient
 {
@@ -30,9 +30,9 @@ public class VoiceClient
 
     public static final int BUDDY_LIST_EVENT = 3;
 
-    public static final int CALL_STATE_EVENT = 0;
-
     public static final int CALL_ERROR_EVENT = 5;
+
+    public static final int CALL_STATE_EVENT = 0;
 
     public static final int XMPP_ERROR_EVENT = 2;
 
@@ -43,30 +43,21 @@ public class VoiceClient
 
     private final static String TAG = "j-libjingle-webrtc";
 
-    private static VoiceClient instance;
-
-    private static final Object mutex = new Object();
-
-    private static Handler mHandler;
+    private static final Object mLock = new Object();
 
     private boolean initialized;
 
-// -------------------------- STATIC METHODS --------------------------
+    private BuddyManager mBuddyManager;
 
-    public static VoiceClient getInstance()
-    {
-        if ( instance == null )
-        {
-            instance = new VoiceClient();
-        }
-        return instance;
-    }
+    private CallManager mCallManager;
+
+    private ConnectionManager mConnectionManager;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    private VoiceClient()
+    public VoiceClient()
     {
-        synchronized ( mutex )
+        synchronized ( mLock )
         {
             loadLibrary( "voiceclient" );
         }
@@ -90,11 +81,6 @@ public class VoiceClient
         nativeDeclineCall( call_id, busy );
     }
 
-    public void destroy()
-    {
-        instance = null;
-    }
-
     public void endCall( long call_id )
     {
         nativeEndCall( call_id );
@@ -105,7 +91,7 @@ public class VoiceClient
         nativeHoldCall( call_id, hold );
     }
 
-    public void init( )
+    public void init()
     {
         if ( !initialized )
         {
@@ -114,10 +100,18 @@ public class VoiceClient
         }
     }
 
-    public void login( String username, String password, String stunServer, String turnServer, String turnUsername, String turnPassword, String xmppServer, int xmppPort,
-                       boolean useSsl )
+    public void login( String username, String password, String stunServer, String turnServer, String turnUsername,
+                       String turnPassword, String xmppServer, int xmppPort, boolean useSsl )
     {
-        nativeLogin( username, password, stunServer, turnServer, turnUsername, turnPassword, xmppServer, xmppPort, useSsl );
+        nativeLogin( username,
+                     password,
+                     stunServer,
+                     turnServer,
+                     turnUsername,
+                     turnPassword,
+                     xmppServer,
+                     xmppPort,
+                     useSsl );
     }
 
     public void logout()
@@ -139,24 +133,110 @@ public class VoiceClient
         }
     }
 
-    public void setHandler( Handler handler )
+    public void setBuddyManager( BuddyManager buddyManager )
     {
-        mHandler = handler;
+        mBuddyManager = buddyManager;
+    }
+
+    public void setCallManager( CallManager callManager )
+    {
+        mCallManager = callManager;
+    }
+
+    public void setConnectionManager( ConnectionManager connectionManager )
+    {
+        mConnectionManager = connectionManager;
+    }
+
+    /**
+     * @see BuddyManager#handleBuddyListChanged(int, String)
+     */
+    protected void handleBuddyListChanged( int state, String remoteJid )
+    {
+        synchronized ( mLock )
+        {
+            mBuddyManager.handleBuddyListChanged( state, remoteJid );
+        }
+    }
+
+    /**
+     * @see CallManager#handleCallError(int, long)
+     */
+    protected void handleCallError( int error, long callId )
+    {
+        synchronized ( mLock )
+        {
+            mCallManager.handleCallError( error, callId );
+        }
+    }
+
+    /**
+     * @see CallManager#handleCallStateChanged(int, String, long)
+     */
+    protected void handleCallStateChanged( int state, String remoteJid, long callId )
+    {
+        synchronized ( mLock )
+        {
+            mCallManager.handleCallStateChanged( state, remoteJid, callId );
+        }
+    }
+
+    /**
+     * @see ConnectionManager#handleXmppError(int)
+     */
+    protected void handleXmppError( int error )
+    {
+        synchronized ( mLock )
+        {
+            mConnectionManager.handleXmppError( error );
+        }
+    }
+
+    /**
+     * @see ConnectionManager#handleXmppSocketClose(int)
+     */
+    protected void handleXmppSocketClose( int state )
+    {
+        synchronized ( mLock )
+        {
+            mConnectionManager.handleXmppSocketClose( state );
+        }
+    }
+
+    /**
+     * @see ConnectionManager#handleXmppStateChanged(int)
+     */
+    protected void handleXmppStateChanged( int state )
+    {
+        synchronized ( mLock )
+        {
+            mConnectionManager.handleXmppStateChanged( state );
+        }
     }
 
     @SuppressWarnings("UnusedDeclaration")
     private void dispatchNativeEvent( int what, int code, String remoteJid, long callId )
     {
-        VoiceClient client = getInstance();
-        if ( client != null && client.mHandler != null )
+        switch ( what )
         {
-            Message msg = Message.obtain( client.mHandler, what );
-            Bundle bundle = new Bundle();
-            bundle.putInt( "code", code );
-            bundle.putString( "remoteJid", remoteJid );
-            bundle.putLong( "callId", callId );
-            msg.setData( bundle );
-            msg.sendToTarget();
+            case CALL_STATE_EVENT:
+                handleCallStateChanged( code, remoteJid, callId );
+                break;
+            case CALL_ERROR_EVENT:
+                handleCallError( code, callId );
+                break;
+            case BUDDY_LIST_EVENT:
+                handleBuddyListChanged( code, remoteJid );
+                break;
+            case XMPP_STATE_EVENT:
+                handleXmppStateChanged( code );
+                break;
+            case XMPP_ERROR_EVENT:
+                handleXmppError( code );
+                break;
+            case XMPP_SOCKET_CLOSE_EVENT:
+                handleXmppSocketClose( code );
+                break;
         }
     }
 
@@ -178,9 +258,9 @@ public class VoiceClient
 
     private native void nativeInit();
 
-    private native void nativeLogin( String user_name, String password, String stunServer,
-                                     String turnServer, String turnUsername, String turnPassword,
-                                     String xmppServer, int xmppPort, boolean UseSSL );
+    private native void nativeLogin( String user_name, String password, String stunServer, String turnServer,
+                                     String turnUsername, String turnPassword, String xmppServer, int xmppPort,
+                                     boolean UseSSL );
 
     private native void nativeLogout();
 

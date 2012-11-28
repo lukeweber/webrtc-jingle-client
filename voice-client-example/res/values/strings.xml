@@ -46,5 +46,7 @@
     <string name="turnserver">RFC Turn Server</string>
     <string name="turnserver_key">turnserver_key</string>
     <string name="turnserver_value"></string>
+    <string name="turn_username_key">turn_username_key</string>
+    <string name="turn_username_value"></string>
 
 </resources>
