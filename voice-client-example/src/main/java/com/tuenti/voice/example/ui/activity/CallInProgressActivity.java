@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
@@ -90,6 +91,8 @@ public class CallInProgressActivity extends Activity implements
 
 		initClickListeners();
 		setupReceiver();
+
+		setVolumeControlStream(AudioManager.STREAM_VOICE_CALL);
 	}
 
 	@Override
@@ -161,6 +164,8 @@ public class CallInProgressActivity extends Activity implements
 		if( mProximitySensor != null ){
 			mProximitySensor.stop();
 		}
+		setVolumeControlStream(AudioManager.STREAM_VOICE_CALL);
+
 		super.onDestroy();
 	}
 
