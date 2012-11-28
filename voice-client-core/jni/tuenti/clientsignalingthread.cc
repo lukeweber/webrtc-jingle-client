@@ -698,7 +698,11 @@ void ClientSignalingThread::InitMedia() {
       &ClientSignalingThread::OnCallCreate);
   sp_media_client_->SignalCallDestroy.connect(this,
       &ClientSignalingThread::OnCallDestroy);
+#ifdef TUENTI_CUSTOM_BUILD
   sp_media_client_->set_secure(cricket::SEC_DISABLED);
+#else
+  sp_media_client_->set_secure(cricket::SEC_ENABLED);
+#endif
 }
 
 void ClientSignalingThread::InitPresence() {
