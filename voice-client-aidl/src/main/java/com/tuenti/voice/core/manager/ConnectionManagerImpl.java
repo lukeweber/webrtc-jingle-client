@@ -150,13 +150,6 @@ public class ConnectionManagerImpl
     private void handleConnectionReady()
     {
         Log.d( TAG, "handleConnectionReady" );
-        mClientInited = true;
-        if ( mConnection != null )
-        {
-            internalLogin();
-        }
-
-        // handleConnectionReady
     }
 
     private void handleLoggedIn()
@@ -216,25 +209,11 @@ public class ConnectionManagerImpl
         mCallbacks.finishBroadcast();
     }
 
-    private void handleLogin( Connection connection)
+    private void handleLogin( Connection connection )
     {
         Log.d( TAG, "handleLogin" );
         mConnection = connection;
         if ( mConnection != null )
-        {
-            internalLogin();
-        }
-    }
-
-    private void handleLogout()
-    {
-        Log.d( TAG, "handleLogout" );
-        mClient.logout();
-    }
-
-    private void internalLogin()
-    {
-        if ( mClientInited )
         {
             mClient.login( mConnection.getUsername(),
                            mConnection.getPassword(),
@@ -246,11 +225,11 @@ public class ConnectionManagerImpl
                            mConnection.getXmppPort(),
                            mConnection.getXmppUseSsl() );
         }
-        else
-        {
-            // We run login after xmpp_none event, meaning our client is
-            // initialized
-            mClient.init();
-        }
+    }
+
+    private void handleLogout()
+    {
+        Log.d( TAG, "handleLogout" );
+        mClient.logout();
     }
 }
