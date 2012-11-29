@@ -226,7 +226,7 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
 
   std::string jid_str = "";
   //Session has already been terminated, so lets not do this.
-  if (cricket::Session::STATE_RECEIVEDTERMINATE != state) {
+  if (!(state == cricket::Session::STATE_RECEIVEDTERMINATE || state == cricket::Session::STATE_DEINIT)) {
     jid_str = session->remote_name();
   }
   SignalCallStateChange(state, jid_str.c_str(), call->id());
