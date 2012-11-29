@@ -368,7 +368,11 @@ void ClientSignalingThread::Login(const std::string &username,
   xcs_.set_user(jid.node());
   xcs_.set_resource("voice");
 #ifdef TUENTI_CUSTOM_BUILD
-  xcs_.set_resource("voice-" + talk_base::CreateRandomString(10));
+  std::string random_chunk;
+  const std::string alphanum_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+  //Only use first 62 chars in table to avoid "/ and +"
+  talk_base::CreateRandomString(10, alphanum_table, &random_chunk);
+  xcs_.set_resource("voice" + random_chunk);
 #endif
   xcs_.set_host(jid.domain());
   xcs_.set_use_tls(use_ssl ? buzz::TLS_REQUIRED : buzz::TLS_DISABLED);
