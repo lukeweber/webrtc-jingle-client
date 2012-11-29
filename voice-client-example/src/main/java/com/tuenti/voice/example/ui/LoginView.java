@@ -37,14 +37,14 @@ public class LoginView
         Connection connection = new Connection();
         connection.setUsername( MY_USER );
         connection.setPassword( MY_PASS );
-        connection.setStunHost( getStringPref( R.string.stunserver_key, R.string.stunserver_value ) );
-        connection.setTurnHost( getStringPref( R.string.turnserver_key, R.string.turnserver_value ) );
+        connection.setStunHost( getStringPref( R.string.stun_host_key, R.string.stun_host_value ) );
+        connection.setTurnHost( getStringPref( R.string.turn_host_key, R.string.turn_host_value ) );
         connection.setTurnUsername( getStringPref( R.string.turn_username_key, R.string.turn_username_value ) );
         connection.setTurnPassword( getStringPref( R.string.turn_password_key, R.string.turn_password_value ) );
         connection.setXmppHost( getStringPref( R.string.xmpp_host_key, R.string.xmpp_host_value ) );
         connection.setXmppPort( getIntPref( R.string.xmpp_port_key, R.string.xmpp_port_value ) );
         connection.setXmppUseSsl( getBooleanPref( R.string.xmpp_use_ssl_key, R.string.xmpp_use_ssl_value ) );
-        connection.setRelayHost( getStringPref( R.string.relayserver_key, R.string.relayserver_value ) );
+        connection.setRelayHost( getStringPref( R.string.relay_host_key, R.string.relay_host_value ) );
         return connection;
     }
 
