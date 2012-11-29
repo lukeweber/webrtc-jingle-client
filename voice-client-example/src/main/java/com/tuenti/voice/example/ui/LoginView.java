@@ -39,8 +39,8 @@ public class LoginView
         connection.setPassword( MY_PASS );
         connection.setStunHost( getStringPref( R.string.stunserver_key, R.string.stunserver_value ) );
         connection.setTurnHost( getStringPref( R.string.turnserver_key, R.string.turnserver_value ) );
-        connection.setTurnHost( getStringPref( R.string.turn_username_key, R.string.turn_username_value ) );
-        connection.setTurnPassword( MY_PASS );
+        connection.setTurnUsername( getStringPref( R.string.turn_username_key, R.string.turn_username_value ) );
+        connection.setTurnPassword( getStringPref( R.string.turn_password_key, R.string.turn_password_value ) );
         connection.setXmppHost( getStringPref( R.string.xmpp_host_key, R.string.xmpp_host_value ) );
         connection.setXmppPort( getIntPref( R.string.xmpp_port_key, R.string.xmpp_port_value ) );
         connection.setXmppUseSsl( getBooleanPref( R.string.xmpp_use_ssl_key, R.string.xmpp_use_ssl_value ) );

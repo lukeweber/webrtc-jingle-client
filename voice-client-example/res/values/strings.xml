@@ -16,7 +16,7 @@
     <string name="voice_chat_invite">Voice Chat Invite</string>
     <string name="accept_call">Accept</string>
     <string name="decline_call">Decline</string>
-    
+
     <string name="notification_profile_image">Profile image</string>
     <string name="notification_cancel_action">Cancel action</string>
     <string name="notification_outgoing_call">Calling %1$s.</string>
@@ -48,5 +48,7 @@
     <string name="turnserver_value"></string>
     <string name="turn_username_key">turn_username_key</string>
     <string name="turn_username_value"></string>
+    <string name="turn_password_key">turn_password_key</string>
+    <string name="turn_password_value"></string>
 
 </resources>
