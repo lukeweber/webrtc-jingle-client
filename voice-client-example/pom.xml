@@ -22,7 +22,13 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.tuenti.voice</groupId>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>voice-core</artifactId>
+            <version>${project.version}</version>
+            <type>apklib</type>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>voice-aidl</artifactId>
             <version>${project.version}</version>
             <type>apklib</type>
