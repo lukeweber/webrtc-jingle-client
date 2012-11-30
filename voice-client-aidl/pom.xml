@@ -36,6 +36,11 @@
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
             <plugin>
+                <groupId>com.jayway.maven.plugins.android.generation2</groupId>
+                <artifactId>android-maven-plugin</artifactId>
+                <extensions>true</extensions>
+            </plugin>
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
                 <version>${build-helper-maven-plugin.version}</version>
