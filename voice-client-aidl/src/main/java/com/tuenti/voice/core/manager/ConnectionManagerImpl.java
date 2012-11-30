@@ -56,10 +56,6 @@ public class ConnectionManagerImpl
 
     private VoiceClient mClient;
 
-    private boolean mClientInited;
-
-    private Connection mConnection;
-
 // --------------------------- CONSTRUCTORS ---------------------------
 
     public ConnectionManagerImpl( VoiceClient client )
@@ -212,18 +208,17 @@ public class ConnectionManagerImpl
     private void handleLogin( Connection connection )
     {
         Log.d( TAG, "handleLogin" );
-        mConnection = connection;
-        if ( mConnection != null )
+        if ( connection != null )
         {
-            mClient.login( mConnection.getUsername(),
-                           mConnection.getPassword(),
-                           mConnection.getStunHost(),
-                           mConnection.getTurnHost(),
-                           mConnection.getTurnUsername(),
-                           mConnection.getTurnPassword(),
-                           mConnection.getXmppHost(),
-                           mConnection.getXmppPort(),
-                           mConnection.getXmppUseSsl() );
+            mClient.login( connection.getUsername(),
+                           connection.getPassword(),
+                           connection.getStunHost(),
+                           connection.getTurnHost(),
+                           connection.getTurnUsername(),
+                           connection.getTurnPassword(),
+                           connection.getXmppHost(),
+                           connection.getXmppPort(),
+                           connection.getXmppUseSsl() );
         }
     }
 

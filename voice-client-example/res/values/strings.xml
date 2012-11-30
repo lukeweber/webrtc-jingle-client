@@ -37,21 +37,23 @@
     <string name="xmpp_use_ssl_value">true</string>
 
     <string name="stun_server_properties">Stun Server Properties</string>
-    <string name="stun_host">Stun Host</string>
-    <string name="stun_host_key">stun_host_key</string>
-    <string name="stun_host_value">stun.l.google.com:19302</string>
+    <string name="stun_server">Stun Server</string>
+    <string name="stun_server_key">stun_server_key</string>
+    <string name="stun_server_value">stun.l.google.com:19302</string>
 
     <string name="relay_server_properties">Relay Server Properties</string>
-    <string name="relay_host">Relay Host</string>
-    <string name="relay_host_key">relay_host_key</string>
-    <string name="relay_host_value"></string>
+    <string name="relay_server">Relay Server</string>
+    <string name="relay_server_key">relay_server_key</string>
+    <string name="relay_server_value"></string>
 
     <string name="turn_server_properties">RFC Turn Server Properties</string>
-    <string name="turn_host">RFC Turn Host</string>
-    <string name="turn_host_key">turn_host_key</string>
-    <string name="turn_host_value"></string>
+    <string name="turn_server">RFC Turn Server</string>
+    <string name="turn_server_key">turn_server_key</string>
+    <string name="turn_server_value"></string>
+    <string name="turn_username">RFC Turn Username</string>
     <string name="turn_username_key">turn_username_key</string>
     <string name="turn_username_value"></string>
+    <string name="turn_password">RFC Turn Password</string>
     <string name="turn_password_key">turn_password_key</string>
     <string name="turn_password_value"></string>
 
