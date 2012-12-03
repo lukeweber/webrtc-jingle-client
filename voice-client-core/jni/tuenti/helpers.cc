@@ -26,6 +26,8 @@
  */
 
 #include "tuenti/helpers.h"
+#include "voice_engine_defines.h"
+#include "voice_engine/voice_engine_impl.h"
 
 jmethodID GetMethodIDCachedReferenced(JNIEnv *env, jclass clazz,
                                       JavaMethodIDCache *cache) {
@@ -39,7 +41,7 @@ jmethodID GetMethodIDCachedReferenced(JNIEnv *env, jclass clazz,
   return cache->mid;
 }
 
-bool SetJavaObject(JavaObjectReference *ref, JNIEnv *env, jobject object) {
+bool SetJavaObject(JavaObjectReference *ref, JNIEnv *env, jobject object, jobject context) {
   RETURN_VAL_IF_FAIL(env != NULL, false);
   RETURN_VAL_IF_FAIL(object != NULL, false);
 
@@ -57,6 +59,9 @@ bool SetJavaObject(JavaObjectReference *ref, JNIEnv *env, jobject object) {
   ref->java_class = reinterpret_cast<jclass>(env->NewGlobalRef(localClass));
   ref->handler_object = env->NewGlobalRef(object);
   ref->jvm = jvm;
+
+  webrtc::VoiceEngine::SetAndroidObjects(jvm, env, context);
+
   env->DeleteLocalRef(localClass);
 
   return true;

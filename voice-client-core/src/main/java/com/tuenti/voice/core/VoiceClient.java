@@ -15,6 +15,7 @@
 
 package com.tuenti.voice.core;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Message;
 import android.os.Handler;
@@ -105,11 +106,11 @@ public class VoiceClient
         nativeHoldCall( call_id, hold );
     }
 
-    public void init( )
+    public void init( Context context )
     {
         if ( !initialized )
         {
-            nativeInit();
+            nativeInit( context );
             initialized = true;
         }
     }
@@ -176,7 +177,7 @@ public class VoiceClient
 
     private native void nativeHoldCall( long call_id, boolean hold );
 
-    private native void nativeInit();
+    private native void nativeInit( Context context);
 
     private native void nativeLogin( String user_name, String password, String stunServer,
                                      String turnServer, String turnUsername, String turnPassword,

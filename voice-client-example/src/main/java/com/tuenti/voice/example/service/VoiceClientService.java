@@ -732,7 +732,7 @@ public class VoiceClientService extends Service implements
 	    if (mClientInited) {
             runPendingLogin();
         } else {
-            mClient.init();
+            mClient.init(getApplicationContext());
         }
 	}
 

@@ -139,10 +139,18 @@ LOCAL_CFLAGS := \
 	-DFEATURE_ENABLE_VOICEMAIL \
 	-DFEATURE_ENABLE_PSTN \
 	-DSRTP_RELATIVE_PATH \
-	-DHAVE_SRTP
+	-DHAVE_SRTP \
+	-DWEBRTC_LINUX
 LOCAL_C_INCLUDES := \
 	$(MY_WEBRTC_PATH) \
-	$(MY_THIRD_PARTY_PATH)/libjingle
+	$(MY_THIRD_PARTY_PATH)/libjingle \
+	$(MY_THIRD_PARTY_PATH)/webrtc/system_wrappers/interface \
+	$(MY_THIRD_PARTY_PATH)/webrtc/voice_engine/include \
+	$(MY_THIRD_PARTY_PATH)/webrtc/modules/interface \
+	$(MY_THIRD_PARTY_PATH)/webrtc/modules/utility/interface \
+	$(MY_THIRD_PARTY_PATH)/webrtc/modules/audio_device/main/interface \
+	$(MY_THIRD_PARTY_PATH)/webrtc/modules/audio_processing/include \
+	$(MY_THIRD_PARTY_PATH)/webrtc/voice_engine
 
 LOCAL_PRELINK_MODULE := false
 LOCAL_WHOLE_STATIC_LIBRARIES := \

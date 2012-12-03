@@ -100,6 +100,6 @@ jmethodID GetMethodIDCachedReferenced(JNIEnv *env, jclass clazz,
  * Stores a reference to the given java object in the reference
  * location.
  */
-bool SetJavaObject(JavaObjectReference *ref, JNIEnv *env, jobject object);
+bool SetJavaObject(JavaObjectReference *ref, JNIEnv *env, jobject object, jobject context);
 
 #endif /* TUENTI_HELPERS_H_ */

@@ -64,10 +64,10 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeHoldCall
 /*
  * Class:     com_tuenti_voice_core_VoiceClient
  * Method:    nativeInit
- * Signature: ()V
+ * Signature: (Landroid/content/Context;)V
  */
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeInit
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jobject);
 
 /*
  * Class:     com_tuenti_voice_core_VoiceClient

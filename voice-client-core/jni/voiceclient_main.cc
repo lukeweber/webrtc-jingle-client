@@ -102,14 +102,14 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeEndCall(
 }
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeInit(
-    JNIEnv *env, jobject object){
+    JNIEnv *env, jobject object, jobject context){
   if (!client_) {
     LOGI("Java_com_tuenti_voice_VoiceClient_nativeInit - initializing "
       "client");
 
     JavaObjectReference *instance = NEW_OBJECT(JavaObjectReference, 1);
     RETURN_IF_FAIL(instance != NULL);
-    SetJavaObject(instance, env, object);
+    SetJavaObject(instance, env, object, context);
 
     //We enforce that we have a client_ and VoiceClient returns before we allow events.
     talk_base::CritScope lock(&init_cs_);
