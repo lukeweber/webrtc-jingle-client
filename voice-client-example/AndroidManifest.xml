@@ -46,7 +46,7 @@
                  android:name="com.tuenti.voice.core.service.VoiceClientService">
             <intent-filter>
                 <action android:name="com.tuenti.voice.core.service.IConnectionService"/>
-                <action android:name="com.tuenti.voice.core.service.IRosterService"/>
+                <action android:name="com.tuenti.voice.core.service.IBuddyService"/>
                 <action android:name="com.tuenti.voice.core.service.ICallService"/>
             </intent-filter>
         </service>

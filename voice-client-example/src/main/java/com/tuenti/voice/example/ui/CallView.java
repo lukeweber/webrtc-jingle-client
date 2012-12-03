@@ -52,7 +52,14 @@ public class CallView
     {
         if ( mBottomBar.getVisibility() != View.VISIBLE )
         {
-            mBottomBar.setVisibility( View.VISIBLE );
+            runOnUiThread( new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    mBottomBar.setVisibility( View.VISIBLE );
+                }
+            } );
         }
     }
 
@@ -60,11 +67,18 @@ public class CallView
     public void onOutgoingCallAccepted()
     {
         Log.d( TAG, "onOutgoingCallAccepted" );
-        mCallStateLabel.setVisibility( View.GONE );
-        mElapsedTime.setVisibility( View.VISIBLE );
-        mBottomBar.setVisibility( View.VISIBLE );
-        mAcceptButton.setVisibility( View.GONE );
-        mCallTimer.startTimer( mCall );
+        runOnUiThread( new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                mCallStateLabel.setVisibility( View.GONE );
+                mElapsedTime.setVisibility( View.VISIBLE );
+                mBottomBar.setVisibility( View.VISIBLE );
+                mAcceptButton.setVisibility( View.GONE );
+                mCallTimer.startTimer( mCall );
+            }
+        } );
     }
 
     @Override
@@ -78,10 +92,17 @@ public class CallView
     public void onIncomingCallAccepted()
     {
         Log.d( TAG, "onIncomingCallAccepted" );
-        mCallStateLabel.setVisibility( View.GONE );
-        mElapsedTime.setVisibility( View.VISIBLE );
-        mBottomBar.setVisibility( View.VISIBLE );
-        mCallTimer.startTimer( mCall );
+        runOnUiThread( new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                mCallStateLabel.setVisibility( View.GONE );
+                mElapsedTime.setVisibility( View.VISIBLE );
+                mBottomBar.setVisibility( View.VISIBLE );
+                mCallTimer.startTimer( mCall );
+            }
+        } );
     }
 
     @Override
