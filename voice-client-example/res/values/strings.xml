@@ -16,7 +16,7 @@
     <string name="voice_chat_invite">Voice Chat Invite</string>
     <string name="accept_call">Accept</string>
     <string name="decline_call">Decline</string>
-    
+
     <string name="notification_profile_image">Profile image</string>
     <string name="notification_cancel_action">Cancel action</string>
     <string name="notification_outgoing_call">Calling %1$s.</string>
@@ -37,14 +37,24 @@
     <string name="xmpp_use_ssl_value">true</string>
 
     <string name="stun_server_properties">Stun Server Properties</string>
-    <string name="stunserver">Stun Server</string>
-    <string name="stunserver_key">stunserver_key</string>
-    <string name="stunserver_value">stun.l.google.com:19302</string>
-    <string name="relayserver">Relay Server</string>
-    <string name="relayserver_key">relayserver_key</string>
-    <string name="relayserver_value"></string>
-    <string name="turnserver">RFC Turn Server</string>
-    <string name="turnserver_key">turnserver_key</string>
-    <string name="turnserver_value"></string>
+    <string name="stun_server">Stun Server</string>
+    <string name="stun_server_key">stun_server_key</string>
+    <string name="stun_server_value">stun.l.google.com:19302</string>
+
+    <string name="relay_server_properties">Relay Server Properties</string>
+    <string name="relay_server">Relay Server</string>
+    <string name="relay_server_key">relay_server_key</string>
+    <string name="relay_server_value"></string>
+
+    <string name="turn_server_properties">RFC Turn Server Properties</string>
+    <string name="turn_server">RFC Turn Server</string>
+    <string name="turn_server_key">turn_server_key</string>
+    <string name="turn_server_value"></string>
+    <string name="turn_username">RFC Turn Username</string>
+    <string name="turn_username_key">turn_username_key</string>
+    <string name="turn_username_value"></string>
+    <string name="turn_password">RFC Turn Password</string>
+    <string name="turn_password_key">turn_password_key</string>
+    <string name="turn_password_value"></string>
 
 </resources>

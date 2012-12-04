@@ -10,10 +10,10 @@
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>voice-example</artifactId>
+    <artifactId>voice-aidl</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>apk</packaging>
-    <name>Tuenti Voice Client Example</name>
+    <packaging>apklib</packaging>
+    <name>Tuenti Voice Client AIDL</name>
 
     <dependencies>
         <dependency>
@@ -27,16 +27,12 @@
             <version>${project.version}</version>
             <type>apklib</type>
         </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>voice-aidl</artifactId>
-            <version>${project.version}</version>
-            <type>apklib</type>
-        </dependency>
     </dependencies>
 
     <build>
+
         <plugins>
+
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
@@ -44,10 +40,27 @@
                 <groupId>com.jayway.maven.plugins.android.generation2</groupId>
                 <artifactId>android-maven-plugin</artifactId>
                 <extensions>true</extensions>
-                <configuration>
-                    <apkDebug>${android.apk.debug}</apkDebug>
-                    <manifestDebuggable>${android.manifest.debuggable}</manifestDebuggable>
-                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>${build-helper-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>attach-artifact</goal>
+                        </goals>
+                        <configuration>
+                            <artifacts>
+                                <artifact>
+                                    <type>jar</type>
+                                    <file>${project.build.directory}/${project.build.finalName}.jar</file>
+                                </artifact>
+                            </artifacts>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
         </plugins>

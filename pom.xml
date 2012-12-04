@@ -12,6 +12,7 @@
 
     <modules>
         <module>voice-client-core</module>
+        <module>voice-client-aidl</module>
         <module>voice-client-example</module>
     </modules>
     <scm>
