@@ -1,4 +1,4 @@
-package com.tuenti.voice.example.util;
+package com.tuenti.voice.core.util;
 
 import android.os.Handler;
 import android.os.SystemClock;

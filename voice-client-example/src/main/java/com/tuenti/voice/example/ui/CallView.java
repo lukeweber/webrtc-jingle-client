@@ -13,11 +13,11 @@ import com.tuenti.voice.core.VoiceActivity;
 import com.tuenti.voice.core.data.Call;
 import com.tuenti.voice.example.Intents;
 import com.tuenti.voice.example.R;
-import com.tuenti.voice.example.util.CallTimer;
+import com.tuenti.voice.core.util.CallTimer;
 import com.tuenti.voice.example.util.WakeLockManager;
 
 import static android.view.View.OnClickListener;
-import static com.tuenti.voice.example.util.CallTimer.OnTickListener;
+import static com.tuenti.voice.core.util.CallTimer.OnTickListener;
 
 public class CallView
     extends VoiceActivity
@@ -32,6 +32,8 @@ public class CallView
     private LinearLayout mBottomBar;
 
     private Call mCall;
+
+    private boolean mCallOnHold;
 
     private TextView mCallStateLabel;
 
@@ -100,6 +102,7 @@ public class CallView
                 mCallStateLabel.setVisibility( View.GONE );
                 mElapsedTime.setVisibility( View.VISIBLE );
                 mBottomBar.setVisibility( View.VISIBLE );
+                mAcceptButton.setVisibility( View.GONE );
                 mCallTimer.startTimer( mCall );
             }
         } );
@@ -110,6 +113,15 @@ public class CallView
     {
         mCallTimer.cancelTimer();
         finish();
+    }
+
+    @Override
+    public void toggleHold( long callId )
+    {
+        mCallOnHold = !mCallOnHold;
+        mCallStateLabel.setText( "ON HOLD" );
+        mCallStateLabel.setVisibility( mCallOnHold ? View.VISIBLE : View.GONE );
+        super.toggleHold( callId );
     }
 
 // --------------------- Interface OnClickListener ---------------------
