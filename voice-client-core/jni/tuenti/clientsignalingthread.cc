@@ -27,6 +27,7 @@
 #include <assert.h>
 #include "tuenti/clientsignalingthread.h"
 #include "tuenti/logging.h"
+#include "tuenti/client_defines.h"
 #include "tuenti/presenceouttask.h"
 #include "tuenti/presencepushtask.h"
 #include "tuenti/voiceclient.h"  // Needed for notify_ would be nice to remove
@@ -55,7 +56,8 @@ enum {
   MSG_HOLD_CALL,
   MSG_DECLINE_CALL,
   MSG_MUTE_CALL,
-  MSG_END_CALL
+  MSG_END_CALL,
+  MSG_KEEPALIVE
 //  , MSG_DESTROY
 };
 
@@ -293,7 +295,12 @@ void ClientSignalingThread::OnStateChange(buzz::XmppEngine::State state) {
             "initing media & presence...");
     InitMedia();
     InitPresence();
+#if XMPP_WHITESPACE_KEEPALIVE_ENABLED
+    ScheduleKeepAlive();
+#endif
+#if XMPP_PING_ENABLED
     InitPing();
+#endif
     break;
   case buzz::XmppEngine::STATE_CLOSED:
     ResetMedia();
@@ -367,7 +374,7 @@ void ClientSignalingThread::Login(const std::string &username,
 
   xcs_.set_user(jid.node());
   xcs_.set_resource("voice");
-#ifdef TUENTI_CUSTOM_BUILD
+#if ADD_RANDOM_RESOURCE_TO_JID
   std::string random_chunk;
   const std::string alphanum_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
   //Only use first 62 chars in table to avoid "/ and +"
@@ -477,6 +484,9 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
     EndCallS(static_cast<ClientSignalingData*>(message->pdata)->call_id_);
     delete message->pdata;
     break;
+  case MSG_KEEPALIVE:
+    OnKeepAliveS();
+    break;
   default:
     LOGI("ClientSignalingThread::OnMessage - UNKNOWN "
             "falling back to base class");
@@ -484,6 +494,19 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
     break;
   }
 }
+
+void ClientSignalingThread::OnKeepAliveS(){
+  if(sp_pump_->client()){
+    sp_pump_->client()->SendRaw(" ");
+    ScheduleKeepAlive();
+  }
+}
+
+void ClientSignalingThread::ScheduleKeepAlive() {
+  //We ping a white space every 10 minutes to avoid the connection dropping.
+  signal_thread_->PostDelayed(XmppKeepAlivePingInterval, this, MSG_KEEPALIVE);
+}
+
 
 void ClientSignalingThread::DoWork() {
   LOGI("ClientSignalingThread::DoWork");
@@ -589,12 +612,12 @@ void ClientSignalingThread::CallS(const std::string &remoteJid) {
   cricket::CallOptions options;
   options.is_muc = false;
 
-#ifdef TUENTI_CUSTOM_BUILD
-  //We rely on a primary buddy list.
+#if XMPP_DISABLE_ROSTER
+  // Just call whichever JID we get.
   buzz::Jid remote_jid(remoteJid);
   call = sp_media_client_->CreateCall();
-  call->InitiateSession(remote_jid, sp_media_client_->jid(), options);  // REQ_MAIN_THREAD
-#else
+  call->InitiateSession(remote_jid, sp_media_client_->jid(), options);
+#else // Check the roster
   bool found = false;
   buzz::Jid callto_jid(remoteJid);
   buzz::Jid found_jid;
@@ -612,11 +635,11 @@ void ClientSignalingThread::CallS(const std::string &remoteJid) {
   if (found) {
     LOGI("Found online friend '%s'", found_jid.Str().c_str());
     call = sp_media_client_->CreateCall();
-    call->InitiateSession(found_jid, sp_media_client_->jid(), options);  // REQ_MAIN_THREAD
+    call->InitiateSession(found_jid, sp_media_client_->jid(), options);
   } else {
     LOGI("Could not find online friend '%s'", remoteJid.c_str());
   }
-#endif  // !TUENTI_CUSTOM_BUILD
+#endif  // !XMPP_DISABLE_ROSTER
 }
 
 void ClientSignalingThread::MuteCallS(uint32 call_id, bool mute) {
@@ -702,15 +725,14 @@ void ClientSignalingThread::InitMedia() {
       &ClientSignalingThread::OnCallCreate);
   sp_media_client_->SignalCallDestroy.connect(this,
       &ClientSignalingThread::OnCallDestroy);
-#ifdef TUENTI_CUSTOM_BUILD
-  sp_media_client_->set_secure(cricket::SEC_DISABLED);
-#else
+#if ENABLE_SRTP
   sp_media_client_->set_secure(cricket::SEC_ENABLED);
+#else
+  sp_media_client_->set_secure(cricket::SEC_DISABLED);
 #endif
 }
 
 void ClientSignalingThread::InitPresence() {
-  // NFHACK Fix the news
   LOGI("ClientSignalingThread::InitPresence");
   assert(talk_base::Thread::Current() == signal_thread_);
 
@@ -719,26 +741,20 @@ void ClientSignalingThread::InitPresence() {
   my_status_.set_know_capabilities(true);
   my_status_.set_pmuc_capability(false);
 
+#if XMPP_DISABLE_INCOMING_PRESENCE
+  PresenceInPrivacy(STR_DENY);
+#endif
+
 #ifdef TUENTI_CUSTOM_BUILD
   //Set status to negative to not interfere with messaging clients.
   my_status_.set_priority(-25);
-
   //Set away so we don't interfere with custom activity logic
   my_status_.set_show(buzz::Status::SHOW_AWAY);
-
-  //Ignore incoming presence.
-  buzz::XmlElement* xmlblockpresence = new buzz::XmlElement(buzz::QN_IQ);
-  xmlblockpresence->AddAttr(buzz::QN_TYPE, buzz::STR_SET);
-  xmlblockpresence->AddElement(new buzz::XmlElement(buzz::QN_PRIVACY_QUERY, true));
-  buzz::XmlElement* xmlprivacylist = new buzz::XmlElement(buzz::QN_PRIVACY_LIST, true);
-  buzz::XmlElement* xmlprivacyitem = new buzz::XmlElement(buzz::QN_PRIVACY_ITEM, true);
-  xmlprivacyitem->AddAttr(buzz::QN_ACTION, "deny");
-  xmlprivacyitem->AddElement(new buzz::XmlElement(buzz::QN_PRIVACY_PRESENCE_IN, true));
-  xmlprivacylist->AddElement(xmlprivacyitem);
-  xmlblockpresence->AddElement(xmlprivacylist);
-  sp_pump_->client()->SendStanza(xmlblockpresence);
 #else
   my_status_.set_show(buzz::Status::SHOW_ONLINE);
+#endif
+
+#if XMPP_DISABLE_ROSTER
   presence_push_ = new buzz::PresencePushTask(sp_pump_->client());
   presence_push_->SignalStatusUpdate.connect(this,
       &ClientSignalingThread::OnStatusUpdate);
@@ -755,11 +771,26 @@ void ClientSignalingThread::InitPresence() {
   presence_out_->Start();
 }
 
+void ClientSignalingThread::PresenceInPrivacy(const std::string& action){
+  if (sp_pump_.get()){
+    buzz::XmlElement* xmlblockpresence = new buzz::XmlElement(buzz::QN_IQ);
+    xmlblockpresence->AddAttr(buzz::QN_TYPE, buzz::STR_SET);
+    xmlblockpresence->AddElement(new buzz::XmlElement(buzz::QN_PRIVACY_QUERY, true));
+    buzz::XmlElement* xmlprivacylist = new buzz::XmlElement(buzz::QN_PRIVACY_LIST, true);
+    buzz::XmlElement* xmlprivacyitem = new buzz::XmlElement(buzz::QN_PRIVACY_ITEM, true);
+    xmlprivacyitem->AddAttr(buzz::QN_ACTION, action);
+    xmlprivacyitem->AddElement(new buzz::XmlElement(buzz::QN_PRIVACY_PRESENCE_IN, true));
+    xmlprivacylist->AddElement(xmlprivacyitem);
+    xmlblockpresence->AddElement(xmlprivacylist);
+    sp_pump_->client()->SendStanza(xmlblockpresence);
+  }
+}
+
 void ClientSignalingThread::InitPing() {
   LOGI("ClientSignalingThread::InitPing");
   assert(talk_base::Thread::Current() == signal_thread_);
   ping_ = new buzz::PingTask(sp_pump_->client(), talk_base::Thread::Current(),
-      100000, 10000);//Every 100 seconds, 10 second timeout
+      PingInterval, PingTimeout);
   ping_->SignalTimeout.connect(this, &ClientSignalingThread::OnPingTimeout);
   ping_->Start();
 }

@@ -161,6 +161,9 @@ class ClientSignalingThread: public talk_base::SignalThread,
   void EndCallS(uint32 call_id);
   cricket::Call* GetCall(uint32 call_id);
   bool EndAllCalls();
+  void OnKeepAliveS();
+  void ScheduleKeepAlive();
+  void PresenceInPrivacy(const std::string &action);
 
   // These should live inside of the TXmppPump
   void InitMedia();
