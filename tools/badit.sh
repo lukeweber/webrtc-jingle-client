@@ -139,7 +139,7 @@ if [ "$BUILDSYSTEM" == "gyp" ]; then
   adb install $TRUNKDIR/out/Debug/VoiceClient/VoiceClient-debug.apk
   check_return_code "$?"
 
-  adb shell am start -a android.intent.action.VIEW  -n com.tuenti.voice/.VoiceClientActivity
+  adb shell am start -a android.intent.action.VIEW  -n com.tuenti.voice/.ui.LoginView
   check_return_code "$?"
 
   $TRUNKDIR/build/android/gdb_apk -p com.tuenti.voice -l out/Debug/obj.target/
@@ -180,7 +180,7 @@ elif [ "$BUILDSYSTEM" == "mvn" ]; then
   check_return_code "$?"
 
   echo -e "-------------------------------\nRUNNING\n-------------------------------"
-  adb shell am start -a android.intent.action.VIEW  -n com.tuenti.voice.example/.ui.activity.VoiceClientActivity
+  adb shell am start -a android.intent.action.VIEW  -n com.tuenti.voice.example/.ui.LoginView
   #mvn -pl voice-client-example android:run
   check_return_code "$?"
 

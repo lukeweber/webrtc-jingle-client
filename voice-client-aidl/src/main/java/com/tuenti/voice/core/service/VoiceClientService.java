@@ -55,7 +55,7 @@ public class VoiceClientService
         mBuddyManager = new BuddyManagerImpl( mClient );
         mCallManager = new CallManagerImpl( mClient, getBaseContext() );
 
-        mClient.init();
+        mClient.init(getApplicationContext());
     }
 
     @Override
