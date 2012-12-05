@@ -25,7 +25,7 @@ deps = {
     (Var("googlecode_url") % "googlemock") + "/trunk@405",
 
   "trunk/third_party/gtest":
-    "git://github.com/lukeweber/googletest.git@dedaf70c278",
+    "https://github.com/lukeweber/googletest.git@dedaf70c278",
 
   "trunk/third_party/expat":
     Var("chromium_trunk") + "/src/third_party/expat@" + Var("chromium_revision"),
