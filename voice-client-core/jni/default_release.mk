@@ -10,7 +10,7 @@
 NDK_TOOLCHAIN_VERSION=clang3.1
 APP_ABI := armeabi armeabi-v7a
 APP_PLATFORM := android-9
-APP_CPPFLAGS += -fno-rtti -ffast-math -O3 -funroll-loops
+APP_CPPFLAGS += -fno-rtti -ffast-math -O3
 APP_CFLAGS += \
 	-DENABLE_DEBUG=0 \
 	-DLOGGING=0

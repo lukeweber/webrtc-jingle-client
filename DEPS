@@ -4,7 +4,7 @@ vars = {
   "googlecode_url": "http://%s.googlecode.com/svn",
   "chromium_trunk" : "http://src.chromium.org/svn/trunk",
   "github_luke_url" : "https://www.github.com/lukeweber",
-  "chromium_revision": "140240",
+  "chromium_revision": "169394",
 
   # External resources like video and audio files used for testing purposes.
   # Downloaded on demand when needed.
@@ -24,8 +24,8 @@ deps = {
   "trunk/testing/gmock":
     (Var("googlecode_url") % "googlemock") + "/trunk@405",
 
-  "trunk/testing/gtest":
-    (Var("googlecode_url") % "googletest") + "/trunk@617",
+  "trunk/third_party/gtest":
+    "git://github.com/lukeweber/googletest.git@dedaf70c278",
 
   "trunk/third_party/expat":
     Var("chromium_trunk") + "/src/third_party/expat@" + Var("chromium_revision"),
