@@ -131,6 +131,7 @@ public class BuddyManagerImpl
         {
             Buddy buddy = new Buddy();
             buddy.setRemoteJid( remoteJid );
+            buddy.setOnline(true);
             mBuddies.put( remoteJid, buddy );
         }
 
