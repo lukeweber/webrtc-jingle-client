@@ -18,3 +18,4 @@ APP_CFLAGS += \
 APP_STL := stlport_static
 APP_OPTIM := debug
 ENABLE_WEBRTC_TRACE := 1
+ENABLE_UNITTEST := 1

@@ -10,6 +10,7 @@ ifdef NDK_ROOT
 
 MY_ROOT_PATH := $(call my-dir)
 MY_THIRD_PARTY_PATH := $(MY_ROOT_PATH)/../../third_party
+MY_GTEST_PATH := $(MY_THIRD_PARTY_PATH)/gtest
 MY_WEBRTC_PATH := $(MY_ROOT_PATH)/../../third_party/webrtc
 MY_ANDROID_MAKE_FILES_PATH := $(MY_ROOT_PATH)/android_makefiles
 
@@ -48,6 +49,9 @@ include $(MY_WEBRTC_PATH)/voice_engine/Android.mk
 include $(MY_ANDROID_MAKE_FILES_PATH)/expat.mk
 include $(MY_ANDROID_MAKE_FILES_PATH)/openssl.mk
 include $(MY_ANDROID_MAKE_FILES_PATH)/libsrtp.mk
+ifeq ($(ENABLE_UNITTEST), 1)
+include $(MY_ANDROID_MAKE_FILES_PATH)/gtest.mk
+endif
 
 include $(MY_THIRD_PARTY_PATH)/libjingle/Android.mk
 
