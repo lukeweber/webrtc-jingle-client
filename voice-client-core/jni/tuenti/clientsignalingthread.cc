@@ -754,7 +754,7 @@ void ClientSignalingThread::InitPresence() {
   my_status_.set_show(buzz::Status::SHOW_ONLINE);
 #endif
 
-#if XMPP_DISABLE_ROSTER
+#if not XMPP_DISABLE_ROSTER
   presence_push_ = new buzz::PresencePushTask(sp_pump_->client());
   presence_push_->SignalStatusUpdate.connect(this,
       &ClientSignalingThread::OnStatusUpdate);
