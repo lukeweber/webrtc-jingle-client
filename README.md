@@ -17,8 +17,10 @@ gmail for example, just for testing, I haven't seen any problems.
 
 ## Prereqs:
 
-* [android NDK r8](http://developer.android.com/sdk/ndk/index.html). r8b was
-tested and it doesn't work. Just modify the download link to get r8
+* [android NDK r8c](http://developer.android.com/sdk/ndk/index.html). r8c was
+tested, and works on linux. On mac you'll need to patch it or can use 
+https://github.com/lukeweber/android-ndk-r8c-mac, I've noticed with this build
+I have to manually create directories in libs, which might be due to the patch.
 * [Android SDK](http://developer.android.com/sdk/index.html)
 * [eclipse](http://www.eclipse.org/downloads/)
 * [Maven](http://maven.apache.org/download.html) v3.0.3+
