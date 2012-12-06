@@ -65,7 +65,7 @@ if [ -z $num_of_cores ]; then
   if [ "${platform}" == "Darwin" ]; then
       num_of_cores=`system_profiler -detailLevel full SPHardwareDataType | awk '/Total Number of Cores/{print $5}{next;}'`
   else
-      num_of_cores=1
+      num_of_cores=$((`nproc` +2))
   fi
 fi
 
