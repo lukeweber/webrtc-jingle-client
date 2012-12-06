@@ -8,7 +8,7 @@ TOOLSDIR="$( cd "$( dirname "$0" )" && pwd )"
 TRUNKDIR="$( dirname $TOOLSDIR )"
 
 OUT_DIR=${TRUNKDIR}"/voice_test"
-APP_ABI_LIST="x86"
+APP_ABI_LIST="armeabi armeabi-v7a mips x86"
 
 rm -rf $OUT_DIR
 
@@ -18,7 +18,7 @@ do
 
     for lib in $LIB_LIST
     do
-	${TRUNKDIR}/testing/android/generate_native_test.py  \
+	${TRUNKDIR}/tools/test/generate_native_test.py  \
 	    --native_library=${TRUNKDIR}/voice-client-core/libs/${app_abi}/${lib}.so  \
 	    --output=$OUT_DIR/${app_abi}/${lib} \
 	    --app_abi=${app_abi} \

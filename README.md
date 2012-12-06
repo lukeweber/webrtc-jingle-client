@@ -58,8 +58,8 @@ export ANDROID_NDK_HOME=$ANDROID_NDK_ROOT
 ## Run unittest
 '''
 * Build debug code jni in debug mode: cd trunk/voice-client-core && ./build.sh
-* Generate unittest apk: gen_tests_apk.sh
-* Install unittest : adb install -r adb install -r $OUT_DIR/${app_abi}/${lib}_apk/${lib}-debug.apk
+* Generate unittest apk: tools/gen_tests_apk.sh
+* Install unittest : adb install -r adb install -r voice_testing/${app_abi}/${lib}/${lib}-debug.apk
 * Prepare
 * Run unittest:
 # adb shell mkdir /sdcard/talk
