@@ -13,5 +13,4 @@ endif
 
 LOCAL_SRC_FILES:= src/gtest-all.cc
 LOCAL_CPP_EXTENSION:= .cc
-$(info INCLUDES $(LOCAL_C_INCLUDES))
 include $(BUILD_STATIC_LIBRARY)
