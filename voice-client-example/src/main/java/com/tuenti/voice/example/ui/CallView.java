@@ -66,31 +66,6 @@ public class CallView
     }
 
     @Override
-    public void onOutgoingCallAccepted()
-    {
-        Log.d( TAG, "onOutgoingCallAccepted" );
-        runOnUiThread( new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                mCallStateLabel.setVisibility( View.GONE );
-                mElapsedTime.setVisibility( View.VISIBLE );
-                mBottomBar.setVisibility( View.VISIBLE );
-                mAcceptButton.setVisibility( View.GONE );
-                mCallTimer.startTimer( mCall );
-            }
-        } );
-    }
-
-    @Override
-    public void onOutgoingCallTerminated()
-    {
-        mCallTimer.cancelTimer();
-        finish();
-    }
-
-    @Override
     public void onIncomingCallAccepted()
     {
         Log.d( TAG, "onIncomingCallAccepted" );
@@ -109,7 +84,32 @@ public class CallView
     }
 
     @Override
-    public void onIncomingCallTerminated()
+    public void onIncomingCallTerminated( Call call )
+    {
+        mCallTimer.cancelTimer();
+        finish();
+    }
+
+    @Override
+    public void onOutgoingCallAccepted()
+    {
+        Log.d( TAG, "onOutgoingCallAccepted" );
+        runOnUiThread( new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                mCallStateLabel.setVisibility( View.GONE );
+                mElapsedTime.setVisibility( View.VISIBLE );
+                mBottomBar.setVisibility( View.VISIBLE );
+                mAcceptButton.setVisibility( View.GONE );
+                mCallTimer.startTimer( mCall );
+            }
+        } );
+    }
+
+    @Override
+    public void onOutgoingCallTerminated( Call call )
     {
         mCallTimer.cancelTimer();
         finish();
