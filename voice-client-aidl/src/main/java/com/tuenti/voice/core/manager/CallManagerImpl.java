@@ -42,6 +42,7 @@ public class CallManagerImpl
         @Override
         public void declineCall( long callId, boolean busy )
         {
+            handleDeclineCall( callId, busy );
         }
 
         @Override
@@ -100,7 +101,6 @@ public class CallManagerImpl
     }
 
 // ------------------------ INTERFACE METHODS ------------------------
-
 
 // --------------------- Interface CallManager ---------------------
 
@@ -205,7 +205,7 @@ public class CallManagerImpl
                         callback.handleIncomingCall( call );
                         break;
                     case RECEIVED_TERMINATE:
-                        callback.handleIncomingCallTerminated();
+                        callback.handleIncomingCallTerminated( call );
                         break;
                     case SENT_ACCEPT:
                         callback.handleIncomingCallAccepted();
@@ -214,7 +214,7 @@ public class CallManagerImpl
                         callback.handleOutgoingCall( call );
                         break;
                     case SENT_TERMINATE:
-                        callback.handleOutgoingCallTerminated();
+                        callback.handleOutgoingCallTerminated( call );
                         break;
                     case IN_PROGRESS:
                         callback.handleCallInProgress();
@@ -245,6 +245,11 @@ public class CallManagerImpl
     private void handleCallInProgress()
     {
         dispatchCallback( CallState.IN_PROGRESS, null );
+    }
+
+    private void handleDeclineCall( long callId, boolean busy )
+    {
+        mClient.declineCall( callId, busy );
     }
 
     private void handleEndCall( long callId )
@@ -278,8 +283,7 @@ public class CallManagerImpl
         }
 
         Log.d( TAG, "handleIncomingCallTerminated: " + callId );
-        stopCall( callId );
-        dispatchCallback( CallState.RECEIVED_TERMINATE, null );
+        dispatchCallback( CallState.RECEIVED_TERMINATE, stopCall( callId ) );
     }
 
     private void handleOutgoingCall( long callId, String remoteJid )
@@ -308,8 +312,7 @@ public class CallManagerImpl
         }
 
         Log.d( TAG, "handleOutgoingCallTerminated: " + callId );
-        stopCall( callId );
-        dispatchCallback( CallState.SENT_TERMINATE, null );
+        dispatchCallback( CallState.SENT_TERMINATE, stopCall( callId ) );
     }
 
     private void handleToggleHold( long callId )
@@ -352,10 +355,10 @@ public class CallManagerImpl
         mAudioManager.requestAudioFocus( null, AudioManager.STREAM_VOICE_CALL, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT );
     }
 
-    private void stopCall( long callId )
+    private Call stopCall( long callId )
     {
         // remove the call
-        mCallMap.remove( callId );
+        Call call = mCallMap.remove( callId );
 
         // reset current call ID
         if ( mCurrentCall.getCallId() == callId )
@@ -365,5 +368,8 @@ public class CallManagerImpl
 
         // reset the audio
         resetAudio();
+
+        // now return the removed Call object
+        return call;
     }
 }

@@ -21,6 +21,8 @@ public class RosterView
 
     private RosterAdapter mAdapter;
 
+    private Call mCurrentCall;
+
 // ------------------------ INTERFACE METHODS ------------------------
 
 // --------------------- Interface OnBuddyListener ---------------------
@@ -50,17 +52,46 @@ public class RosterView
     @Override
     public void onIncomingCall( final Call call )
     {
-        Intent intent = new Intent( this, CallView.class );
-        intent.putExtra( EXTRA_CALL, call );
-        startActivityForResult( intent, 0 );
+        if ( mCurrentCall != null )
+        {
+            declineCall( call.getCallId(), true );
+        }
+        else
+        {
+            mCurrentCall = call;
+
+            Intent intent = new Intent( this, CallView.class );
+            intent.putExtra( EXTRA_CALL, mCurrentCall );
+            startActivityForResult( intent, 0 );
+        }
     }
 
     @Override
     public void onOutgoingCall( final Call call )
     {
+        mCurrentCall = call;
+
         Intent intent = new Intent( this, CallView.class );
-        intent.putExtra( EXTRA_CALL, call );
+        intent.putExtra( EXTRA_CALL, mCurrentCall );
         startActivityForResult( intent, 0 );
+    }
+
+    @Override
+    public void onIncomingCallTerminated( final Call call )
+    {
+        if ( mCurrentCall != null && call != null && mCurrentCall.getCallId() == call.getCallId() )
+        {
+            mCurrentCall = null;
+        }
+    }
+
+    @Override
+    public void onOutgoingCallTerminated( final Call call )
+    {
+        if ( mCurrentCall != null && call != null && mCurrentCall.getCallId() == call.getCallId() )
+        {
+            mCurrentCall = null;
+        }
     }
 
 // --------------------- Interface OnItemClickListener ---------------------

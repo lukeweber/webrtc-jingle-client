@@ -93,9 +93,9 @@ public abstract class VoiceListActivity
         }
 
         @Override
-        public void handleIncomingCallTerminated()
+        public void handleIncomingCallTerminated( Call call )
         {
-            onIncomingCallTerminated();
+            onIncomingCallTerminated( call );
         }
 
         @Override
@@ -111,9 +111,9 @@ public abstract class VoiceListActivity
         }
 
         @Override
-        public void handleOutgoingCallTerminated()
+        public void handleOutgoingCallTerminated( Call call )
         {
-            onOutgoingCallTerminated();
+            onOutgoingCallTerminated( call );
         }
     };
 
@@ -232,6 +232,18 @@ public abstract class VoiceListActivity
         }
     }
 
+    public void declineCall( long callId, boolean busy )
+    {
+        try
+        {
+            mCallService.declineCall( callId, busy );
+        }
+        catch ( RemoteException e )
+        {
+            Log.e( TAG, e.getMessage(), e );
+        }
+    }
+
     public void endCall( long callId )
     {
         try
@@ -272,7 +284,7 @@ public abstract class VoiceListActivity
     {
     }
 
-    public void onIncomingCallTerminated()
+    public void onIncomingCallTerminated( Call call )
     {
     }
 
@@ -296,7 +308,7 @@ public abstract class VoiceListActivity
     {
     }
 
-    public void onOutgoingCallTerminated()
+    public void onOutgoingCallTerminated( Call call )
     {
     }
 

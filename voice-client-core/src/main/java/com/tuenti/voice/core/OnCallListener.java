@@ -10,6 +10,8 @@ public interface OnCallListener
 
     void call( String remoteJid );
 
+    void declineCall( long callId, boolean busy );
+
     void endCall( long callId );
 
     void onCallInProgress();
@@ -18,13 +20,13 @@ public interface OnCallListener
 
     void onIncomingCallAccepted();
 
-    void onIncomingCallTerminated();
+    void onIncomingCallTerminated( Call call );
 
     void onOutgoingCall( Call call );
 
     void onOutgoingCallAccepted();
 
-    void onOutgoingCallTerminated();
+    void onOutgoingCallTerminated( Call call );
 
     void toggleHold( long callId );
 
