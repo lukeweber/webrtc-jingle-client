@@ -19,7 +19,7 @@ do
     for lib in $LIB_LIST
     do
 	${TRUNKDIR}/tools/test/generate_native_test.py  \
-	    --native_library=${TRUNKDIR}/voice-client-core/libs/${app_abi}/${lib}.so  \
+	    --native_library=${TRUNKDIR}/android/voice-client-core/libs/${app_abi}/${lib}.so  \
 	    --output=$OUT_DIR/${app_abi}/${lib} \
 	    --app_abi=${app_abi} \
         --strip-binary=i686-linux-android-strip \
