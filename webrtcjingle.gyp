@@ -9,7 +9,8 @@
 {
   'includes': [ 'third_party/webrtc/build/common.gypi', ],
   'variables': {
-    'webrtc_jingle': 'voice-client-core/jni',
+    'webrtc_android': 'android/voice-client-core/jni',
+    'webrtc_client': 'client',
   },  
   'targets': [
     {
@@ -60,28 +61,29 @@
           'type': 'shared_library',
           'sources': [
             '<(webrtc_jingle)/voiceclient_main.cc',
-            '<(webrtc_jingle)/tuenti/logging.h',
-            '<(webrtc_jingle)/tuenti/presenceouttask.cc',
-            '<(webrtc_jingle)/tuenti/presenceouttask.h',
-            '<(webrtc_jingle)/tuenti/presencepushtask.cc',
-            '<(webrtc_jingle)/tuenti/presencepushtask.h',
-            '<(webrtc_jingle)/tuenti/status.h',
-            '<(webrtc_jingle)/tuenti/clientsignalingthread.cc',
-            '<(webrtc_jingle)/tuenti/clientsignalingthread.h',
-            '<(webrtc_jingle)//tuenti/helpers.cc',
-            '<(webrtc_jingle)//tuenti/helpers.h',
-            '<(webrtc_jingle)/tuenti/voiceclient.cc',
-            '<(webrtc_jingle)/tuenti/voiceclient.h',
-            '<(webrtc_jingle)/tuenti/voiceclientnotify.h',
-            '<(webrtc_jingle)/tuenti/txmppauth.cc',
-            '<(webrtc_jingle)/tuenti/txmppauth.h',
-            '<(webrtc_jingle)/tuenti/txmpppump.cc',
-            '<(webrtc_jingle)/tuenti/txmpppump.h',
-            '<(webrtc_jingle)/tuenti/txmppsocket.cc',
-            '<(webrtc_jingle)/tuenti/txmppsocket.h',
+            '<(webrtc_client)/logging.h',
+            '<(webrtc_client)/presenceouttask.cc',
+            '<(webrtc_client)/presenceouttask.h',
+            '<(webrtc_client)/presencepushtask.cc',
+            '<(webrtc_client)/presencepushtask.h',
+            '<(webrtc_client)/status.h',
+            '<(webrtc_client)/clientsignalingthread.cc',
+            '<(webrtc_client)/clientsignalingthread.h',
+            '<(webrtc_client)/helpers.cc',
+            '<(webrtc_client)/helpers.h',
+            '<(webrtc_client)/voiceclient.cc',
+            '<(webrtc_client)/voiceclient.h',
+            '<(webrtc_client)/voiceclientnotify.h',
+            '<(webrtc_client)/txmppauth.cc',
+            '<(webrtc_client)/txmppauth.h',
+            '<(webrtc_client)/txmpppump.cc',
+            '<(webrtc_client)/txmpppump.h',
+            '<(webrtc_client)/txmppsocket.cc',
+            '<(webrtc_client)/txmppsocket.h',
           ],
           'include_dirs': [
             '<(webrtc_jingle)',
+            '.',
           ],
           'dependencies': [ 
             'third_party/libjingle/libjingle.gyp:libjingle_audio_only',
@@ -124,7 +126,7 @@
               'action_name': 'generate_jni_headers',
               'inputs': [
                 #'<(DEPTH)/base/android/jni_generator/jni_generator.py',
-                'voice-client-core/src/main/java/com/tuenti/voice/core/VoiceClient.java',
+                'android/voice-client-core/src/main/java/com/tuenti/voice/core/VoiceClient.java',
               ],
               'outputs': [
                 '<(DEPTH)/voice-client-core/jni/',
@@ -145,6 +147,7 @@
           'direct_dependent_settings': {
             'include_dirs': [
               '<(webrtc_jingle)',
+              '.',
             ],
           },
         },
