@@ -9,6 +9,7 @@ import com.tuenti.voice.core.OnCallListener;
 import com.tuenti.voice.core.VoiceListActivity;
 import com.tuenti.voice.core.data.Buddy;
 import com.tuenti.voice.core.data.Call;
+import com.tuenti.voice.core.service.VoiceClientService;
 
 import static android.widget.AdapterView.OnItemClickListener;
 import static com.tuenti.voice.example.Intents.EXTRA_CALL;
@@ -28,12 +29,6 @@ public class RosterView
 // --------------------- Interface OnBuddyListener ---------------------
 
     @Override
-    public void onRegisterBuddyListener()
-    {
-        requestBuddyUpdate();
-    }
-
-    @Override
     public void onBuddyUpdated( final Buddy[] buddies )
     {
         mAdapter = new RosterAdapter( this, buddies );
@@ -45,6 +40,12 @@ public class RosterView
                 setListAdapter( mAdapter );
             }
         } );
+    }
+
+    @Override
+    public void onRegisterBuddyListener()
+    {
+        requestBuddyUpdate();
     }
 
 // --------------------- Interface OnCallListener ---------------------
@@ -67,6 +68,15 @@ public class RosterView
     }
 
     @Override
+    public void onIncomingCallTerminated( final Call call )
+    {
+        if ( mCurrentCall != null && call != null && mCurrentCall.getCallId() == call.getCallId() )
+        {
+            mCurrentCall = null;
+        }
+    }
+
+    @Override
     public void onOutgoingCall( final Call call )
     {
         mCurrentCall = call;
@@ -74,15 +84,6 @@ public class RosterView
         Intent intent = new Intent( this, CallView.class );
         intent.putExtra( EXTRA_CALL, mCurrentCall );
         startActivityForResult( intent, 0 );
-    }
-
-    @Override
-    public void onIncomingCallTerminated( final Call call )
-    {
-        if ( mCurrentCall != null && call != null && mCurrentCall.getCallId() == call.getCallId() )
-        {
-            mCurrentCall = null;
-        }
     }
 
     @Override
@@ -108,5 +109,15 @@ public class RosterView
     {
         super.onCreate( savedInstanceState );
         getListView().setOnItemClickListener( this );
+    }
+
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+
+        // stop the service
+        Intent intent = new Intent( this, VoiceClientService.class );
+        stopService( intent );
     }
 }
