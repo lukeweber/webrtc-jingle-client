@@ -119,6 +119,8 @@ public class LoginView
     {
         Intent intent = new Intent( this, RosterView.class );
         startActivity( intent );
+
+        finish();
     }
 
     private boolean getBooleanPref( int key, int defaultValue )
