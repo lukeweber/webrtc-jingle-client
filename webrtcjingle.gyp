@@ -19,6 +19,49 @@
     },
   ],
   'conditions': [
+    ['OS=="ios"',{
+      'targets': [
+        {
+          'target_name': 'All',
+          'message': 'building ios project',
+          'type': 'none',
+          'dependencies': [
+            'voiceclient',
+          ],
+          'target_name': 'voiceclient',
+          'message': 'building native pieces of the voiceclient',
+          'type': 'shared_library',
+          'sources': [
+            '<(webrtc_client)/logging.h',
+            '<(webrtc_client)/presenceouttask.cc',
+            '<(webrtc_client)/presenceouttask.h',
+            '<(webrtc_client)/presencepushtask.cc',
+            '<(webrtc_client)/presencepushtask.h',
+            '<(webrtc_client)/status.h',
+            '<(webrtc_client)/clientsignalingthread.cc',
+            '<(webrtc_client)/clientsignalingthread.h',
+            '<(webrtc_client)/helpers.cc',
+            '<(webrtc_client)/helpers.h',
+            '<(webrtc_client)/voiceclient.cc',
+            '<(webrtc_client)/voiceclient.h',
+            '<(webrtc_client)/voiceclientnotify.h',
+            '<(webrtc_client)/txmppauth.cc',
+            '<(webrtc_client)/txmppauth.h',
+            '<(webrtc_client)/txmpppump.cc',
+            '<(webrtc_client)/txmpppump.h',
+            '<(webrtc_client)/txmppsocket.cc',
+            '<(webrtc_client)/txmppsocket.h',
+          ],
+          'include_dirs': [
+            '<(webrtc_client)',
+            '.',
+          ],
+          'dependencies': [ 
+            'third_party/libjingle/libjingle.gyp:libjingle_audio_only',
+          ],
+        },
+      ],
+    }],
     ['OS=="android"', {
       'targets': [
         {
@@ -60,7 +103,7 @@
           'message': 'building native pieces of the voiceclient',
           'type': 'shared_library',
           'sources': [
-            '<(webrtc_jingle)/voiceclient_main.cc',
+            '<(webrtc_android)/voiceclient_main.cc',
             '<(webrtc_client)/logging.h',
             '<(webrtc_client)/presenceouttask.cc',
             '<(webrtc_client)/presenceouttask.h',
@@ -82,7 +125,7 @@
             '<(webrtc_client)/txmppsocket.h',
           ],
           'include_dirs': [
-            '<(webrtc_jingle)',
+            '<(webrtc_android)',
             '.',
           ],
           'dependencies': [ 
