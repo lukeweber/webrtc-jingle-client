@@ -128,36 +128,48 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin(
     LOGE("client not initialized");
     return;
   }
-  const char* nativeUsername = env->GetStringUTFChars(username, NULL);
-  const char* nativePassword = env->GetStringUTFChars(password, NULL);
-  const char* nativeTurnUsername = env->GetStringUTFChars(turnUsername, NULL);
-  const char* nativeTurnPassword = env->GetStringUTFChars(turnPassword, NULL);
-  const char* nativeXmppHost = env->GetStringUTFChars(xmppHost, NULL);
-  const char* nativeStun = env->GetStringUTFChars(stun, NULL);
-  const char* nativeTurn = env->GetStringUTFChars(turn, NULL);
+  if (username == NULL || password == NULL
+      || xmppHost == NULL) {
+    LOGE("Login failure: Username, password, and xmpphost are required.");
+  } else {
+    const char* nativeUsername = env->GetStringUTFChars(username, NULL);
+    const char* nativePassword = env->GetStringUTFChars(password, NULL);
+    const char* nativeXmppHost = env->GetStringUTFChars(xmppHost, NULL);
 
-  std::string nativeUsernameS(nativeUsername);
-  std::string nativePasswordS(nativePassword);
-  std::string nativeXmppHostS(nativeXmppHost);
+    //Copy and release.
+    std::string nativeUsernameS(nativeUsername);
+    std::string nativePasswordS(nativePassword);
+    std::string nativeXmppHostS(nativeXmppHost);
+    env->ReleaseStringUTFChars(username, nativeUsername);
+    env->ReleaseStringUTFChars(password, nativePassword);
+    env->ReleaseStringUTFChars(xmppHost, nativeXmppHost);
 
-  stun_config_ = new tuenti::StunConfig;
-  stun_config_->stun = std::string(nativeStun);
-  stun_config_->turn = std::string(nativeTurn);
-  stun_config_->turn_username = std::string(nativeTurnUsername);
-  stun_config_->turn_password = std::string(nativeTurnPassword);
+    stun_config_ = new tuenti::StunConfig;
 
-  // login
-  client_->Login(nativeUsernameS, nativePasswordS, stun_config_,
-    nativeXmppHostS, xmppPort, useSSL);
+    if (stun != NULL) {
+      const char* nativeStun = env->GetStringUTFChars(stun, NULL);
+      stun_config_->stun = std::string(nativeStun);
+      env->ReleaseStringUTFChars(stun, nativeStun);
+    }
 
-  // release
-  env->ReleaseStringUTFChars(username, nativeUsername);
-  env->ReleaseStringUTFChars(password, nativePassword);
-  env->ReleaseStringUTFChars(xmppHost, nativeXmppHost);
-  env->ReleaseStringUTFChars(stun, nativeStun);
-  env->ReleaseStringUTFChars(turn, nativeTurn);
-  env->ReleaseStringUTFChars(turnPassword, nativeTurnUsername);
-  env->ReleaseStringUTFChars(turnPassword, nativeTurnPassword);
+    //Only use turn if we have a TurnServer, User and Pass
+    if (turn != NULL && turnUsername != NULL
+        && turnPassword != NULL){
+      const char* nativeTurnUsername = env->GetStringUTFChars(turnUsername, NULL);
+      const char* nativeTurnPassword = env->GetStringUTFChars(turnPassword, NULL);
+      const char* nativeTurn = env->GetStringUTFChars(turn, NULL);
+      stun_config_->turn = std::string(nativeTurn);
+      stun_config_->turn_username = std::string(nativeTurnUsername);
+      stun_config_->turn_password = std::string(nativeTurnPassword);
+      env->ReleaseStringUTFChars(turnPassword, nativeTurnUsername);
+      env->ReleaseStringUTFChars(turnPassword, nativeTurnPassword);
+      env->ReleaseStringUTFChars(turn, nativeTurn);
+    }
+
+    // login
+    client_->Login(nativeUsernameS, nativePasswordS, stun_config_,
+                   nativeXmppHostS, xmppPort, useSSL);
+  }
 }
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogout(
