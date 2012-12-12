@@ -110,7 +110,7 @@ hooks = [
     # Create a supplement.gypi file under trunk/src.  This file will be picked
     # up by gyp and used to enable the standalone build.
     "pattern": ".",
-    "action": ["python", "trunk/tools/create_supplement_gypi.py", "trunk/voice-client-core/supplement.gypi"],
+    "action": ["python", "trunk/tools/create_supplement_gypi.py", "trunk/supplement.gypi"],
   },
   {
     # A change to a .gyp, .gypi, or to GYP itself should run the generator.

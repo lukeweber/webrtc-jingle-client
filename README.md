@@ -56,18 +56,23 @@ export ANDROID_NDK_HOME=$ANDROID_NDK_ROOT
 * To run a debugger: build/android/gdb_apk -p com.tuenti.voice.example -l android/voice-client-core/obj/local/${app_abi}
 * Build, deploy to phone, and start debugger in one script: tools/badit_android.sh
 
-
 ## Run unittest
-'''
 * Build debug code jni in debug mode: cd trunk/android/voice-client-core && ./build.sh
 * Generate unittest apk: tools/gen_tests_apk.sh
 * Install unittest : adb install -r adb install -r voice_testing/${app_abi}/${lib}/${lib}-debug.apk
 * Prepare
 * Run unittest:
+```
 # adb shell mkdir /sdcard/talk
 # adb shell am start -n org.chromium.native_test/org.chromium.native_test.ChromeNativeTestActivity
 # See adb logcat adb | grep libjingle
+```
 * Fetch unittest logs:  adb pull /sdcard/talk  talk-logs
+
+## IPhone
+* Experimental work
+* Install http://iosopendev.com/download/
+
 
 ## Todo/Issues:
 * See Tickets
