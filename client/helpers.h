@@ -25,8 +25,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef TUENTI_HELPERS_H_
-#define TUENTI_HELPERS_H_
+#ifndef CLIENT_HELPERS_H_
+#define CLIENT_HELPERS_H_
 
 #include <jni.h>
 #include <sys/types.h>
@@ -102,4 +102,4 @@ jmethodID GetMethodIDCachedReferenced(JNIEnv *env, jclass clazz,
  */
 bool SetJavaObject(JavaObjectReference *ref, JNIEnv *env, jobject object, jobject context);
 
-#endif /* TUENTI_HELPERS_H_ */
+#endif /* CLIENT_HELPERS_H_ */
