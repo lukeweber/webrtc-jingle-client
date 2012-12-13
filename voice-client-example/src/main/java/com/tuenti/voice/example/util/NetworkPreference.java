@@ -17,8 +17,10 @@ public class NetworkPreference {
     public void enableStickyNetworkPreference(){
         mConnManager = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = mConnManager.getActiveNetworkInfo();
-        int type = networkInfo.getType();
-        mConnManager.setNetworkPreference(type);
+        if (networkInfo != null) {
+            int type = networkInfo.getType();
+            mConnManager.setNetworkPreference(type);
+        }
     }
     
     public void unsetNetworkPreference(){
