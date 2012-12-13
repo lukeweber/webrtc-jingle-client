@@ -45,6 +45,9 @@ export ANDROID_NDK_HOME=$ANDROID_NDK_ROOT
 # gclient config https://github.com/lukeweber/webrtc-jingle-client.git --name trunk
 # gclient sync
 
+or for an older stable build, take the head of the stable branch revision.
+# gclient sync --revision 43aa903
+
 # cd trunk
 # export CHROME_SRC=`pwd`
 # source build/android/envsetup.sh
