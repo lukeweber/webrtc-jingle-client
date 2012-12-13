@@ -191,6 +191,7 @@ class ClientSignalingThread: public talk_base::SignalThread,
   cricket::SessionManagerTask *session_manager_task_;
   cricket::Call* call_;
   uint32 port_allocator_flags_;
+  uint32 port_allocator_filter_;
   bool use_ssl_;
   bool auto_accept_;
   buzz::XmppEngine::State xmpp_state_;

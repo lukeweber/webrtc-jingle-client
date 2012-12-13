@@ -37,6 +37,7 @@
 #include "talk/session/media/call.h"
 #include "talk/session/media/mediasessionclient.h"
 #include "talk/p2p/base/sessionmanager.h"
+#include "talk/p2p/base/portallocator.h"
 #include "talk/p2p/client/basicportallocator.h"
 #include "talk/p2p/client/sessionmanagertask.h"
 
@@ -87,6 +88,7 @@ ClientSignalingThread::ClientSignalingThread(
     session_manager_task_(NULL),
     call_(NULL),
     port_allocator_flags_(0),
+    port_allocator_filter_(0),
     use_ssl_(false),
     auto_accept_(false),
     xmpp_state_(buzz::XmppEngine::STATE_NONE) {
@@ -550,6 +552,9 @@ void ClientSignalingThread::LoginS() {
     LOGI("LOGT ClientSignalingThread::ClientSignalingThread - "
       "setting port_allocator_flags_=%d", port_allocator_flags_);
     sp_port_allocator_->set_flags(port_allocator_flags_);
+  }
+  if (port_allocator_filter_ != cricket::kDefaultPortAllocatorFilter) {
+    sp_port_allocator_->set_filter(port_allocator_filter_);
   }
   sp_session_manager_.reset(
       new cricket::SessionManager(sp_port_allocator_.get(), worker()));
