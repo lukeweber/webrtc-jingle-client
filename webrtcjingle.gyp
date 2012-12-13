@@ -30,7 +30,8 @@
           ],
           'target_name': 'voiceclient',
           'message': 'building native pieces of the voiceclient',
-          'type': 'shared_library',
+          'type': 'executable',
+          'mac_bundle': 1,
           'sources': [
             '<(webrtc_client)/logging.h',
             '<(webrtc_client)/presenceouttask.cc',
