@@ -4,19 +4,20 @@ import android.os.Bundle;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
+import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.tuenti.voice.core.OnCallListener;
 import com.tuenti.voice.core.VoiceActivity;
 import com.tuenti.voice.core.data.Call;
+import com.tuenti.voice.core.util.WakeLockUtil;
 import com.tuenti.voice.example.Intents;
 import com.tuenti.voice.example.R;
 import com.tuenti.voice.core.util.CallTimer;
-import com.tuenti.voice.example.util.WakeLockManager;
 
 import static android.view.View.OnClickListener;
+import static android.view.WindowManager.LayoutParams;
 import static com.tuenti.voice.core.util.CallTimer.OnTickListener;
 
 public class CallView
@@ -43,7 +44,7 @@ public class CallView
 
     private TextView mName;
 
-    private WakeLockManager mWakeLock;
+    private WakeLockUtil mWakeLockUtil;
 
 // ------------------------ INTERFACE METHODS ------------------------
 
@@ -74,11 +75,7 @@ public class CallView
             @Override
             public void run()
             {
-                mCallStateLabel.setVisibility( View.GONE );
-                mElapsedTime.setVisibility( View.VISIBLE );
-                mBottomBar.setVisibility( View.VISIBLE );
-                mAcceptButton.setVisibility( View.GONE );
-                mCallTimer.startTimer( mCall );
+                startCall();
             }
         } );
     }
@@ -86,8 +83,7 @@ public class CallView
     @Override
     public void onIncomingCallTerminated( Call call )
     {
-        mCallTimer.cancelTimer();
-        finish();
+        endCall();
     }
 
     @Override
@@ -99,11 +95,7 @@ public class CallView
             @Override
             public void run()
             {
-                mCallStateLabel.setVisibility( View.GONE );
-                mElapsedTime.setVisibility( View.VISIBLE );
-                mBottomBar.setVisibility( View.VISIBLE );
-                mAcceptButton.setVisibility( View.GONE );
-                mCallTimer.startTimer( mCall );
+                startCall();
             }
         } );
     }
@@ -111,8 +103,7 @@ public class CallView
     @Override
     public void onOutgoingCallTerminated( Call call )
     {
-        mCallTimer.cancelTimer();
-        finish();
+        endCall();
     }
 
     @Override
@@ -160,11 +151,16 @@ public class CallView
     {
         super.onCreate( savedInstanceState );
 
-        getWindow().addFlags( WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED );
-        getWindow().addFlags( WindowManager.LayoutParams.FLAG_IGNORE_CHEEK_PRESSES );
-
         mCall = getIntent().getParcelableExtra( Intents.EXTRA_CALL );
         mCallTimer = new CallTimer( this );
+        mWakeLockUtil = new WakeLockUtil( this );
+
+        LayoutParams lp = getWindow().getAttributes();
+        lp.flags |= LayoutParams.FLAG_SHOW_WHEN_LOCKED | LayoutParams.FLAG_TURN_SCREEN_ON |
+            LayoutParams.FLAG_IGNORE_CHEEK_PRESSES;
+        getWindow().setAttributes( lp );
+
+        requestWindowFeature( Window.FEATURE_NO_TITLE );
 
         setContentView( R.layout.call_view );
         findViewById( R.id.accept_btn ).setOnClickListener( this );
@@ -181,25 +177,40 @@ public class CallView
     }
 
     @Override
-    protected void onPause()
+    protected void onDestroy()
     {
-        super.onPause();
-        mWakeLock.releaseWakeLock();
+        mWakeLockUtil.stopProximityLock();
+        super.onDestroy();
     }
 
     @Override
     protected void onResume()
     {
         super.onResume();
-        mWakeLock = new WakeLockManager( getBaseContext() );
         updateCallDisplay();
     }
 
-    @Override
-    protected void onStop()
+    /**
+     * End a call
+     */
+    private void endCall()
     {
-        super.onStop();
-        mWakeLock.releaseWakeLock();
+        mWakeLockUtil.stopProximityLock();
+        mCallTimer.cancelTimer();
+        finish();
+    }
+
+    /**
+     * Start a call
+     */
+    private void startCall()
+    {
+        mWakeLockUtil.startProximityLock();
+        mCallTimer.startTimer( mCall );
+        mCallStateLabel.setVisibility( View.GONE );
+        mElapsedTime.setVisibility( View.VISIBLE );
+        mBottomBar.setVisibility( View.VISIBLE );
+        mAcceptButton.setVisibility( View.GONE );
     }
 
     private void updateCallDisplay()
