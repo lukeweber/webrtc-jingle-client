@@ -9,6 +9,7 @@
 {
   'includes': [ 'third_party/webrtc/build/common.gypi', ],
   'variables': {
+    'webrtc_ios': 'ios',
     'webrtc_android': 'android/voice-client-core/jni',
     'webrtc_client': 'client',
   },  
@@ -36,6 +37,7 @@
           'type': 'executable',
           'mac_bundle': 1,
           'sources': [
+            '<(webrtc_ios)/main.m',
             '<(webrtc_client)/logging.h',
             '<(webrtc_client)/presenceouttask.cc',
             '<(webrtc_client)/presenceouttask.h',
