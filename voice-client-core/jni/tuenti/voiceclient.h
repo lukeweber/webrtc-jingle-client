@@ -74,7 +74,7 @@ class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
   // passthru functions
   void Login(const std::string &username, const std::string &password,
     StunConfig *stun_config, const std::string &xmpp_host,
-    int xmpp_port, bool use_ssl);
+    int xmpp_port, bool use_ssl, int port_allocator_filter);
   void Disconnect();
   void Call(std::string remoteJid);
   void MuteCall(uint32 call_id, bool mute);

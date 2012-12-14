@@ -161,12 +161,12 @@ void VoiceClient::OnMessage(talk_base::Message *msg) {
 
 void VoiceClient::Login(const std::string &username,
   const std::string &password, StunConfig* stun_config,
-  const std::string &xmpp_host, int xmpp_port, bool use_ssl) {
+  const std::string &xmpp_host, int xmpp_port, bool use_ssl, int port_allocator_filter) {
   LOGI("VoiceClient::Login");
   LOG(INFO) << "LOGT " << stun_config->ToString();
   if (client_signaling_thread_) {
     client_signaling_thread_->Login(username, password, stun_config,
-        xmpp_host, xmpp_port, use_ssl);
+        xmpp_host, xmpp_port, use_ssl, port_allocator_filter);
   }
 }
 

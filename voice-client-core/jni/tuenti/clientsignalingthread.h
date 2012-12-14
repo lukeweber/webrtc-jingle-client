@@ -121,7 +121,7 @@ class ClientSignalingThread: public talk_base::SignalThread,
   // out to the worker equivilent functions
   void Login(const std::string &username, const std::string &password,
              StunConfig* stun_config, const std::string &xmpp_host,
-             int xmpp_port, bool use_ssl);
+             int xmpp_port, bool use_ssl, uint32 port_allocator_filter);
   void Disconnect();
   void Call(std::string remoteJid);
   void AcceptCall(uint32 call_id);
@@ -167,6 +167,8 @@ class ClientSignalingThread: public talk_base::SignalThread,
   void ResetMedia();
   void InitPresence();
   void InitPing();
+
+  void SetPortAllocatorFilter(uint32 filter) { port_allocator_filter_ = filter; };
 
   // data
   typedef std::map<std::string, RosterItem> RosterMap;
