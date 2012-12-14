@@ -72,7 +72,7 @@ class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
   // initialization
 #ifdef ANDROID
   explicit VoiceClient(JavaObjectReference *reference);
-#elif IPHONE
+#elif IOS
   explicit VoiceClient();
 #endif
   ~VoiceClient();
