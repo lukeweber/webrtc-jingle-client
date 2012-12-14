@@ -34,6 +34,17 @@ Index: openssl.gyp
          ['os_posix==1 and OS!="android"', {
            'defines': [
              # ENGINESDIR must be defined if OPENSSLDIR is.
+@@ -585,7 +595,7 @@
+             'openssl_config_path': 'config/android',
+           },
+         }],
+-        ['target_arch == "arm"', {
++        ['target_arch == "arm" and OS != "ios"', {
+           'sources!': [
+             # Use assembly version of this source file for ARM.
+             'openssl/crypto/aes/aes_core.c',
+
+
 .../webrtcjingleproject/trunk/third_party/expat$ svn diff
 Index: expat.gyp
 ===================================================================
