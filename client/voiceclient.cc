@@ -55,7 +55,7 @@ VoiceClient::VoiceClient(JavaObjectReference *reference)
     client_signaling_thread_(NULL) {
     Init();
 }
-#elif IPHONE
+#elif IOS
 VoiceClient::VoiceClient()
     : signal_thread_(NULL),
     client_signaling_thread_(NULL) {
@@ -273,7 +273,7 @@ void VoiceClient::OnSignalBuddyListAdd(const char *remote_jid, const char *nick)
   LOGI("Adding to buddy list: %s, %s", remote_jid, nick);
   CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT, ADD, remote_jid, 0);
 }
-#elif IPHONE
+#elif IOS
 
 void VoiceClient::OnSignalCallStateChange(int state, const char *remote_jid, int call_id) {
 }
@@ -301,5 +301,5 @@ void VoiceClient::OnSignalBuddyListRemove(const char *remote_jid) {
 
 void VoiceClient::OnSignalBuddyListAdd(const char *remote_jid, const char *nick) {
 }
-#endif  //IPHONE
+#endif  //IOS
 }  // namespace tuenti

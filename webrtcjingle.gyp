@@ -28,6 +28,9 @@
           'dependencies': [
             'voiceclient',
           ],
+          'defines': [
+            'IOS',
+          ],
           'target_name': 'voiceclient',
           'message': 'building native pieces of the voiceclient',
           'type': 'executable',
@@ -49,6 +52,8 @@
             '<(webrtc_client)/txmpppump.h',
             '<(webrtc_client)/txmppsocket.cc',
             '<(webrtc_client)/txmppsocket.h',
+            '<(webrtc_client)/xmpplog.cc',
+            '<(webrtc_client)/xmpplog.h',
           ],
           'include_dirs': [
             '<(webrtc_client)',
@@ -120,6 +125,8 @@
             '<(webrtc_client)/txmpppump.h',
             '<(webrtc_client)/txmppsocket.cc',
             '<(webrtc_client)/txmppsocket.h',
+            '<(webrtc_client)/xmpplog.cc',
+            '<(webrtc_client)/xmpplog.h',
           ],
           'include_dirs': [
             '<(webrtc_android)',
