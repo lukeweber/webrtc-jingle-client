@@ -37,7 +37,7 @@
           'type': 'executable',
           'mac_bundle': 1,
           'sources': [
-            '<(webrtc_ios)/main.m',
+            '<(webrtc_ios)/main.mm',
             '<(webrtc_client)/logging.h',
             '<(webrtc_client)/presenceouttask.cc',
             '<(webrtc_client)/presenceouttask.h',
