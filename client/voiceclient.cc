@@ -31,6 +31,8 @@
 
 #ifdef ANDROID
 #include "com_tuenti_voice_core_VoiceClient.h"
+#elif IOS
+#include "VoiceClientExample/VoiceClientDelegate.h"
 #endif
 
 #include "client/voiceclient.h"
@@ -276,30 +278,39 @@ void VoiceClient::OnSignalBuddyListAdd(const char *remote_jid, const char *nick)
 #elif IOS
 
 void VoiceClient::OnSignalCallStateChange(int state, const char *remote_jid, int call_id) {
+    VoiceClientDelegate::getInstance()->OnSignalCallStateChange(state, remote_jid, call_id);
 }
 
 void VoiceClient::OnSignalAudioPlayout() {
+    VoiceClientDelegate::getInstance()->OnSignalAudioPlayout();
 }
 
 void VoiceClient::OnSignalCallError(int error, int call_id) {
+    VoiceClientDelegate::getInstance()->OnSignalCallError(error, call_id);
 }
 
 void VoiceClient::OnSignalXmppError(int error) {
+    VoiceClientDelegate::getInstance()->OnSignalXmppError(error);
 }
 
 void VoiceClient::OnSignalXmppSocketClose(int state) {
+    VoiceClientDelegate::getInstance()->OnSignalXmppSocketClose(state);
 }
 
 void VoiceClient::OnSignalXmppStateChange(int state) {
+    VoiceClientDelegate::getInstance()->OnSignalXmppStateChange(state);
 }
 
 void VoiceClient::OnSignalBuddyListReset() {
+    VoiceClientDelegate::getInstance()->OnSignalBuddyListReset();
 }
 
 void VoiceClient::OnSignalBuddyListRemove(const char *remote_jid) {
+    VoiceClientDelegate::getInstance()->OnSignalBuddyListRemove(remote_jid);
 }
 
 void VoiceClient::OnSignalBuddyListAdd(const char *remote_jid, const char *nick) {
+    VoiceClientDelegate::getInstance()->OnSignalBuddyListAdd(remote_jid, nick);
 }
 #endif  //IOS
 }  // namespace tuenti

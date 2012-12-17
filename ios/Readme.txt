@@ -1,9 +1,13 @@
-Placeholder for the iphone build.
+IPhone build working in a basic state with a login, logout and call button.
 
 Starting points
 * Apply the following patches
 * Autogenerate an xcode project with
 ./build/gyp_chromium --depth=.  -DOS=ios -Dinclude_tests=0 -Denable_protobuf=0 -Denable_video=0 webrtcjingle.gyp
+* copy openssl/config/android to openssl/config/ios, then modify build flags to remove anything related to asm.
+* Modify usernames/servers, etc in ios/VoiceClientExample/VoiceClientDelegate.mm
+* Build and deploy
+* Warning: Pretty experimental and might need tweaking as I'm not sure all is encoded yet in the gyp project yet.
 
 ===Patches===
 .../webrtcjingleproject/trunk/third_party/openssl$ svn diff
