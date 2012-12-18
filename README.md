@@ -73,9 +73,7 @@ or for an older stable build, take the head of the stable branch revision.
 * Fetch unittest logs:  adb pull /sdcard/talk  talk-logs
 
 ## IPhone
-* Experimental work
-* Install http://iosopendev.com/download/
-
+* Experimental work, view ios/Readme.txt
 
 ## Todo/Issues:
 * See Tickets
