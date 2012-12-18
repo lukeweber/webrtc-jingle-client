@@ -102,7 +102,7 @@ deps = {
     Var("chromium_git_url") + "/chromium/deps/icu46.git@53ac6db57d9d09e43079f54feec59b735ed23670",
   
   "trunk/third_party/openssl":
-    Var("chromium_trunk") + "/deps/third_party/openssl@169329",
+    "https://github.com/lukeweber/openssl-override.git",
 }
 
 hooks = [
