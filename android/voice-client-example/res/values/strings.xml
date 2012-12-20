@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Tuenti Voice</string>
+
+    <string name="init_client">Initialize Client</string>
+    <string name="release_client">Release Client</string>
+    <string name="login">Login</string>
+    <string name="logout">Logout</string>
+    <string name="place_call">Place call</string>
+    <string name="hang_up">Hang up</string>
+    <string name="hold">Hold</string>
+    <string name="mute">Mute</string>
+    <string name="duration">Call duration:</string>
+
+    <string name="voice_chat_invite">Voice Chat Invite</string>
+    <string name="accept_call">Accept</string>
+    <string name="decline_call">Decline</string>
+
+    <string name="notification_profile_image">Profile image</string>
+    <string name="notification_cancel_action">Cancel action</string>
+    <string name="notification_outgoing_call">Calling %1$s.</string>
+    <string name="notification_incoming_call">%1$s is calling you.</string>
+    <string name="notification_during_call_ticker">In a call with %1$s.</string>
+    <string name="notification_during_call">%1$s In a call with %2$s.</string>
+    <string name="notification_missed_call">Missed call from %1$s.</string>
+
+    <string name="xmpp_server_properties">Xmpp Server Properties</string>
+    <string name="xmpp_host">Xmpp Host</string>
+    <string name="xmpp_host_key">xmpp_host_key</string>
+    <string name="xmpp_host_value">talk.google.com</string>
+    <string name="xmpp_port">Xmpp Port</string>
+    <string name="xmpp_port_key">xmpp_port_key</string>
+    <string name="xmpp_port_value">5222</string>
+    <string name="xmpp_use_ssl">Xmpp Use SSL</string>
+    <string name="xmpp_use_ssl_key">xmpp_use_ssl_key</string>
+    <string name="xmpp_use_ssl_value">true</string>
+
+    <string name="stun_server_properties">Stun Server Properties</string>
+    <string name="stun_server">Stun Server</string>
+    <string name="stun_server_key">stun_server_key</string>
+    <string name="stun_server_value">stun.l.google.com:19302</string>
+
+    <string name="relay_server_properties">Relay Server Properties</string>
+    <string name="relay_server">Relay Server</string>
+    <string name="relay_server_key">relay_server_key</string>
+    <string name="relay_server_value"></string>
+
+    <string name="turn_server_properties">RFC Turn Server Properties</string>
+    <string name="turn_server">RFC Turn Server</string>
+    <string name="turn_server_key">turn_server_key</string>
+    <string name="turn_server_value"></string>
+    <string name="turn_username">RFC Turn Username</string>
+    <string name="turn_username_key">turn_username_key</string>
+    <string name="turn_username_value"></string>
+    <string name="turn_password">RFC Turn Password</string>
+    <string name="turn_password_key">turn_password_key</string>
+    <string name="turn_password_value"></string>
+
+</resources>

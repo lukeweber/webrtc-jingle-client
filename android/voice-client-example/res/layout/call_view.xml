@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <!-- Contact photo for primary call info -->
+        <ImageView
+            android:id="@+id/photo"
+            android:src="@drawable/picture_unknown"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="top|center_horizontal"
+            android:scaleType="centerCrop"/>
+
+        <RelativeLayout
+            android:id="@+id/primary_call_banner"
+            android:layout_alignParentTop="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/call_banner_height"
+            android:paddingLeft="@dimen/call_banner_side_padding"
+            android:paddingRight="@dimen/call_banner_side_padding"
+            android:paddingTop="@dimen/call_banner_top_bottom_padding"
+            android:paddingBottom="@dimen/call_banner_top_bottom_padding"
+            android:background="@color/incall_call_banner_background">
+
+            <!-- Name (or the phone number, if we don't have a name to display). -->
+            <TextView
+                android:id="@+id/name"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentLeft="true"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingRight="50sp"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="@color/incall_call_banner_text_color"
+                android:singleLine="true"/>
+
+            <!-- Elapsed time indication for a call in progress. -->
+            <TextView
+                android:id="@+id/elapsed_time"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="@color/incall_call_banner_text_color"
+                android:singleLine="true"
+                android:visibility="invisible"/>
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/secondary_info_container"
+            android:layout_below="@id/primary_call_banner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|right"
+            android:orientation="vertical"
+            android:background="@color/incall_secondary_info_background"
+            android:animateLayoutChanges="true">
+
+            <!-- The "call state label": In some states, this shows a special
+                 indication like "Dialing" or "Incoming call" or "Call ended".
+                 It's unused for the normal case of an active ongoing call. -->
+            <TextView android:id="@+id/callStateLabel"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:paddingTop="@dimen/provider_info_top_bottom_padding"
+                      android:paddingBottom="@dimen/provider_info_top_bottom_padding"
+                      android:paddingLeft="@dimen/call_banner_side_padding"
+                      android:paddingRight="@dimen/call_banner_side_padding"
+                      android:gravity="right"
+                      android:textAppearance="?android:attr/textAppearanceSmall"
+                      android:textColor="@color/incall_call_banner_text_color"
+                      android:textAllCaps="true"
+                      android:background="@android:color/transparent"
+                      android:singleLine="true"
+                      android:ellipsize="end"/>
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <ImageButton
+                android:id="@+id/accept_btn"
+                style="@style/InCallEndButton"
+                android:layout_width="match_parent"
+                android:src="@drawable/ic_dial_action_call"
+                android:background="@drawable/action_call_background"/>
+            <ImageButton
+                android:id="@+id/hang_up_btn"
+                style="@style/InCallEndButton"
+                android:layout_width="match_parent"
+                android:src="@drawable/ic_dial_end_call"
+                android:background="@drawable/end_call_background"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/bottom_bar"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/dialpad_background"
+            android:paddingLeft="@dimen/button_cluster_side_padding"
+            android:paddingRight="@dimen/button_cluster_side_padding"
+            android:visibility="gone">
+
+            <!-- Separator -->
+            <View style="@style/VerticalSeparator"/>
+
+            <!-- "Mute" -->
+            <ToggleButton
+                android:id="@+id/mute_btn"
+                style="@style/InCallCompoundButton"
+                android:background="@drawable/btn_compound_mute"/>
+
+            <!-- Separator -->
+            <View style="@style/VerticalSeparator"/>
+
+            <!-- "Hold" -->
+            <ToggleButton
+                android:id="@+id/hold_btn"
+                style="@style/InCallCompoundButton"
+                android:background="@drawable/btn_compound_hold"/>
+
+            <!-- Separator -->
+            <View style="@style/VerticalSeparator"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>
