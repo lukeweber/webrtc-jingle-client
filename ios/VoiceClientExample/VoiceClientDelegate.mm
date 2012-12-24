@@ -8,6 +8,9 @@
 #include "VoiceClientDelegate.h"
 #include "client/voiceclient.h"
 
+#import "AppDelegate.h"
+#import "ViewController.h"
+
 VoiceClientDelegate *VoiceClientDelegate::voiceClientDelegateInstance_ = NULL;
 
 VoiceClientDelegate *VoiceClientDelegate::getInstance(){
@@ -28,8 +31,10 @@ void VoiceClientDelegate::Init(){
 
 void VoiceClientDelegate::Login(){
     stun_config_.stun = "stun.l.google.com:19302";
-    voiceClient_->Login("username@gmail.com","password",
-                        &stun_config_, "talk.google.com", 5222, true);
+    stun_config_.turn = "95.131.170.1:3478";
+    stun_config_.turn_username = "";
+//    voiceClient_->Login("59989700@xmpp1.tuenti.com","xF6TAwAAAABE1ypF9qQ83cW785uQG1WWMZOAkZOM0FA", &stun_config_, "xmpp1.tuenti.com", 5222, false);
+    voiceClient_->Login("nicktuentitesting@gmail.com","20testing", &stun_config_, "talk.google.com", 5222, true);
 }
 
 void VoiceClientDelegate::Logout(){
@@ -37,7 +42,8 @@ void VoiceClientDelegate::Logout(){
 }
 
 void VoiceClientDelegate::Call(){
-    voiceClient_->Call("userto@gmail.com");
+    //voiceClient_->Call("1058@xmpp1.tuenti.com");
+    voiceClient_->Call("nicktuentitesting2@gmail.com");
 }
 
 void VoiceClientDelegate::OnSignalCallStateChange(int state, const char *remote_jid, int call_id) {
@@ -64,7 +70,7 @@ void VoiceClientDelegate::OnSignalXmppStateChange(int state) {
     
     if (buzz::XmppEngine::STATE_OPEN == state){
         printf("Calling\n");
-        voiceClient_->Call("luke.weber@gmail.com");
+        //voiceClient_->Call("luke.weber@gmail.com");
     }
 }
 
@@ -75,4 +81,20 @@ void VoiceClientDelegate::OnSignalBuddyListRemove(const char *remote_jid) {
 }
 
 void VoiceClientDelegate::OnSignalBuddyListAdd(const char *remote_jid, const char *nick) {
+}
+
+void VoiceClientDelegate::OnSignalStatsUpdate(const char *stats) {
+/*    AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+    UIViewController *vc = appDelegate->window_.root
+    UIView *topView = appDelegate.viewController.view;*/
+  
+/*  UIStoryboard *mainStoryboard = [UIStoryboard storyboardWithName:@"MainStoryboard"
+                                                         bundle: nil];
+
+  ViewController *controller = (ViewController*)[mainStoryboard
+                    instantiateViewControllerWithIdentifier: @"<Controller ID>"];*/
+  AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+  ViewController* mainController = (ViewController*) appDelegate.window.rootViewController;
+  [mainController statsUpdate:[NSString stringWithUTF8String:stats]];
+
 }

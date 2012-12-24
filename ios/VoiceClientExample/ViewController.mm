@@ -17,6 +17,7 @@
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
+    [self statsUpdate:@"placeholder stats"];
 }
 
 - (void)didReceiveMemoryWarning
@@ -49,7 +50,19 @@
     vc->Logout();
 }
 
+- (void)statsUpdate:(NSString *)stats {
+    statsLabel_.text = stats;
+}
 
+- (void)dealloc {
+  [statsLabel_ release];
+  [super dealloc];
+}
 
+- (void)viewDidUnload {
+  [statsLabel_ release];
+  statsLabel_ = nil;
+  [super viewDidUnload];
+}
 @end
 

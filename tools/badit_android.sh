@@ -162,8 +162,9 @@ elif [ "$BUILDSYSTEM" == "mvn" ]; then
   #$ANDROIDDIR/voice-client-core/build.sh
   pushd $ANDROIDDIR
   mvn $CLEAN install -P $BUILD_PROFILE
+  RET_CODE_CACHE="$?"
   popd
-  check_return_code "$?"
+  check_return_code "$RET_CODE_CACHE"
   
   echo -e "-------------------------------\nHEADERGEN\n-------------------------------"
   CLASSESPATH="$ANDROIDDIR/voice-client-core/target/classes"

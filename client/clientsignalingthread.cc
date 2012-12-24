@@ -57,7 +57,8 @@ enum {
   MSG_DECLINE_CALL,
   MSG_MUTE_CALL,
   MSG_END_CALL,
-  MSG_KEEPALIVE
+  MSG_KEEPALIVE,
+  MSG_PRINT_STATS
 //  , MSG_DESTROY
 };
 
@@ -110,6 +111,7 @@ ClientSignalingThread::ClientSignalingThread(
   sp_network_manager_.reset(new talk_base::BasicNetworkManager());
   my_status_.set_caps_node("http://github.com/lukeweber/webrtc-jingle");
   my_status_.set_version("1.0-SNAPSHOT");
+
 }
 
 ClientSignalingThread::~ClientSignalingThread() {
@@ -202,11 +204,13 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
     LOGI("VoiceClient::OnSessionState - STATE_SENTINITIATE doing nothing...");
     break;
   case cricket::Session::STATE_RECEIVEDACCEPT:
+  case cricket::Session::STATE_SENTACCEPT:
     LOGI("VoiceClient::OnSessionState - "
       "STATE_RECEIVEDACCEPT transfering data.");
     //Last accept has focus
     sp_media_client_->SetFocus(call);
     call_ = call;
+    PrintStatsS();
     break;
   case cricket::Session::STATE_RECEIVEDREJECT:
     LOGI("VoiceClient::OnSessionState - STATE_RECEIVEDREJECT doing nothing...");
@@ -357,6 +361,10 @@ void ClientSignalingThread::OnPingTimeout() {
   LOGE("XMPP ping timeout. Will keep trying...");
   InitPing();
 }
+    
+void ClientSignalingThread::OnCallStatsUpdate(char *stats) {
+  LOGI("ClientSignalingThread::OnCallStatsUpdate");
+}
 
 // ================================================================
 // THESE ARE THE ONLY FUNCTIONS THAT CAN BE CALLED USING ANY THREAD
@@ -486,6 +494,9 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
     break;
   case MSG_KEEPALIVE:
     OnKeepAliveS();
+    break;
+  case MSG_PRINT_STATS:
+    PrintStatsS();
     break;
   default:
     LOGI("ClientSignalingThread::OnMessage - UNKNOWN "
@@ -732,6 +743,32 @@ void ClientSignalingThread::InitMedia() {
 #endif
 }
 
+void ClientSignalingThread::PrintStatsS() {
+  if (call_ == NULL) {
+    return;
+  }
+  const cricket::VoiceMediaInfo& vmi = call_->last_voice_media_info();
+
+  for (std::vector<cricket::VoiceSenderInfo>::const_iterator it =
+       vmi.senders.begin(); it != vmi.senders.end(); ++it) {
+    LOGI("TSTATS: Sender: ssrc=%u codec='%s' bytes=%d packets=%d "
+                        "rtt=%d jitter=%d",
+                        it->ssrc, it->codec_name.c_str(), it->bytes_sent,
+                        it->packets_sent, it->rtt_ms, it->jitter_ms);
+  }
+
+  for (std::vector<cricket::VoiceReceiverInfo>::const_iterator it =
+       vmi.receivers.begin(); it != vmi.receivers.end(); ++it) {
+    LOGI("TSTATS: Receiver: ssrc=%u bytes=%d packets=%d "
+                        "jitter=%d loss=%.2f",
+                        it->ssrc, it->bytes_rcvd, it->packets_rcvd,
+                        it->jitter_ms, it->fraction_lost);
+  }
+  SignalStatsUpdate("TSTATS: FILL ME WITH STATS");
+
+  signal_thread_->PostDelayed(1000, this, MSG_PRINT_STATS);
+}
+
 void ClientSignalingThread::InitPresence() {
   LOGI("ClientSignalingThread::InitPresence");
   assert(talk_base::Thread::Current() == signal_thread_);
@@ -745,14 +782,14 @@ void ClientSignalingThread::InitPresence() {
   PresenceInPrivacy(STR_DENY);
 #endif
 
-#ifdef TUENTI_CUSTOM_BUILD
+//#ifdef TUENTI_CUSTOM_BUILD
   //Set status to negative to not interfere with messaging clients.
-  my_status_.set_priority(-25);
+//  my_status_.set_priority(-25);
   //Set away so we don't interfere with custom activity logic
-  my_status_.set_show(buzz::Status::SHOW_AWAY);
-#else
+//  my_status_.set_show(buzz::Status::SHOW_AWAY);
+//#else
   my_status_.set_show(buzz::Status::SHOW_ONLINE);
-#endif
+//#endif
 
 #if not XMPP_DISABLE_ROSTER
   presence_push_ = new buzz::PresencePushTask(sp_pump_->client());
