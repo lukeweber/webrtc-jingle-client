@@ -75,6 +75,7 @@ or for an older stable build, take the head of the stable branch revision.
 * Install unittest : adb install -r adb install -r voice_testing/${app_abi}/${lib}/${lib}-debug.apk
 * Prepare
 * Run unittest:
+
 ```
 # adb shell mkdir /sdcard/talk
 # adb shell am start -n org.chromium.native_test/org.chromium.native_test.ChromeNativeTestActivity
@@ -83,7 +84,9 @@ or for an older stable build, take the head of the stable branch revision.
 * Fetch unittest logs:  adb pull /sdcard/talk  talk-logs
 
 ## IPhone
-* Experimental work, view ios/Readme.txt
+* Working POC voice app.
+* See milestone for pending tickets and work that have been identified. 
+* For details on building, see ios/Readme.txt
 
 ## Todo/Issues:
 * See Tickets
