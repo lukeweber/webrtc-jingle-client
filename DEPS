@@ -75,7 +75,7 @@ deps = {
     Var("chromium_git_url") + "/chromium/deps/libsrtp.git@362c71e8d0dc205a4ad9f4709d42c25864ac872a",
 
   "trunk/third_party/libjingle":
-    "https://github.com/lukeweber/libjingle-override.git@8c3b7c4",
+    "https://github.com/lukeweber/libjingle-override.git",
 
   "trunk/build":
     "https://github.com/lukeweber/chromium-trunk-build-override.git",
@@ -84,7 +84,7 @@ deps = {
     "https://github.com/lukeweber/chromium-trunk-base-override.git",
 
   "trunk/third_party/webrtc":
-    "https://github.com/lukeweber/webrtc-src-override.git@a170f25",
+    "https://github.com/lukeweber/webrtc-src-override.git",
   
   "trunk/tools/gyp":
     "https://github.com/lukeweber/gyp-override.git",

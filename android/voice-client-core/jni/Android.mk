@@ -46,6 +46,7 @@ include $(MY_WEBRTC_PATH)/modules/media_file/source/Android.mk
 include $(MY_WEBRTC_PATH)/modules/rtp_rtcp/source/Android.mk
 include $(MY_WEBRTC_PATH)/system_wrappers/source/Android.mk
 include $(MY_WEBRTC_PATH)/voice_engine/Android.mk
+include $(MY_WEBRTC_PATH)/modules/pacing/Android.mk 
 
 include $(MY_ANDROID_MAKE_FILES_PATH)/expat.mk
 include $(MY_ANDROID_MAKE_FILES_PATH)/openssl.mk
@@ -148,7 +149,8 @@ LOCAL_WHOLE_STATIC_LIBRARIES := \
 	libwebrtc_g722 \
 	libwebrtc_g711 \
 	libwebrtc_rtp_rtcp \
-	libwebrtc_audio_preprocessing
+	libwebrtc_audio_preprocessing \
+	libwebrtc_paced_sender
 LOCAL_LDLIBS := -lgcc -llog -lOpenSLES
 LOCAL_PRELINK_MODULE := false
 include $(BUILD_STATIC_LIBRARY)
@@ -198,6 +200,7 @@ LOCAL_CFLAGS := \
 LOCAL_C_INCLUDES := \
 	$(MY_CLIENT_PATH)/../ \
     $(MY_WEBRTC_PATH) \
+	$(MY_THIRD_PARTY_PATH) \
 	$(MY_THIRD_PARTY_PATH)/libjingle \
 	$(MY_THIRD_PARTY_PATH)/webrtc/system_wrappers/interface \
 	$(MY_THIRD_PARTY_PATH)/webrtc/voice_engine/include \
