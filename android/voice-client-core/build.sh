@@ -63,7 +63,7 @@ fi
 platform=`uname -s`
 if [ -z $num_of_cores ]; then
   if [ "${platform}" == "Darwin" ]; then
-      num_of_cores=`system_profiler -detailLevel full SPHardwareDataType | awk '/Total Number of Cores/{print $5}{next;}'`
+      num_of_cores=`sysctl hw.ncpu | awk '{print $2}'`
   else
       num_of_cores=$((`nproc` +2))
   fi
