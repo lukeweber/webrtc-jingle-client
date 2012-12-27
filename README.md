@@ -18,9 +18,19 @@ gmail for example, just for testing, I haven't seen any problems.
 ## Prereqs:
 
 * [android NDK r8c](http://developer.android.com/sdk/ndk/index.html). r8c was
-tested, and works on linux. On mac you'll need to patch it or can use 
-https://github.com/lukeweber/android-ndk-r8c-mac, I've noticed with this build
-I have to manually create directories in libs, which might be due to the patch.
+tested and works on linux, but for mac please patch your ndk with the code below.
+
+```diff
+--- a/build/core/definitions.mk
++++ b/build/core/definitions.mk
+@@ -286,7 +286,7 @@ generate-dir = $(eval $(call ev-generate-dir,$1))
+ define ev-generate-file-dir
+ __ndk_file_dir := $(call parent-dir,$1)
+ $$(call generate-dir,$$(__ndk_file_dir))
+-$1: $$(__ndk_file_dir)
++$1: | $$(__ndk_file_dir)
+```
+
 * [Android SDK](http://developer.android.com/sdk/index.html)
 * [eclipse](http://www.eclipse.org/downloads/)
 * [Maven](http://maven.apache.org/download.html) v3.0.3+
@@ -46,7 +56,7 @@ export ANDROID_NDK_HOME=$ANDROID_NDK_ROOT
 # gclient sync
 
 or for an older stable build, take the head of the stable branch revision.
-# gclient sync --revision 43aa903
+# gclient sync --revision PUT_STABLE_HEAD_REV_HERE
 
 # cd trunk
 # export CHROME_SRC=`pwd`
