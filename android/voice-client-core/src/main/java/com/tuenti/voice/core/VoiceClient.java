@@ -60,7 +60,8 @@ public class VoiceClient
     {
         synchronized ( mLock )
         {
-            loadLibrary( "voiceclient" );
+            Log.i( TAG, "loading native library voiceclient" );
+            System.loadLibrary( "voiceclient" );
         }
     }
 
@@ -113,8 +114,7 @@ public class VoiceClient
                      xmppServer,
                      xmppPort,
                      useSsl,
-                     portAllocatorFilter
-                );
+                     portAllocatorFilter );
     }
 
     public void logout()
@@ -156,9 +156,12 @@ public class VoiceClient
      */
     protected void handleBuddyListChanged( int state, String remoteJid )
     {
-        synchronized ( mLock )
+        if ( mBuddyManager != null )
         {
-            mBuddyManager.handleBuddyListChanged( state, remoteJid );
+            synchronized ( mLock )
+            {
+                mBuddyManager.handleBuddyListChanged( state, remoteJid );
+            }
         }
     }
 
@@ -167,9 +170,12 @@ public class VoiceClient
      */
     protected void handleCallError( int error, long callId )
     {
-        synchronized ( mLock )
+        if ( mCallManager != null )
         {
-            mCallManager.handleCallError( error, callId );
+            synchronized ( mLock )
+            {
+                mCallManager.handleCallError( error, callId );
+            }
         }
     }
 
@@ -178,9 +184,12 @@ public class VoiceClient
      */
     protected void handleCallStateChanged( int state, String remoteJid, long callId )
     {
-        synchronized ( mLock )
+        if ( mCallManager != null )
         {
-            mCallManager.handleCallStateChanged( state, remoteJid, callId );
+            synchronized ( mLock )
+            {
+                mCallManager.handleCallStateChanged( state, remoteJid, callId );
+            }
         }
     }
 
@@ -189,9 +198,12 @@ public class VoiceClient
      */
     protected void handleXmppError( int error )
     {
-        synchronized ( mLock )
+        if ( mConnectionManager != null )
         {
-            mConnectionManager.handleXmppError( error );
+            synchronized ( mLock )
+            {
+                mConnectionManager.handleXmppError( error );
+            }
         }
     }
 
@@ -200,9 +212,12 @@ public class VoiceClient
      */
     protected void handleXmppSocketClose( int state )
     {
-        synchronized ( mLock )
+        if ( mConnectionManager != null )
         {
-            mConnectionManager.handleXmppSocketClose( state );
+            synchronized ( mLock )
+            {
+                mConnectionManager.handleXmppSocketClose( state );
+            }
         }
     }
 
@@ -211,9 +226,12 @@ public class VoiceClient
      */
     protected void handleXmppStateChanged( int state )
     {
-        synchronized ( mLock )
+        if ( mConnectionManager != null )
         {
-            mConnectionManager.handleXmppStateChanged( state );
+            synchronized ( mLock )
+            {
+                mConnectionManager.handleXmppStateChanged( state );
+            }
         }
     }
 
@@ -243,12 +261,6 @@ public class VoiceClient
         }
     }
 
-    private void loadLibrary( String name )
-    {
-        Log.i( TAG, "loading native library " + name );
-        System.loadLibrary( name );
-    }
-
     private native void nativeAcceptCall( long call_id );
 
     private native void nativeCall( String remoteJid );
@@ -259,11 +271,11 @@ public class VoiceClient
 
     private native void nativeHoldCall( long call_id, boolean hold );
 
-    private native void nativeInit( Context context);
+    private native void nativeInit( Context context );
 
     private native void nativeLogin( String user_name, String password, String stunServer, String turnServer,
                                      String turnUsername, String turnPassword, String xmppServer, int xmppPort,
-                                     boolean UseSSL, int portAllocatorFilter);
+                                     boolean UseSSL, int portAllocatorFilter );
 
     private native void nativeLogout();
 
