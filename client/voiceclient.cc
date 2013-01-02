@@ -128,9 +128,6 @@ void VoiceClient::InitializeS() {
         this, &VoiceClient::OnSignalBuddyListRemove);
     client_signaling_thread_->SignalBuddyListAdd.connect(
         this, &VoiceClient::OnSignalBuddyListAdd);
-    client_signaling_thread_->SignalStatsUpdate.connect(
-        this, &VoiceClient::OnSignalStatsUpdate);
-
 #ifndef FINAL
     client_signaling_thread_->SignalStatsUpdate.connect(
         this, &VoiceClient::OnSignalStatsUpdate);

@@ -17,7 +17,7 @@
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
-    [self statsUpdate:@"placeholder stats"];
+    [self statsUpdate:@"Sender:\nunknown stats\nReceiver:\nunknown stats\n"];
 }
 
 - (void)didReceiveMemoryWarning
@@ -51,7 +51,17 @@
 }
 
 - (void)statsUpdate:(NSString *)stats {
-    statsLabel_.text = stats;
+  dispatch_async(dispatch_get_main_queue(), ^{
+    unsigned numberOfLines, index, stringLength = [stats length];
+    for (index = 0, numberOfLines = 0; index < stringLength; numberOfLines++)
+      index = NSMaxRange([stats lineRangeForRange:NSMakeRange(index, 0)]);
+    [self->statsLabel_ setNumberOfLines:numberOfLines];
+    [self->statsLabel_ setText:stats];
+  });
+//    statsLabel_.text = stats;
+//  [statsLabel_ setText:stats];
+  //NFHACK If this makes the text update it is because we are running main stuff on the UI thread
+  //[[NSRunLoop mainRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.5]];
 }
 
 - (void)dealloc {

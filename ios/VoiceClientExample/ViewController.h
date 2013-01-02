@@ -18,7 +18,6 @@
 - (IBAction)login:(id)sender;
 - (IBAction)logout:(id)sender;
 - (IBAction)call:(id)sender;
-
 - (void)statsUpdate:(NSString *)stats;
 
 @end
