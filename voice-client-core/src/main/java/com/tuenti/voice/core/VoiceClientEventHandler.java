@@ -55,6 +55,10 @@ public class VoiceClientEventHandler
             case VoiceClient.AUDIO_PLAYOUT_EVENT:
                 mCallback.handleAudioPlayout();
                 break;
+            case VoiceClient.STATS_UPDATE_EVENT:
+                String stats = bundle.getString( "stats" );
+                mCallback.handleStatsUpdate(stats);
+                break;
         }
     }
 }

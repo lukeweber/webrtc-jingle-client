@@ -69,6 +69,7 @@ class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
   // initialization
   explicit VoiceClient(JavaObjectReference *reference);
   ~VoiceClient();
+  void Init();
   void Destroy();
 
   // passthru functions
@@ -96,6 +97,8 @@ class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
   void OnSignalBuddyListReset();
   void OnSignalBuddyListRemove(const char *remote_jid);
   void OnSignalBuddyListAdd(const char *remote_jid, const char *nick);
+  void OnSignalStatsUpdate(const char *stats);
+
 
   // signaling thread functions initialization
   void InitializeS();

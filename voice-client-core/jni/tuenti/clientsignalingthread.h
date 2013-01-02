@@ -31,6 +31,7 @@
 #include <map>
 
 #include "talk/base/signalthread.h"
+#include "talk/base/sigslot.h"
 #include "talk/base/constructormagic.h"
 #include "talk/base/thread.h"
 #include "talk/base/sigslot.h"
@@ -117,6 +118,7 @@ class ClientSignalingThread: public talk_base::SignalThread,
   void OnMediaEngineTerminate();
   void OnPingTimeout();
   void OnAudioPlayout();
+  void OnCallStatsUpdate(char *statsString);
   // These are signal thread entry points that will be farmed
   // out to the worker equivilent functions
   void Login(const std::string &username, const std::string &password,
@@ -143,6 +145,7 @@ class ClientSignalingThread: public talk_base::SignalThread,
   sigslot::signal0<> SignalBuddyListReset;
   sigslot::signal1<const char *> SignalBuddyListRemove;
   sigslot::signal2<const char *, const char *> SignalBuddyListAdd;
+  sigslot::signal1<const char *> SignalStatsUpdate;
 
  protected:
   virtual void OnMessage(talk_base::Message* message);
@@ -159,8 +162,12 @@ class ClientSignalingThread: public talk_base::SignalThread,
   void AcceptCallS(uint32 call_id);
   void DeclineCallS(uint32 call_id, bool busy);
   void EndCallS(uint32 call_id);
+  void PrintStatsS();
   cricket::Call* GetCall(uint32 call_id);
   bool EndAllCalls();
+  void OnKeepAliveS();
+  void ScheduleKeepAlive();
+  void PresenceInPrivacy(const std::string &action);
 
   // These should live inside of the TXmppPump
   void InitMedia();

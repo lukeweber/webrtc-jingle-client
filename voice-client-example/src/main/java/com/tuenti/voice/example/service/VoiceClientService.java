@@ -354,6 +354,11 @@ public class VoiceClientService extends Service implements
             break;
         }
     }
+
+    @Override
+    public void handleStatsUpdate(String stats) {
+        //Some really awesome code here
+    }
 // --------------------- End Interface VoiceClientEventCallback ---------------------
 
 // --------------------- Connection Monitor interface --------------
@@ -676,7 +681,7 @@ public class VoiceClientService extends Service implements
 	public void runPendingLogin() {
 		if (mUser != null) {
 			mClient.login(mUser.mUsername, mUser.mPassword, mUser.mStun, mUser.mTurn, mUser.mTurnUsername, mUser.mTurnPassword , mUser.mXmppHost,
-			              mUser.mXmppPort, mUser.mXmppUseSsl);
+			              mUser.mXmppPort, mUser.mXmppUseSsl, 0); //0 is port filtering probably should be disabled
 		}
 	}
 

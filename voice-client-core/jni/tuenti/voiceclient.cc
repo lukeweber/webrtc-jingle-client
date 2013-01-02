@@ -49,7 +49,10 @@ VoiceClient::VoiceClient(JavaObjectReference *reference)
     : reference_(reference),
     signal_thread_(NULL),
     client_signaling_thread_(NULL) {
-  LOGI("VoiceClient::VoiceClient");
+    Init();
+}
+
+void VoiceClient::Init(){
 #ifdef TUENTI_CUSTOM_BUILD
   LOG(INFO) << "LOGT RUNNING WITH TUENTI_CUSTOM_BUILD";
 #endif //TUENTI_CUSTOM_BUILD
@@ -63,6 +66,7 @@ VoiceClient::VoiceClient(JavaObjectReference *reference)
     signal_thread_->Start();
     signal_thread_->Post(this, MSG_INIT);
   }
+
 }
 
 VoiceClient::~VoiceClient() {
@@ -111,7 +115,10 @@ void VoiceClient::InitializeS() {
         this, &VoiceClient::OnSignalBuddyListRemove);
     client_signaling_thread_->SignalBuddyListAdd.connect(
         this, &VoiceClient::OnSignalBuddyListAdd);
-
+#ifdef LOGGING
+    client_signaling_thread_->SignalStatsUpdate.connect(
+        this, &VoiceClient::OnSignalStatsUpdate);
+#endif
     client_signaling_thread_->Start();
 
     //We know the client is alive when we get this state.
@@ -256,5 +263,10 @@ void VoiceClient::OnSignalBuddyListRemove(const char *remote_jid) {
 void VoiceClient::OnSignalBuddyListAdd(const char *remote_jid, const char *nick) {
   LOGI("Adding to buddy list: %s, %s", remote_jid, nick);
   CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT, ADD, remote_jid, 0);
+}
+
+void VoiceClient::OnSignalStatsUpdate(const char *stats) {
+  LOGI("Updating stats");
+  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_STATS_UPDATE_EVENT, 0, stats, 0);
 }
 }  // namespace tuenti

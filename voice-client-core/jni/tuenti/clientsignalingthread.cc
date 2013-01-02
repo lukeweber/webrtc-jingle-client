@@ -44,6 +44,7 @@
 
 #include "talk/xmllite/xmlelement.h"
 #include "talk/xmpp/constants.h"
+#include "../../client/client_defines.h"
 
 namespace tuenti {
 
@@ -56,7 +57,9 @@ enum {
   MSG_HOLD_CALL,
   MSG_DECLINE_CALL,
   MSG_MUTE_CALL,
-  MSG_END_CALL
+  MSG_END_CALL,
+  MSG_KEEPALIVE,
+  MSG_PRINT_STATS
 //  , MSG_DESTROY
 };
 
@@ -110,6 +113,7 @@ ClientSignalingThread::ClientSignalingThread(
   sp_network_manager_.reset(new talk_base::BasicNetworkManager());
   my_status_.set_caps_node("http://github.com/lukeweber/webrtc-jingle");
   my_status_.set_version("1.0-SNAPSHOT");
+
 }
 
 ClientSignalingThread::~ClientSignalingThread() {
@@ -202,11 +206,13 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
     LOGI("VoiceClient::OnSessionState - STATE_SENTINITIATE doing nothing...");
     break;
   case cricket::Session::STATE_RECEIVEDACCEPT:
+  case cricket::Session::STATE_SENTACCEPT:
     LOGI("VoiceClient::OnSessionState - "
       "STATE_RECEIVEDACCEPT transfering data.");
     //Last accept has focus
     sp_media_client_->SetFocus(call);
     call_ = call;
+    PrintStatsS();
     break;
   case cricket::Session::STATE_RECEIVEDREJECT:
     LOGI("VoiceClient::OnSessionState - STATE_RECEIVEDREJECT doing nothing...");
@@ -295,7 +301,12 @@ void ClientSignalingThread::OnStateChange(buzz::XmppEngine::State state) {
             "initing media & presence...");
     InitMedia();
     InitPresence();
+#if XMPP_WHITESPACE_KEEPALIVE_ENABLED
+    ScheduleKeepAlive();
+#endif
+#if XMPP_PING_ENABLED
     InitPing();
+#endif
     break;
   case buzz::XmppEngine::STATE_CLOSED:
     ResetMedia();
@@ -353,12 +364,17 @@ void ClientSignalingThread::OnPingTimeout() {
   InitPing();
 }
 
+void ClientSignalingThread::OnCallStatsUpdate(char *stats) {
+  LOGI("ClientSignalingThread::OnCallStatsUpdate");
+}
+
 // ================================================================
 // THESE ARE THE ONLY FUNCTIONS THAT CAN BE CALLED USING ANY THREAD
 // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 void ClientSignalingThread::Login(const std::string &username,
     const std::string &password, StunConfig* stun_config,
-    const std::string &xmpp_host, int xmpp_port, bool use_ssl, uint32 port_allocator_filter) {
+    const std::string &xmpp_host, int xmpp_port, bool use_ssl,
+    uint32 port_allocator_filter) {
   LOGI("ClientSignalingThread::Login");
 
   stun_config_ = stun_config;
@@ -380,9 +396,7 @@ void ClientSignalingThread::Login(const std::string &username,
   xcs_.set_use_tls(use_ssl ? buzz::TLS_REQUIRED : buzz::TLS_DISABLED);
   xcs_.set_pass(talk_base::CryptString(pass));
   xcs_.set_server(talk_base::SocketAddress(xmpp_host, xmpp_port));
-
   SetPortAllocatorFilter(port_allocator_filter);
-
   signal_thread_->Post(this, MSG_LOGIN);
 }
 
@@ -482,6 +496,12 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
     EndCallS(static_cast<ClientSignalingData*>(message->pdata)->call_id_);
     delete message->pdata;
     break;
+  case MSG_KEEPALIVE:
+    OnKeepAliveS();
+    break;
+  case MSG_PRINT_STATS:
+    PrintStatsS();
+    break;
   default:
     LOGI("ClientSignalingThread::OnMessage - UNKNOWN "
             "falling back to base class");
@@ -489,6 +509,19 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
     break;
   }
 }
+
+void ClientSignalingThread::OnKeepAliveS(){
+  if(sp_pump_->client()){
+    sp_pump_->client()->SendRaw(" ");
+    ScheduleKeepAlive();
+  }
+}
+
+void ClientSignalingThread::ScheduleKeepAlive() {
+  //We ping a white space every 10 minutes to avoid the connection dropping.
+  signal_thread_->PostDelayed(XmppKeepAlivePingInterval, this, MSG_KEEPALIVE);
+}
+
 
 void ClientSignalingThread::DoWork() {
   LOGI("ClientSignalingThread::DoWork");
@@ -602,7 +635,7 @@ void ClientSignalingThread::CallS(const std::string &remoteJid) {
   buzz::Jid remote_jid(remoteJid);
   call = sp_media_client_->CreateCall();
   call->InitiateSession(remote_jid, sp_media_client_->jid(), options);  // REQ_MAIN_THREAD
-#else
+#else // Check the roster
   bool found = false;
   buzz::Jid callto_jid(remoteJid);
   buzz::Jid found_jid;
@@ -717,8 +750,41 @@ void ClientSignalingThread::InitMedia() {
 #endif
 }
 
+void ClientSignalingThread::PrintStatsS() {
+  if (call_ == NULL) {
+    return;
+  }
+  const cricket::VoiceMediaInfo& vmi = call_->last_voice_media_info();
+  std::ostringstream statsStream;
+  bool fireSignal = false;
+  for (std::vector<cricket::VoiceSenderInfo>::const_iterator it =
+       vmi.senders.begin(); it != vmi.senders.end(); ++it) {
+    LOGI("TSTATS: Sender: ssrc=%u codec='%s' bytes=%d packets=%d "
+                        "rtt=%d jitter=%d echo_delay_median_ms=%d",
+                        it->ssrc, it->codec_name.c_str(), it->bytes_sent,
+                        it->packets_sent, it->rtt_ms, it->jitter_ms, it->echo_delay_median_ms);
+    statsStream << "Sender:\nrtt=" << it->rtt_ms << "\njitter=" << it->jitter_ms << "\n";
+    fireSignal = true;
+  }
+
+  for (std::vector<cricket::VoiceReceiverInfo>::const_iterator it =
+       vmi.receivers.begin(); it != vmi.receivers.end(); ++it) {
+    LOGI("TSTATS: Receiver: ssrc=%u bytes=%d packets=%d "
+                        "jitter=%d loss=%.2f",
+                        it->ssrc, it->bytes_rcvd, it->packets_rcvd,
+                        it->jitter_ms, it->fraction_lost);
+
+    statsStream << "Receiver:\ndelay_estimate_ms" << it->delay_estimate_ms << "\njitter=" << it->jitter_ms << "\n";
+    fireSignal = true;
+  }
+  if(fireSignal) {
+    SignalStatsUpdate(const_cast<const char *>(statsStream.str().c_str()));
+  }
+
+  signal_thread_->PostDelayed(1000, this, MSG_PRINT_STATS);
+}
+
 void ClientSignalingThread::InitPresence() {
-  // NFHACK Fix the news
   LOGI("ClientSignalingThread::InitPresence");
   assert(talk_base::Thread::Current() == signal_thread_);
 
@@ -727,26 +793,20 @@ void ClientSignalingThread::InitPresence() {
   my_status_.set_know_capabilities(true);
   my_status_.set_pmuc_capability(false);
 
-#ifdef TUENTI_CUSTOM_BUILD
+#if XMPP_DISABLE_INCOMING_PRESENCE
+  PresenceInPrivacy(STR_DENY);
+#endif
+//NF: WHY IS THIS COMMENTED OUT?
+//#ifdef TUENTI_CUSTOM_BUILD
   //Set status to negative to not interfere with messaging clients.
-  my_status_.set_priority(-25);
-
+//  my_status_.set_priority(-25);
   //Set away so we don't interfere with custom activity logic
-  my_status_.set_show(buzz::Status::SHOW_AWAY);
-
-  //Ignore incoming presence.
-  buzz::XmlElement* xmlblockpresence = new buzz::XmlElement(buzz::QN_IQ);
-  xmlblockpresence->AddAttr(buzz::QN_TYPE, buzz::STR_SET);
-  xmlblockpresence->AddElement(new buzz::XmlElement(buzz::QN_PRIVACY_QUERY, true));
-  buzz::XmlElement* xmlprivacylist = new buzz::XmlElement(buzz::QN_PRIVACY_LIST, true);
-  buzz::XmlElement* xmlprivacyitem = new buzz::XmlElement(buzz::QN_PRIVACY_ITEM, true);
-  xmlprivacyitem->AddAttr(buzz::QN_ACTION, "deny");
-  xmlprivacyitem->AddElement(new buzz::XmlElement(buzz::QN_PRIVACY_PRESENCE_IN, true));
-  xmlprivacylist->AddElement(xmlprivacyitem);
-  xmlblockpresence->AddElement(xmlprivacylist);
-  sp_pump_->client()->SendStanza(xmlblockpresence);
-#else
+//  my_status_.set_show(buzz::Status::SHOW_AWAY);
+//#else
   my_status_.set_show(buzz::Status::SHOW_ONLINE);
+//#endif
+
+#if not XMPP_DISABLE_ROSTER
   presence_push_ = new buzz::PresencePushTask(sp_pump_->client());
   presence_push_->SignalStatusUpdate.connect(this,
       &ClientSignalingThread::OnStatusUpdate);
@@ -763,11 +823,26 @@ void ClientSignalingThread::InitPresence() {
   presence_out_->Start();
 }
 
+void ClientSignalingThread::PresenceInPrivacy(const std::string& action){
+  if (sp_pump_.get()){
+    buzz::XmlElement* xmlblockpresence = new buzz::XmlElement(buzz::QN_IQ);
+    xmlblockpresence->AddAttr(buzz::QN_TYPE, buzz::STR_SET);
+    xmlblockpresence->AddElement(new buzz::XmlElement(buzz::QN_PRIVACY_QUERY, true));
+    buzz::XmlElement* xmlprivacylist = new buzz::XmlElement(buzz::QN_PRIVACY_LIST, true);
+    buzz::XmlElement* xmlprivacyitem = new buzz::XmlElement(buzz::QN_PRIVACY_ITEM, true);
+    xmlprivacyitem->AddAttr(buzz::QN_ACTION, action);
+    xmlprivacyitem->AddElement(new buzz::XmlElement(buzz::QN_PRIVACY_PRESENCE_IN, true));
+    xmlprivacylist->AddElement(xmlprivacyitem);
+    xmlblockpresence->AddElement(xmlprivacylist);
+    sp_pump_->client()->SendStanza(xmlblockpresence);
+  }
+}
+
 void ClientSignalingThread::InitPing() {
   LOGI("ClientSignalingThread::InitPing");
   assert(talk_base::Thread::Current() == signal_thread_);
   ping_ = new buzz::PingTask(sp_pump_->client(), talk_base::Thread::Current(),
-      100000, 10000);//Every 100 seconds, 10 second timeout
+      PingInterval, PingTimeout);
   ping_->SignalTimeout.connect(this, &ClientSignalingThread::OnPingTimeout);
   ping_->Start();
 }

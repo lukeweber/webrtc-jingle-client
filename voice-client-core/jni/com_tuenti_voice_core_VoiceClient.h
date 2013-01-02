@@ -21,6 +21,8 @@ extern "C" {
 #define com_tuenti_voice_core_VoiceClient_XMPP_SOCKET_CLOSE_EVENT 4L
 #undef com_tuenti_voice_core_VoiceClient_XMPP_STATE_EVENT
 #define com_tuenti_voice_core_VoiceClient_XMPP_STATE_EVENT 1L
+#undef com_tuenti_voice_core_VoiceClient_STATS_UPDATE_EVENT
+#define com_tuenti_voice_core_VoiceClient_STATS_UPDATE_EVENT 7L
 /*
  * Class:     com_tuenti_voice_core_VoiceClient
  * Method:    nativeAcceptCall

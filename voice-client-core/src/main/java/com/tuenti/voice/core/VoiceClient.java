@@ -40,6 +40,8 @@ public class VoiceClient
     public static final int XMPP_SOCKET_CLOSE_EVENT = 4;
 
     public static final int XMPP_STATE_EVENT = 1;
+
+    public static final int STATS_UPDATE_EVENT = 7;
     //End Event constants
 
     private final static String TAG = "j-libjingle-webrtc";
