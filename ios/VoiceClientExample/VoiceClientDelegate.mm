@@ -29,7 +29,7 @@ void VoiceClientDelegate::Init(){
 void VoiceClientDelegate::Login(){
     stun_config_.stun = "stun.l.google.com:19302";
     voiceClient_->Login("username@gmail.com","password",
-                        &stun_config_, "talk.google.com", 5222, true);
+                        &stun_config_, "talk.google.com", 5222, true, 0);
 }
 
 void VoiceClientDelegate::Logout(){
@@ -64,7 +64,6 @@ void VoiceClientDelegate::OnSignalXmppStateChange(int state) {
     
     if (buzz::XmppEngine::STATE_OPEN == state){
         printf("Calling\n");
-        voiceClient_->Call("luke.weber@gmail.com");
     }
 }
 

@@ -58,7 +58,8 @@ enum {
   MSG_DECLINE_CALL,
   MSG_MUTE_CALL,
   MSG_END_CALL,
-  MSG_KEEPALIVE
+  MSG_KEEPALIVE,
+  MSG_PRINT_STATS,
 //  , MSG_DESTROY
 };
 
@@ -203,12 +204,16 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
   case cricket::Session::STATE_SENTINITIATE:
     LOGI("VoiceClient::OnSessionState - STATE_SENTINITIATE doing nothing...");
     break;
+  case cricket::Session::STATE_SENTACCEPT:
   case cricket::Session::STATE_RECEIVEDACCEPT:
     LOGI("VoiceClient::OnSessionState - "
       "STATE_RECEIVEDACCEPT transfering data.");
     //Last accept has focus
-    sp_media_client_->SetFocus(call);
     call_ = call;
+    sp_media_client_->SetFocus(call);
+#if LOGGING
+    signal_thread_->PostDelayed(1000, this, MSG_PRINT_STATS);
+#endif
     break;
   case cricket::Session::STATE_RECEIVEDREJECT:
     LOGI("VoiceClient::OnSessionState - STATE_RECEIVEDREJECT doing nothing...");
@@ -491,6 +496,14 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
     break;
   case MSG_KEEPALIVE:
     OnKeepAliveS();
+    ScheduleKeepAlive();
+    break;
+  case MSG_PRINT_STATS:
+    LOGI("ClientSignalingThread::OnMessage - MSG_PRINT_STATS");
+    if (call_){//If there's a call, continue
+      PrintStatsS();
+      signal_thread_->PostDelayed(1000, this, MSG_PRINT_STATS);
+    }
     break;
   default:
     LOGI("ClientSignalingThread::OnMessage - UNKNOWN "
@@ -503,7 +516,6 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
 void ClientSignalingThread::OnKeepAliveS(){
   if(sp_pump_->client()){
     sp_pump_->client()->SendRaw(" ");
-    ScheduleKeepAlive();
   }
 }
 
@@ -677,10 +689,8 @@ void ClientSignalingThread::AcceptCallS(uint32 call_id) {
   assert(talk_base::Thread::Current() == signal_thread_);
   cricket::Call* call = GetCall(call_id);
   if (call && call->sessions().size() == 1) {
-    call_ = call;
     cricket::CallOptions options;
     call->AcceptSession(call->sessions()[0], options);
-    sp_media_client_->SetFocus(call);
   } else {
     LOGE("ClientSignalingThread::AcceptCallW - No incoming call to accept");
   }
@@ -825,5 +835,28 @@ bool ClientSignalingThread::EndAllCalls() {
   }
   call_  = NULL;
   return calls_processed;
+}
+
+void ClientSignalingThread::PrintStatsS() const {
+  if (call_ == NULL){
+    return;
+  }
+  const cricket::VoiceMediaInfo& vmi = call_->last_voice_media_info();
+
+  for (std::vector<cricket::VoiceSenderInfo>::const_iterator it =
+       vmi.senders.begin(); it != vmi.senders.end(); ++it) {
+    LOGI("Sender: ssrc=%u codec='%s' bytes=%d packets=%d "
+         "rtt=%d jitter=%d",
+         it->ssrc, it->codec_name.c_str(), it->bytes_sent,
+         it->packets_sent, it->rtt_ms, it->jitter_ms);
+  }
+
+  for (std::vector<cricket::VoiceReceiverInfo>::const_iterator it =
+       vmi.receivers.begin(); it != vmi.receivers.end(); ++it) {
+    LOGI("Receiver: ssrc=%u bytes=%d packets=%d "
+         "jitter=%d loss=%.2f",
+         it->ssrc, it->bytes_rcvd, it->packets_rcvd,
+         it->jitter_ms, it->fraction_lost);
+  }
 }
 }  // namespace tuenti
