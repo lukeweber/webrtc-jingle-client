@@ -74,7 +74,7 @@ deps = {
     Var("chromium_trunk") + "/deps/third_party/libsrtp@123853",
 
   "trunk/third_party/libjingle":
-    "https://github.com/lukeweber/libjingle-override.git@8c3b7c4",
+    "https://github.com/lukeweber/libjingle-override.git@54ffda4",
 
   "trunk/build":
     "https://github.com/lukeweber/chromium-trunk-build-override.git",
