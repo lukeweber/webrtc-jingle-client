@@ -57,11 +57,6 @@ export ANDROID_NDK_HOME=$ANDROID_NDK_ROOT
 
 or for an older stable build, take the head of the stable branch revision.
 # gclient sync --revision PUT_STABLE_HEAD_REV_HERE
-
-# cd trunk
-# export CHROME_SRC=`pwd`
-# source build/android/envsetup.sh
-# gclient runhooks
 ```
 * Set your username, pass and connection setttings in android/voice-client-example/src/main/java/com/tuenti/voice/example/ui/LoginView.java.
 * Build the core(c++ code): cd trunk/android/voice-client-core && ./build.sh
