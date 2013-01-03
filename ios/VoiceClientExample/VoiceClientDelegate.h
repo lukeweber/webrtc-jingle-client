@@ -29,6 +29,9 @@ public:
     void OnSignalBuddyListRemove(const char *remote_jid);
     
     void OnSignalBuddyListAdd(const char *remote_jid, const char *nick);
+    void OnSignalStatsUpdate(const char *stats);
+
+
 private:
     static VoiceClientDelegate * voiceClientDelegateInstance_;
     tuenti::VoiceClient *voiceClient_;

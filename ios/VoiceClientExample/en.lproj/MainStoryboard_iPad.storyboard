@@ -68,9 +68,19 @@
                                     <action selector="call:" destination="2" eventType="touchUpInside" id="7lF-Ab-CQv"/>
                                 </connections>
                             </button>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="BS6-6d-ywd">
+                                <rect key="frame" x="99" y="523" width="547" height="436"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <color key="backgroundColor" red="0.0" green="0.80005167820127365" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                     </view>
+                    <connections>
+                        <outlet property="statsLabel_" destination="BS6-6d-ywd" id="11F-Uv-fDb"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="3" sceneMemberID="firstResponder"/>
             </objects>
@@ -84,6 +94,7 @@
                 <relationship kind="action" name="init:"/>
                 <relationship kind="action" name="login:"/>
                 <relationship kind="action" name="logout:"/>
+                <relationship kind="outlet" name="statsLabel_" candidateClass="UILabel"/>
             </relationships>
         </class>
     </classes>

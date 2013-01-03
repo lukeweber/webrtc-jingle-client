@@ -113,6 +113,7 @@ ClientSignalingThread::ClientSignalingThread(
   sp_network_manager_.reset(new talk_base::BasicNetworkManager());
   my_status_.set_caps_node("http://github.com/lukeweber/webrtc-jingle");
   my_status_.set_version("1.0-SNAPSHOT");
+
 }
 
 ClientSignalingThread::~ClientSignalingThread() {
@@ -364,6 +365,10 @@ void ClientSignalingThread::OnPingTimeout() {
   LOGE("XMPP ping timeout. Will keep trying...");
   InitPing();
 }
+    
+void ClientSignalingThread::OnCallStatsUpdate(char *stats) {
+  LOGI("ClientSignalingThread::OnCallStatsUpdate");
+}
 
 // ================================================================
 // THESE ARE THE ONLY FUNCTIONS THAT CAN BE CALLED USING ANY THREAD
@@ -500,7 +505,7 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
     break;
   case MSG_PRINT_STATS:
     LOGI("ClientSignalingThread::OnMessage - MSG_PRINT_STATS");
-    if (call_){//If there's a call, continue
+    if (call_){//If there's no call, skip
       PrintStatsS();
       signal_thread_->PostDelayed(1000, this, MSG_PRINT_STATS);
     }
@@ -748,6 +753,40 @@ void ClientSignalingThread::InitMedia() {
 #else
   sp_media_client_->set_secure(cricket::SEC_DISABLED);
 #endif
+}
+
+void ClientSignalingThread::PrintStatsS() {
+  if (call_ == NULL) {
+    return;
+  }
+  const cricket::VoiceMediaInfo& vmi = call_->last_voice_media_info();
+  std::ostringstream statsStream;
+  bool fireSignal = false;
+  for (std::vector<cricket::VoiceSenderInfo>::const_iterator it =
+       vmi.senders.begin(); it != vmi.senders.end(); ++it) {
+    LOGI("TSTATS: Sender: ssrc=%u codec='%s' bytes=%d packets=%d "
+                        "rtt=%d jitter=%d echo_delay_median_ms=%d",
+                        it->ssrc, it->codec_name.c_str(), it->bytes_sent,
+                        it->packets_sent, it->rtt_ms, it->jitter_ms, it->echo_delay_median_ms);
+    statsStream << "Sender:\nrtt=" << it->rtt_ms << "\njitter=" << it->jitter_ms << "\n";
+    fireSignal = true;
+  }
+
+  for (std::vector<cricket::VoiceReceiverInfo>::const_iterator it =
+       vmi.receivers.begin(); it != vmi.receivers.end(); ++it) {
+    LOGI("TSTATS: Receiver: ssrc=%u bytes=%d packets=%d "
+                        "jitter=%d loss=%.2f",
+                        it->ssrc, it->bytes_rcvd, it->packets_rcvd,
+                        it->jitter_ms, it->fraction_lost);
+
+    statsStream << "Receiver:\ndelay_estimate_ms" << it->delay_estimate_ms << "\njitter=" << it->jitter_ms << "\n";
+    fireSignal = true;
+  }
+  if(fireSignal) {
+    SignalStatsUpdate(const_cast<const char *>(statsStream.str().c_str()));
+  }
+
+  signal_thread_->PostDelayed(1000, this, MSG_PRINT_STATS);
 }
 
 void ClientSignalingThread::InitPresence() {

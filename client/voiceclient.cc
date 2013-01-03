@@ -128,7 +128,10 @@ void VoiceClient::InitializeS() {
         this, &VoiceClient::OnSignalBuddyListRemove);
     client_signaling_thread_->SignalBuddyListAdd.connect(
         this, &VoiceClient::OnSignalBuddyListAdd);
-
+#ifndef FINAL
+    client_signaling_thread_->SignalStatsUpdate.connect(
+        this, &VoiceClient::OnSignalStatsUpdate);
+#endif
     client_signaling_thread_->Start();
 
     //We know the client is alive when we get this state.
@@ -312,5 +315,11 @@ void VoiceClient::OnSignalBuddyListRemove(const char *remote_jid) {
 void VoiceClient::OnSignalBuddyListAdd(const char *remote_jid, const char *nick) {
     VoiceClientDelegate::getInstance()->OnSignalBuddyListAdd(remote_jid, nick);
 }
+
+void VoiceClient::OnSignalStatsUpdate(const char *stats) {
+    VoiceClientDelegate::getInstance()->OnSignalStatsUpdate(stats);
+}
+
+
 #endif  //IOS
 }  // namespace tuenti

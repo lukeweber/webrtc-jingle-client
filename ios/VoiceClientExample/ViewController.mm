@@ -17,6 +17,7 @@
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
+    [self statsUpdate:@"Sender:\nunknown stats\nReceiver:\nunknown stats\n"];
 }
 
 - (void)didReceiveMemoryWarning
@@ -49,7 +50,25 @@
     vc->Logout();
 }
 
+- (void)statsUpdate:(NSString *)stats {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    unsigned numberOfLines, index, stringLength = [stats length];
+    for (index = 0, numberOfLines = 0; index < stringLength; numberOfLines++)
+      index = NSMaxRange([stats lineRangeForRange:NSMakeRange(index, 0)]);
+    [self->statsLabel_ setNumberOfLines:numberOfLines];
+    [self->statsLabel_ setText:stats];
+  });
+}
 
+- (void)dealloc {
+  [statsLabel_ release];
+  [super dealloc];
+}
 
+- (void)viewDidUnload {
+  [statsLabel_ release];
+  statsLabel_ = nil;
+  [super viewDidUnload];
+}
 @end
 

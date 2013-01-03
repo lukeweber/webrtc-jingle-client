@@ -8,6 +8,9 @@
 #include "VoiceClientDelegate.h"
 #include "client/voiceclient.h"
 
+#import "AppDelegate.h"
+#import "ViewController.h"
+
 VoiceClientDelegate *VoiceClientDelegate::voiceClientDelegateInstance_ = NULL;
 
 VoiceClientDelegate *VoiceClientDelegate::getInstance(){
@@ -74,4 +77,10 @@ void VoiceClientDelegate::OnSignalBuddyListRemove(const char *remote_jid) {
 }
 
 void VoiceClientDelegate::OnSignalBuddyListAdd(const char *remote_jid, const char *nick) {
+}
+
+void VoiceClientDelegate::OnSignalStatsUpdate(const char *stats) {
+  AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+  ViewController* mainController = (ViewController*) appDelegate.window.rootViewController;
+  [mainController statsUpdate:[NSString stringWithUTF8String:stats]];
 }

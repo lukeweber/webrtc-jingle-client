@@ -10,6 +10,7 @@
 @class ButtonController;
 @interface ViewController : UIViewController {
 //    UIButton *loginButton_;
+  IBOutlet UILabel *statsLabel_;
 }
 
 //@property (nonatomic, retain) UIButton *loginButton;
@@ -17,4 +18,6 @@
 - (IBAction)login:(id)sender;
 - (IBAction)logout:(id)sender;
 - (IBAction)call:(id)sender;
+- (void)statsUpdate:(NSString *)stats;
+
 @end
