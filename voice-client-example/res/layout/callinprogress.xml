@@ -42,4 +42,19 @@
         android:layout_height="wrap_content"
         android:text="@string/hold" >
     </Button>
+    
+    <LinearLayout 
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+    	<TextView
+    	    android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="@string/call_stats"
+    	    android:paddingRight="5dip" />
+    	<TextView
+	        android:id="@+id/call_stats_textview"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content" />
+        
+    </LinearLayout>
 </LinearLayout>

@@ -40,6 +40,7 @@ public class CallInProgressActivity extends Activity implements
 	private boolean mHold;
 
 	private TextView durationTextView;
+	private TextView statisticsTextView;
 	private PowerManager mPowerManager;
 
 	private BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -52,6 +53,9 @@ public class CallInProgressActivity extends Activity implements
 				finish();
 			} else if (action.equals(CallUIIntent.CALL_PROGRESS)) {
 				updateCallDuration(intent.getLongExtra("duration", -1));
+			} else if(action.equals(CallUIIntent.UPDATE_CALL_STATS)) {
+				String stats = intent.getStringExtra("statistics");
+				updateCallStatistics(stats);
 			}
 		}
 	};
@@ -73,6 +77,17 @@ public class CallInProgressActivity extends Activity implements
 		}
 	}
 
+	/**
+	 * Updates the statistics textview with the latest stats.
+	 * 
+	 * @param stats The new statistics to display.
+	 */
+	protected void updateCallStatistics(String stats) {
+		if(stats != null) {
+			statisticsTextView.setText(stats);
+		}
+	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -84,6 +99,9 @@ public class CallInProgressActivity extends Activity implements
 
 		durationTextView = (TextView) findViewById(R.id.duration_textview);
 		updateCallDuration(0);
+		
+		statisticsTextView = (TextView) findViewById(R.id.call_stats_textview);
+		updateCallStatistics("n/a");
 
 		mWakeLock = new WakeLockManager(this);
 
@@ -140,6 +158,7 @@ public class CallInProgressActivity extends Activity implements
 		intentFilter.addAction(CallUIIntent.CALL_PROGRESS);
 		intentFilter.addAction(CallUIIntent.CALL_ENDED);
 		intentFilter.addAction(CallUIIntent.LOGGED_OUT);
+		intentFilter.addAction(CallUIIntent.UPDATE_CALL_STATS);
 		LocalBroadcastManager.getInstance(getBaseContext()).registerReceiver(
 				mReceiver, intentFilter);
 	}

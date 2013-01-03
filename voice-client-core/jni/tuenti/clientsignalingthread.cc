@@ -759,25 +759,18 @@ void ClientSignalingThread::PrintStatsS() {
   bool fireSignal = false;
   for (std::vector<cricket::VoiceSenderInfo>::const_iterator it =
        vmi.senders.begin(); it != vmi.senders.end(); ++it) {
-    LOGI("TSTATS: Sender: ssrc=%u codec='%s' bytes=%d packets=%d "
-                        "rtt=%d jitter=%d echo_delay_median_ms=%d",
-                        it->ssrc, it->codec_name.c_str(), it->bytes_sent,
-                        it->packets_sent, it->rtt_ms, it->jitter_ms, it->echo_delay_median_ms);
     statsStream << "Sender:\nrtt=" << it->rtt_ms << "\njitter=" << it->jitter_ms << "\n";
     fireSignal = true;
   }
 
   for (std::vector<cricket::VoiceReceiverInfo>::const_iterator it =
        vmi.receivers.begin(); it != vmi.receivers.end(); ++it) {
-    LOGI("TSTATS: Receiver: ssrc=%u bytes=%d packets=%d "
-                        "jitter=%d loss=%.2f",
-                        it->ssrc, it->bytes_rcvd, it->packets_rcvd,
-                        it->jitter_ms, it->fraction_lost);
 
-    statsStream << "Receiver:\ndelay_estimate_ms" << it->delay_estimate_ms << "\njitter=" << it->jitter_ms << "\n";
+    statsStream << "Receiver:\ndelay_estimate_ms=" << it->delay_estimate_ms << "\njitter=" << it->jitter_ms << "\n";
     fireSignal = true;
   }
   if(fireSignal) {
+    LOGI("TSTATS: %s", statsStream.str().c_str());
     SignalStatsUpdate(const_cast<const char *>(statsStream.str().c_str()));
   }
 

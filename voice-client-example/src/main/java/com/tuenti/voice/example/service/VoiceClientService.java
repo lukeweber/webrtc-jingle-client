@@ -4,10 +4,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.os.Build;
@@ -17,8 +15,6 @@ import android.os.IBinder;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
-import android.telephony.PhoneStateListener;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.tuenti.voice.core.BuddyListState;
@@ -357,8 +353,12 @@ public class VoiceClientService extends Service implements
 
     @Override
     public void handleStatsUpdate(String stats) {
-        //Some really awesome code here
+    	 Intent intent = new Intent(CallUIIntent.UPDATE_CALL_STATS);
+    	 intent.putExtra("statistics", stats);
+    	 
+    	 dispatchLocalIntent(intent);
     }
+    
 // --------------------- End Interface VoiceClientEventCallback ---------------------
 
 // --------------------- Connection Monitor interface --------------

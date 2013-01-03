@@ -266,7 +266,7 @@ void VoiceClient::OnSignalBuddyListAdd(const char *remote_jid, const char *nick)
 }
 
 void VoiceClient::OnSignalStatsUpdate(const char *stats) {
-  LOGI("Updating stats");
+  LOGI("Updating stats=%s", stats);
   CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_STATS_UPDATE_EVENT, 0, stats, 0);
 }
 }  // namespace tuenti

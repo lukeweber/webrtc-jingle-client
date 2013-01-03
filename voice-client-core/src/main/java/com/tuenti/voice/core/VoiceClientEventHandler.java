@@ -56,7 +56,7 @@ public class VoiceClientEventHandler
                 mCallback.handleAudioPlayout();
                 break;
             case VoiceClient.STATS_UPDATE_EVENT:
-                String stats = bundle.getString( "stats" );
+                String stats = bundle.getString( "remoteJid" );
                 mCallback.handleStatsUpdate(stats);
                 break;
         }
