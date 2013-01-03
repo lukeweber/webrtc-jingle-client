@@ -1,7 +1,8 @@
 voice-client-core/obj
-voice-client-core/libs
-voice-client-core/bin
-voice-client-core/gen
+android/voice-client-core/libs
+android/voice-client-core/bin
+android/voice-client-core/gen
+android/voice-client-core/obj
 config.mk
 
 *.target.mk

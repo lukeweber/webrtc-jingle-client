@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="call_banner_height">80dp</dimen>
+    <dimen name="call_banner_side_padding">24dp</dimen>
+    <dimen name="call_banner_top_bottom_padding">16dp</dimen>
+    <dimen name="provider_info_top_bottom_padding">8dp</dimen>
+    <dimen name="button_cluster_side_padding">20dp</dimen>
+</resources>
