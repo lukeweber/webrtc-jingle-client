@@ -47,6 +47,8 @@ public class CallView
 
     private WakeLockUtil mWakeLockUtil;
 
+    private TextView mStatsTextView;
+
 // ------------------------ INTERFACE METHODS ------------------------
 
 // --------------------- Interface OnCallListener ---------------------
@@ -175,6 +177,7 @@ public class CallView
         mCallStateLabel = (TextView) findViewById( R.id.callStateLabel );
         mBottomBar = (LinearLayout) findViewById( R.id.bottom_bar );
         mAcceptButton = (ImageButton) findViewById( R.id.accept_btn );
+        mStatsTextView = (TextView) findViewById( R.id.call_stats_textview );
     }
 
     @Override
@@ -226,6 +229,6 @@ public class CallView
     @Override
     public void onStatsUpdated( String stats )
     {
-        Log.d( TAG, "onStatsUpdated > "+stats );
+        mStatsTextView.setText( stats );
     }
 }
