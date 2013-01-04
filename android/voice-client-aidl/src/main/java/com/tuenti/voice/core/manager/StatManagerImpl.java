@@ -88,6 +88,7 @@ public class StatManagerImpl
             }
             catch ( RemoteException e )
             {
+                Log.w( TAG, "dispatchCallback - RemoteException");
                 // NOOP
             }
         }

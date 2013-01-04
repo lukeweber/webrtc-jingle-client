@@ -7,6 +7,7 @@ import com.tuenti.voice.core.VoiceClient;
 import com.tuenti.voice.core.manager.BuddyManagerImpl;
 import com.tuenti.voice.core.manager.CallManagerImpl;
 import com.tuenti.voice.core.manager.ConnectionManagerImpl;
+import com.tuenti.voice.core.manager.StatManagerImpl;
 
 public class VoiceClientService
     extends Service
@@ -20,6 +21,8 @@ public class VoiceClientService
     private VoiceClient mClient;
 
     private ConnectionManagerImpl mConnectionManager;
+
+    private StatManagerImpl mStatManager;
 
 // -------------------------- OTHER METHODS --------------------------
 
@@ -38,6 +41,10 @@ public class VoiceClientService
         {
             return mCallManager.onBind();
         }
+        if ( IStatService.class.getName().equals( intent.getAction() ) )
+        {
+            return mStatManager.onBind();
+        }
         return null;
     }
 
@@ -54,6 +61,7 @@ public class VoiceClientService
         mConnectionManager = new ConnectionManagerImpl( mClient );
         mBuddyManager = new BuddyManagerImpl( mClient );
         mCallManager = new CallManagerImpl( mClient, getBaseContext() );
+        mStatManager = new StatManagerImpl( mClient );
 
         mClient.init(getApplicationContext());
     }

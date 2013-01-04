@@ -377,6 +377,11 @@ public abstract class VoiceActivity
             unbindService( mCallServiceConnection );
             mCallServiceConnected = false;
         }
+        if ( mStatServiceConnected && this instanceof OnStatListener )
+        {
+            unbindService( mStatServiceConnection );
+            mStatServiceConnected = false;
+        }
     }
 
     @Override
@@ -400,6 +405,12 @@ public abstract class VoiceActivity
             mCallServiceConnected = true;
             Intent connectionIntent = new Intent( ICallService.class.getName() );
             bindService( connectionIntent, mCallServiceConnection, Context.BIND_AUTO_CREATE );
+        }
+        if ( !mStatServiceConnected && this instanceof OnStatListener )
+        {
+            mStatServiceConnected = true;
+            Intent connectionIntent = new Intent( IStatService.class.getName() );
+            bindService( connectionIntent, mStatServiceConnection, Context.BIND_AUTO_CREATE );
         }
     }
 

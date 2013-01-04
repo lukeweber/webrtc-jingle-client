@@ -9,6 +9,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.tuenti.voice.core.OnCallListener;
+import com.tuenti.voice.core.OnStatListener;
 import com.tuenti.voice.core.VoiceActivity;
 import com.tuenti.voice.core.data.Call;
 import com.tuenti.voice.core.util.WakeLockUtil;
@@ -22,7 +23,7 @@ import static com.tuenti.voice.core.util.CallTimer.OnTickListener;
 
 public class CallView
     extends VoiceActivity
-    implements OnClickListener, OnTickListener, OnCallListener
+    implements OnClickListener, OnTickListener, OnCallListener, OnStatListener
 {
 // ------------------------------ FIELDS ------------------------------
 
@@ -221,6 +222,7 @@ public class CallView
         mAcceptButton.setVisibility( mCall.isIncoming() ? View.VISIBLE : View.GONE );
     }
 
+// --------------------- Interface OnStatListener ---------------------
     @Override
     public void onStatsUpdated( String stats )
     {

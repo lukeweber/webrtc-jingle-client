@@ -38,7 +38,7 @@ public class VoiceClient
     public static final int STATS_UPDATE_EVENT = 7;
     //End Event constants
 
-    private final static String TAG = "j-libjingle-webrtc";
+    private final static String TAG = "j-VoiceClient";
     private static final Object mLock = new Object();
     private boolean initialized;
     private BuddyManager mBuddyManager;
@@ -270,7 +270,7 @@ public class VoiceClient
             case XMPP_SOCKET_CLOSE_EVENT:
                 handleXmppSocketClose( code );
             case STATS_UPDATE_EVENT:
-                //NFHACK: BEYOND UGLY WE NEED TO CHANGE THIS STRUCTURE
+                //NFHACK: WE NEED TO CHANGE THIS STRUCTURE SO ITS EASY TO PASS ANY DATA
                 handleStatsUpdate( remoteJid );
                 break;
         }
