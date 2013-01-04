@@ -17,6 +17,8 @@ import com.tuenti.voice.core.service.ICallService;
 import com.tuenti.voice.core.service.ICallServiceCallback;
 import com.tuenti.voice.core.service.IConnectionService;
 import com.tuenti.voice.core.service.IConnectionServiceCallback;
+import com.tuenti.voice.core.service.IStatService;
+import com.tuenti.voice.core.service.IStatServiceCallback;
 
 public abstract class VoiceActivity
     extends Activity
@@ -352,6 +354,10 @@ public abstract class VoiceActivity
         }
     }
 
+    public void onStatsUpdated( String stats )
+    {
+    }
+
     @Override
     protected void onPause()
     {
@@ -396,4 +402,50 @@ public abstract class VoiceActivity
             bindService( connectionIntent, mCallServiceConnection, Context.BIND_AUTO_CREATE );
         }
     }
+
+    private IStatService mStatService;
+
+    private final IStatServiceCallback.Stub mStatServiceCallback = new IStatServiceCallback.Stub()
+    {
+        @Override
+        public void handleStatsUpdate( final String stats )
+        {
+            onStatsUpdated( stats );
+        }
+    };
+
+    private boolean mStatServiceConnected;
+
+    private final ServiceConnection mStatServiceConnection = new ServiceConnection()
+    {
+        @Override
+        public void onServiceConnected( ComponentName name, IBinder service )
+        {
+            try
+            {
+                mStatService = IStatService.Stub.asInterface( service );
+                mStatService.registerCallback( mStatServiceCallback );
+            }
+            catch ( RemoteException e )
+            {
+                Log.e( TAG, "Error on ServiceConnection.onServiceConnected", e );
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected( ComponentName name )
+        {
+            try
+            {
+                mStatService.unregisterCallback( mStatServiceCallback );
+                mStatService = null;
+            }
+            catch ( RemoteException e )
+            {
+                Log.e( TAG, "Error on ServiceConnection.onServiceDisconnected", e );
+            }
+        }
+    };
+
+
 }

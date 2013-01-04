@@ -206,7 +206,6 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
   case cricket::Session::STATE_SENTINITIATE:
     LOGI("VoiceClient::OnSessionState - STATE_SENTINITIATE doing nothing...");
     break;
-  case cricket::Session::STATE_SENTACCEPT:
   case cricket::Session::STATE_RECEIVEDACCEPT:
   case cricket::Session::STATE_SENTACCEPT:
     LOGI("VoiceClient::OnSessionState - "
@@ -368,10 +367,6 @@ void ClientSignalingThread::OnPingTimeout() {
   InitPing();
 }
     
-void ClientSignalingThread::OnCallStatsUpdate(char *stats) {
-  LOGI("ClientSignalingThread::OnCallStatsUpdate");
-}
-
 void ClientSignalingThread::OnCallStatsUpdate(char *stats) {
   LOGI("ClientSignalingThread::OnCallStatsUpdate");
 }
@@ -872,28 +867,5 @@ bool ClientSignalingThread::EndAllCalls() {
   }
   call_  = NULL;
   return calls_processed;
-}
-
-void ClientSignalingThread::PrintStatsS() const {
-  if (call_ == NULL){
-    return;
-  }
-  const cricket::VoiceMediaInfo& vmi = call_->last_voice_media_info();
-
-  for (std::vector<cricket::VoiceSenderInfo>::const_iterator it =
-       vmi.senders.begin(); it != vmi.senders.end(); ++it) {
-    LOGI("Sender: ssrc=%u codec='%s' bytes=%d packets=%d "
-         "rtt=%d jitter=%d",
-         it->ssrc, it->codec_name.c_str(), it->bytes_sent,
-         it->packets_sent, it->rtt_ms, it->jitter_ms);
-  }
-
-  for (std::vector<cricket::VoiceReceiverInfo>::const_iterator it =
-       vmi.receivers.begin(); it != vmi.receivers.end(); ++it) {
-    LOGI("Receiver: ssrc=%u bytes=%d packets=%d "
-         "jitter=%d loss=%.2f",
-         it->ssrc, it->bytes_rcvd, it->packets_rcvd,
-         it->jitter_ms, it->fraction_lost);
-  }
 }
 }  // namespace tuenti

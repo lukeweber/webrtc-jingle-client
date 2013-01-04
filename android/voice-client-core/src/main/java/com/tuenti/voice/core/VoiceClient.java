@@ -20,6 +20,7 @@ import android.util.Log;
 import com.tuenti.voice.core.manager.BuddyManager;
 import com.tuenti.voice.core.manager.CallManager;
 import com.tuenti.voice.core.manager.ConnectionManager;
+import com.tuenti.voice.core.manager.StatManager;
 
 public class VoiceClient
 {
@@ -27,32 +28,23 @@ public class VoiceClient
 
     //Event constants
     /* Event Types */
-    public static final int AUDIO_PLAYOUT_EVENT = 6;
-
-    public static final int BUDDY_LIST_EVENT = 3;
-
-    public static final int CALL_ERROR_EVENT = 5;
-
     public static final int CALL_STATE_EVENT = 0;
-
-    public static final int XMPP_ERROR_EVENT = 2;
-
-    public static final int XMPP_SOCKET_CLOSE_EVENT = 4;
-
     public static final int XMPP_STATE_EVENT = 1;
+    public static final int XMPP_ERROR_EVENT = 2;
+    public static final int BUDDY_LIST_EVENT = 3;
+    public static final int XMPP_SOCKET_CLOSE_EVENT = 4;
+    public static final int CALL_ERROR_EVENT = 5;
+    public static final int AUDIO_PLAYOUT_EVENT = 6;
+    public static final int STATS_UPDATE_EVENT = 7;
     //End Event constants
 
     private final static String TAG = "j-libjingle-webrtc";
-
     private static final Object mLock = new Object();
-
     private boolean initialized;
-
     private BuddyManager mBuddyManager;
-
     private CallManager mCallManager;
-
     private ConnectionManager mConnectionManager;
+    private StatManager mStatManager;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -151,6 +143,11 @@ public class VoiceClient
         mConnectionManager = connectionManager;
     }
 
+    public void setStatManager( StatManager statManager )
+    {
+        mStatManager = statManager;
+    }
+
     /**
      * @see BuddyManager#handleBuddyListChanged(int, String)
      */
@@ -235,7 +232,22 @@ public class VoiceClient
         }
     }
 
+    /**
+     * @see StatManager#handleStatsUpdate(String)
+     */
+    protected void handleStatsUpdate( String stats )
+    {
+        if ( mStatManager != null )
+        {
+            synchronized ( mLock )
+            {
+                mStatManager.handleStatsUpdate( stats );
+            }
+        }
+    }
     @SuppressWarnings("UnusedDeclaration")
+    //TODO: change the signature to be:
+    //dispatchNativeEvent( int what, int code, String data )
     private void dispatchNativeEvent( int what, int code, String remoteJid, long callId )
     {
         switch ( what )
@@ -257,6 +269,9 @@ public class VoiceClient
                 break;
             case XMPP_SOCKET_CLOSE_EVENT:
                 handleXmppSocketClose( code );
+            case STATS_UPDATE_EVENT:
+                //NFHACK: BEYOND UGLY WE NEED TO CHANGE THIS STRUCTURE
+                handleStatsUpdate( remoteJid );
                 break;
         }
     }

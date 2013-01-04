@@ -165,7 +165,7 @@ class ClientSignalingThread: public talk_base::SignalThread,
   cricket::Call* GetCall(uint32 call_id);
   bool EndAllCalls();
   void OnKeepAliveS();
-  void PrintStatsS() const;
+  void PrintStatsS();
   void ScheduleKeepAlive();
   void PresenceInPrivacy(const std::string &action);
 

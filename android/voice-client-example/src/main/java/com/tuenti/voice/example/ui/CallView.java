@@ -220,4 +220,10 @@ public class CallView
         mCallStateLabel.setVisibility( View.VISIBLE );
         mAcceptButton.setVisibility( mCall.isIncoming() ? View.VISIBLE : View.GONE );
     }
+
+    @Override
+    public void onStatsUpdated( String stats )
+    {
+        Log.d( TAG, "onStatsUpdated > "+stats );
+    }
 }
