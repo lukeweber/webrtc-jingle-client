@@ -227,8 +227,15 @@ public class CallView
 
 // --------------------- Interface OnStatListener ---------------------
     @Override
-    public void onStatsUpdated( String stats )
+    public void onStatsUpdated( final String stats )
     {
-        mStatsTextView.setText( stats );
+        runOnUiThread( new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                mStatsTextView.setText( stats );
+            }
+        } );
     }
 }

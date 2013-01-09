@@ -354,7 +354,7 @@ public abstract class VoiceActivity
         }
     }
 
-    public void onStatsUpdated( String stats )
+    public void onStatsUpdated( final String stats )
     {
     }
 
