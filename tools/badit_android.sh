@@ -26,9 +26,11 @@ SRCDIR="$TRUNKDIR/src"
 
 OPENSSL_PATCH=""
 BUILD_PROFILE="default_debug"
-#BUILD_PROFILE="tuenti_debug"
 #BUILD_PROFILE="default_release"
+#BUILD_PROFILE="default_final"
+#BUILD_PROFILE="tuenti_debug"
 #BUILD_PROFILE="tuenti_release"
+#BUILD_PROFILE="tuenti_final"
 #
 # helper functions
 #
@@ -112,6 +114,12 @@ if [ "$OPENSSL_PATCH" != "" ];then
     echo -e "-------------------------------\nPATCHING_SSL\n-------------------------------"
     echo "$OPENSSL_PATCH"|patch --strip=1 --forward;
     check_return_code "$?"
+fi
+
+#Clean maven
+APKLIBS="$TRUNKDIR/android/voice-client-example/target/unpack/apklibs/com.tuenti.voice_voice-core_apklib_1.0-SNAPSHOT/libs/"
+if [ -d "$APKLIBS" ]; then
+    rm -rf $APKLIBS;
 fi
 
 echo "CHROME_SRC=$TRUNKDIR"
