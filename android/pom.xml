@@ -36,6 +36,7 @@
         <android.version>4.0.1.2</android.version>
 
         <android-maven-plugin.version>3.3.3-SNAPSHOT</android-maven-plugin.version>
+        <maven-enforcer-plugin.version>1.2</maven-enforcer-plugin.version>
         <maven-compiler-plugin.version>2.3.2</maven-compiler-plugin.version>
         <maven-jarsigner-plugin.version>1.2</maven-jarsigner-plugin.version>
         <native-maven-plugin.version>1.0-alpha-7</native-maven-plugin.version>
@@ -59,6 +60,11 @@
     <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>${maven-enforcer-plugin.version}</version>
+                </plugin>
                 <plugin>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven-compiler-plugin.version}</version>
