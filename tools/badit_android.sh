@@ -116,6 +116,37 @@ if [ "$OPENSSL_PATCH" != "" ];then
     check_return_code "$?"
 fi
 
+#Check sdk root
+if [ ! -d "$ANDROID_SDK_ROOT" ]; then
+    echo "Please set ANDROID_SDK_ROOT";
+    exit 1;
+fi
+
+#Check api-14 is installed, else install
+if [ ! -d "$ANDROID_SDK_ROOT/platforms/android-14/" ]; then
+    SDK_UPDATE_COMMAND="$ANDROID_SDK_ROOT/tools/android update sdk -u --filter android-14";
+    echo "-----------";
+    while true; do
+    read -p "You're missing android-14, which is required, would you like to install(y/n)?" yn
+        case $yn in
+            [Yy]* ) $SDK_UPDATE_COMMAND; break;;
+            [Nn]* ) echo "Can't continue without v14 sdk, maybe you prefer to run it yourself"; echo $SDK_UPDATE_COMMAND; exit 1;;
+        esac
+    done
+fi
+
+#Check ndk
+if [ ! -d "$ANDROID_NDK_ROOT" ]; then
+    echo "Please set ANDROID_NDK_ROOT";
+    exit 1;
+else
+    NDK_SUPPORTED=`cat $ANDROID_NDK_ROOT/RELEASE.TXT | grep -E -o "^r8[c]*$"`
+    if [ -z $NDK_SUPPORTED ]; then
+        echo "Please install NDK version 8 or 8c."
+        exit 1;
+    fi
+fi
+
 #Clean maven
 APKLIBS="$TRUNKDIR/android/voice-client-example/target/unpack/apklibs/com.tuenti.voice_voice-core_apklib_1.0-SNAPSHOT/libs/"
 if [ -d "$APKLIBS" ]; then
