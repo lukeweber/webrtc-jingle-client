@@ -95,6 +95,7 @@ ClientSignalingThread::ClientSignalingThread(
     port_allocator_filter_(0),
     use_ssl_(false),
     auto_accept_(false),
+    is_caller_(true),
     xmpp_state_(buzz::XmppEngine::STATE_NONE) {
   // int numRelayPorts = 0;
   LOGI("ClientSignalingThread::ClientSignalingThread");
@@ -634,6 +635,7 @@ void ClientSignalingThread::CallS(const std::string &remoteJid) {
   LOGI("ClientSignalingThread::CallS");
   assert(talk_base::Thread::Current() == signal_thread_);
 
+  is_caller_ = true;
   cricket::Call* call;
   cricket::CallOptions options;
   options.is_muc = false;
@@ -695,6 +697,7 @@ void ClientSignalingThread::AcceptCallS(uint32 call_id) {
   assert(talk_base::Thread::Current() == signal_thread_);
   cricket::Call* call = GetCall(call_id);
   if (call && call->sessions().size() == 1) {
+    is_caller_ = false;
     cricket::CallOptions options;
     call->AcceptSession(call->sessions()[0], options);
   } else {
@@ -763,16 +766,41 @@ void ClientSignalingThread::PrintStatsS() {
   const cricket::VoiceMediaInfo& vmi = call_->last_voice_media_info();
   std::ostringstream statsStream;
   bool fireSignal = false;
-  for (std::vector<cricket::VoiceSenderInfo>::const_iterator it =
-       vmi.senders.begin(); it != vmi.senders.end(); ++it) {
-    statsStream << "Sender:\nrtt=" << it->rtt_ms << "\njitter=" << it->jitter_ms << "\n";
-    fireSignal = true;
-  }
-
-  for (std::vector<cricket::VoiceReceiverInfo>::const_iterator it =
-       vmi.receivers.begin(); it != vmi.receivers.end(); ++it) {
-    statsStream << "Receiver:\ndelay_estimate_ms=" << it->delay_estimate_ms << "\njitter=" << it->jitter_ms << "\n";
-    fireSignal = true;
+  if(is_caller_) {
+    for (std::vector<cricket::VoiceSenderInfo>::const_iterator it =
+         vmi.senders.begin(); it != vmi.senders.end(); ++it) {
+      statsStream << "S_ssrc=" << it->ssrc;
+      statsStream << "\nS_bytes_sent=" << it->bytes_sent;
+      statsStream << "\nS_packets_sent=" << it->packets_sent;
+      statsStream << "\nS_packets_lost=" << it->packets_lost;
+      statsStream << "\nS_fraction_lost=" << it->fraction_lost;
+      statsStream << "\nS_ext_seqnum=" << it->ext_seqnum;
+      statsStream << "\nS_rtt_ms=" << it->rtt_ms;
+      statsStream << "\nS_jitter_ms=" << it->jitter_ms;
+      statsStream << "\nS_audio_level=" << it->audio_level;
+      statsStream << "\nS_echo_delay_median_ms=" << it->echo_delay_median_ms;
+      statsStream << "\nS_echo_delay_std_ms=" << it->echo_delay_std_ms;
+      statsStream << "\nS_echo_return_loss=" << it->echo_return_loss;
+      statsStream << "\nS_echo_return_loss_enhancement=" << it->echo_return_loss_enhancement;
+      fireSignal = true;
+    }
+  } else {
+    for (std::vector<cricket::VoiceReceiverInfo>::const_iterator it =
+         vmi.receivers.begin(); it != vmi.receivers.end(); ++it) {
+      statsStream << "\nR_ssrc=" << it->ssrc;
+      statsStream << "\nR_bytes_rcvd=" << it->bytes_rcvd;
+      statsStream << "\nR_packets_rcvd=" << it->packets_rcvd;
+      statsStream << "\nR_packets_lost=" << it->packets_lost;
+      statsStream << "\nR_fraction_lost=" << it->fraction_lost;
+      statsStream << "\nR_ext_seqnum=" << it->ext_seqnum;
+      statsStream << "\nR_jitter_ms=" << it->jitter_ms;
+      statsStream << "\nR_jitter_buffer_ms=" << it->jitter_buffer_ms;
+      statsStream << "\nR_jitter_buffer_preferred_ms=" << it->jitter_buffer_preferred_ms;
+      statsStream << "\nR_delay_estimate_ms=" << it->delay_estimate_ms;
+      statsStream << "\nR_audio_level=" << it->audio_level;
+      statsStream << "\nR_expand_rate=" << it->expand_rate;
+      fireSignal = true;
+    }
   }
   if(fireSignal) {
     LOGI("TSTATS: %s", statsStream.str().c_str());
