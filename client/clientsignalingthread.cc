@@ -806,8 +806,6 @@ void ClientSignalingThread::PrintStatsS() {
     LOGI("TSTATS: %s", statsStream.str().c_str());
     SignalStatsUpdate(const_cast<const char *>(statsStream.str().c_str()));
   }
-
-  signal_thread_->PostDelayed(1000, this, MSG_PRINT_STATS);
 }
 
 void ClientSignalingThread::InitPresence() {
