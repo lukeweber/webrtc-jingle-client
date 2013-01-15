@@ -12,15 +12,19 @@ import os
 import subprocess
 import getpass
 import logging
+import pprint
 
 build_bit = 0x1
 install_bit = 0x2
 start_bit = 0x4
 debug_bit = 0x8
 uninstall_bit = 0x16
-taskMask = build_bit | install_bit | start_bit | debug_bit
 
-#non standard includes
+#global vars
+taskMask = build_bit | install_bit | start_bit | debug_bit
+profile="default_debug"
+supportedProfiles = ["default_debug", "default_release", "default_final", "tuenti_debug", "tuenti_release", "tuenti_final"]
+supportedNDKs = ["r8", "r8c"]
 
 ##
 ##  The following options are provided.
@@ -46,11 +50,10 @@ def runCmd(name, cmdList):
 		logger.info("[KO] "+name+" = "+" ".join(cmdList))
 
 
-def mavenBuild(profile):
+def mavenBuild():
 	if taskMask & build_bit:
-		profiles = ["default_debug", "default_release", "default_final", "tuenti_debug", "tuenti_release", "tuenti_final"]
-		if profile not in profiles:
-			logger.error("[KO] Build bad profile "+profile+"\noptions are: "+", ".join(profiles)+"\nexiting.")
+		if profile not in supportedProfiles:
+			logger.error("[KO] Build bad profile "+profile+"\noptions are: "+", ".join(supportedProfiles)+"\nexiting.")
 			sys.exit(1)
 		runCmd("Build", ["mvn", "install", "--activate-profiles", profile])
 	else:
@@ -82,9 +85,22 @@ def startApk():
 		logger.info("skipping start");
 
 def debugApk():
-  #gdbApk = os.path.join("..","build","android","gdb_apk")
-#  DBG_CMD="$TRUNKDIR/build/android/gdb_apk -p com.tuenti.voice.example -s VoiceClientService -l android/voice-client-core/obj/$BUILD_PROFILE/local/$FORCE_CPU_ABI"
-	runCmd("Debug", ["echo", "implement", "debugging"])
+	cpuInfoCmd = ["adb", "shell", "cat", "/system/build.prop"]
+	p = subprocess.Popen(cpuInfoCmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	out, err = p.communicate()
+	if len(err) != 0:
+		logger.error(" ".join(cpuInfoCmd)+" exited with errors:\n"+err)
+		sys.exit(1)
+	for line in out.splitlines():
+		if line.startswith("ro.product.cpu.abi="):
+			cpuAbi = line.split("=")[1]
+	androidBuildDir = os.path.join("build","android")
+	gdbApk = os.path.join(androidBuildDir, "gdb_apk")
+	envSetup = os.path.join(androidBuildDir, "envsetup.sh")
+	abiSymbolDir = os.path.join("android", "voice-client-core", "obj", profile, "local", cpuAbi)
+	debugCmd = ["bash", "-c", "'source "+envSetup+" && "+gdbApk+" -p com.tuenti.voice.example -s VoiceClientService -l "+abiSymbolDir+"'"]
+	logger.info("Debugging requires a shell.  Copy paste the below to begin debugging:\n"+" ".join(debugCmd))
+	#runCmd("Debug", debugCmd)
 
 def checkSDK():
 		try:
@@ -116,15 +132,14 @@ def checkNDK():
 		except (KeyError,IOError) as e:
 			logger.error("Please set ANDROID_NDK_ROOT");
 			sys.exit(1)
-		if not (releaseContents == "r8" or releaseContents == "r8c"):
-			logger.error("Please install NDK version r8 or r8c.")
+		if releaseContents not in supportedNDKs:
+			logger.error("Please install a supported NDK version:\n\t"+" ".join(supportedNDKs))
 			sys.exit(1)
 
 def main(argv = None):
 	global taskMask
-	taskBits = ["build", "install", "start"]
+	global profile
 	logLevel = "INFO"
-	profile="default_debug"
 	logging.basicConfig(level=logging.INFO)
 	try:
 		opts, args = getopt.getopt(sys.argv[1:], "hd:l:p:m:", ["help", "log-level=", "profile=", "task-mask="])
@@ -153,10 +168,11 @@ def main(argv = None):
 	checkNDK()
 	savedPath = os.getcwd()
 	os.chdir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "android"))
-	mavenBuild(profile)
+	mavenBuild()
 	uninstallApk()
 	installApk()
 	startApk()
+	os.chdir(os.path.dirname(os.path.dirname(__file__)))
 	debugApk()
 	os.chdir(savedPath)
 	logger.info("Done!")

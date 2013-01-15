@@ -62,7 +62,7 @@ or for an older stable build, take the head of the stable branch revision.
 * Build the core(c++ code): cd trunk/android/voice-client-core && ./build.sh
 * Build the apks: cd trunk/android && mvn install
 * To run a debugger: build/android/gdb_apk -p com.tuenti.voice.example -l android/voice-client-core/obj/local/${app_abi}
-* Build, deploy to phone, and start debugger in one script: tools/badit_android.sh
+* Build, deploy to phone, and start debugger in one script: tools/badit_android.py
 
 ## Run unittest
 * Build debug code jni in debug mode: cd trunk/android/voice-client-core && ./build.sh

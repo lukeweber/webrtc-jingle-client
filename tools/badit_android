@@ -1,5 +1,0 @@
-#!/bin/bash
-TOOLSDIR="$( cd "$( dirname "$0" )" && pwd )"
-bash $TOOLSDIR/badit_android.sh $*
-# will switch to minimal python build imminently
-#python $TOOLSDIR/badit_android.py $*
