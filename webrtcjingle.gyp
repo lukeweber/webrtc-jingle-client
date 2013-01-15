@@ -106,7 +106,7 @@
               'action_name': 'webrtc_jingle',
               'inputs': [
                 '<(DEPTH)/android/voice-client-core/AndroidManifest.xml',
-                '<!@(find <(DEPTH)/androidvoice-client-core/src/main/java/ -name "*.java")',
+                '<!@(find <(DEPTH)/android/voice-client-core/src/main/java/ -name "*.java")',
                 'android/voice-client-core/jni/voiceclient_main.cc'
               ],
               'outputs': [
