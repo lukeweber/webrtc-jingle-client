@@ -216,14 +216,6 @@
               ],
             }
           ],
-          # So generated jni headers can be found by targets that
-          # depend on this.
-          'direct_dependent_settings': {
-            'include_dirs': [
-              '<(webrtc_jingle)',
-              '.',
-            ],
-          },
         },
       ],
     }]
