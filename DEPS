@@ -19,7 +19,7 @@ deps = {
   "trunk/third_party/modp_b64": "http://src.chromium.org/svn/trunk/src/third_party/modp_b64@169394",
   "trunk/third_party/openssl": "https://github.com/lukeweber/openssl-override.git@5c2172",
   "trunk/third_party/protobuf": "http://src.chromium.org/svn/trunk/src/third_party/protobuf@169394",
-  "trunk/third_party/webrtc": "https://github.com/lukeweber/webrtc-src-override.git@6829a7",
+  "trunk/third_party/webrtc": "https://github.com/lukeweber/webrtc-src-override.git@b4db80b",
   "trunk/third_party/yasm": "http://src.chromium.org/svn/trunk/src/third_party/yasm@169394",
   "trunk/third_party/yasm/source/patched-yasm": "http://git.chromium.org/chromium/deps/yasm/patched-yasm.git@f164a228f51c17ffc3ed69516a7dc6abdf2d2c8e",
   "trunk/tools/clang": "http://src.chromium.org/svn/trunk/src/tools/clang@169394",
