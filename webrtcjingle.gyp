@@ -105,9 +105,9 @@
             {
               'action_name': 'webrtc_jingle',
               'inputs': [
-                '<(DEPTH)/voice-client-core/AndroidManifest.xml',
-                '<!@(find <(DEPTH)/voice-client-core/src/main/java/ -name "*.java")',
-                'voice-client-core/jni/voiceclient_main.cc'
+                '<(DEPTH)/android/voice-client-core/AndroidManifest.xml',
+                '<!@(find <(DEPTH)/androidvoice-client-core/src/main/java/ -name "*.java")',
+                'android/voice-client-core/jni/voiceclient_main.cc'
               ],
               'outputs': [
                 # Awkwardly, we build a Debug APK even when gyp is in
@@ -122,7 +122,7 @@
                 '-DPRODUCT_DIR=<(ant_build_out)',
                 '-DAPP_ABI=<(android_app_abi)',
                 '-buildfile',
-                '<(DEPTH)/voice-client-core/build.xml',
+                '<(DEPTH)/android/voice-client-core/build.xml',
                 'debug',
               ]
             }
@@ -203,7 +203,7 @@
                 'android/voice-client-core/src/main/java/com/tuenti/voice/core/VoiceClient.java',
               ],
               'outputs': [
-                '<(DEPTH)/voice-client-core/jni/',
+                '<(DEPTH)/android/voice-client-core/jni/',
                 #'com_tuenti_voice_VoiceClient.h',
               ],
               'action': [
