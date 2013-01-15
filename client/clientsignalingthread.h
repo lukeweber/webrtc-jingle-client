@@ -203,6 +203,7 @@ class ClientSignalingThread: public talk_base::SignalThread,
   uint32 port_allocator_filter_;
   bool use_ssl_;
   bool auto_accept_;
+  bool is_caller_;
   buzz::XmppEngine::State xmpp_state_;
   StunConfig *stun_config_;
   cricket::DataEngine *data_engine_;
