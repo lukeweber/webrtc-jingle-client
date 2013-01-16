@@ -48,7 +48,7 @@ def runCmd(name, cmdList):
 		logger.info("[OK] "+name+" = "+" ".join(cmdList))
 	else:
 		logger.info("[KO] "+name+" = "+" ".join(cmdList))
-
+		sys.exit(1)
 
 def mavenBuild():
 	if taskMask & build_bit:
