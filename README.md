@@ -17,20 +17,7 @@ gmail for example, just for testing, I haven't seen any problems.
 
 ## Prereqs:
 
-* [android NDK r8c](http://developer.android.com/sdk/ndk/index.html). r8c was
-tested and works on linux, but for mac please patch your ndk with the code below.
-
-```diff
---- a/build/core/definitions.mk
-+++ b/build/core/definitions.mk
-@@ -286,7 +286,7 @@ generate-dir = $(eval $(call ev-generate-dir,$1))
- define ev-generate-file-dir
- __ndk_file_dir := $(call parent-dir,$1)
- $$(call generate-dir,$$(__ndk_file_dir))
--$1: $$(__ndk_file_dir)
-+$1: | $$(__ndk_file_dir)
-```
-
+* [android NDK r8d](http://developer.android.com/sdk/ndk/index.html)
 * [Android SDK](http://developer.android.com/sdk/index.html)
 * [eclipse](http://www.eclipse.org/downloads/)
 * [Maven](http://maven.apache.org/download.html) v3.0.3+

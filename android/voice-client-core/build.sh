@@ -34,6 +34,12 @@ if [ $# -gt 0 ]; then
     else
         while [ "$1" != "" ]; do
             case $1 in
+                tf )                filename='tuenti_final.mk'
+                                    version='final';
+                                    ;;
+                df )                filename='default_final.mk'
+                                    version='final';
+                                    ;;
                 dr )                filename='default_release.mk'
                                     version='release';
                                     ;;
@@ -74,11 +80,13 @@ case ${filename} in
                 ;;
     *release* )   flags="-j${num_of_cores}"
                 ;;
+    *final* )     flags="-j${num_of_cores}"
+                ;;
 esac
 
 OBJDIR=`echo $filename | awk '{sub(".mk","");print}'`
 
-cmd="$ndk_build_exe -C $CURRENT_APP_DIR NDK_APPLICATION_MK=jni/${filename} NDK_APP_OUT=$CURRENT_APP_DIR/obj/$OBJDIR ${flags}"
+cmd="$ndk_build_exe -C $CURRENT_APP_DIR NDK_APPLICATION_MK=jni/${filename} NDK_APP_OUT=$CURRENT_APP_DIR/obj/$OBJDIR ${flags} V=1"
 
 echo ${cmd}
 ${cmd}
