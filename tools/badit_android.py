@@ -24,7 +24,7 @@ uninstall_bit = 0x16
 taskMask = build_bit | install_bit | start_bit | debug_bit
 profile="default_debug"
 supportedProfiles = ["default_debug", "default_release", "default_final", "tuenti_debug", "tuenti_release", "tuenti_final"]
-supportedNDKs = ["r8", "r8c"]
+supportedNDKs = ["r8", "r8d"]
 
 ##
 ##  The following options are provided.
@@ -69,7 +69,7 @@ def installApk():
 		runCmd("Install", ["mvn", "-pl", "voice-client-example", "android:redeploy"])
 	else:
 		logger.info("skipping install");
-		
+
 
 def uninstallApk():
 	if taskMask & uninstall_bit:
