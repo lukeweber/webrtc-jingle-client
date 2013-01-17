@@ -12,6 +12,8 @@ APP_CPPFLAGS += \
 	-fno-rtti -ffast-math -O3
 APP_CFLAGS += \
 	-DENABLE_DEBUG=0 \
+	-DTUENTI_CUSTOM_BUILD=1 \
+	-DXMPP_COMPATIBILITY=1 \
 	-DLOGGING=0 \
 	-fvisibility=hidden \
 	-ffunction-sections  \
