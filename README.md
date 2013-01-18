@@ -1,22 +1,34 @@
 webrtc-jingle for android
 =============
-(libjingle signaling + webrtc voice engine)
+(libjingle signaling + webrtc voice engine) 
+
+Discussion: [webrtc-jingle](https://groups.google.com/forum/?fromgroups#!forum/webrtc-jingle)
 
 ## About:
 
-* Working example app of libjingle and webrtc voice backend, with a few buttons.
-* Our demo apk with support for arm/armv7 comes to 6.4 mb, approx a third when
-zipped in an apk. Without compiler optimizations it's a bit less.
+* Working example android and ios apps of libjingle and webrtc voice backend.
 * Based on libjingle trunk and webrtc trunk updated on regular intervals.
-* Stability improvements needed for the c layer and misc. pieces that were
-needed for Android support.
-* Calling between two of these clients may require your own stun server. There
-is a working stun server included with libjingle, and you have to modify source
-where google explicitly defines stun.l.google.com. If one client is web based
-gmail for example, just for testing, I haven't seen any problems.
+* Added improvements for stability and missing pieces for mobile implementation.
+* Can make calls between two phones, or between gmail and a phone.
+* Happy for any help, please see tickets, and send a pull request.
 
-## Prereqs:
+## Getting the code:
 
+* Download and install [depot_tools](http://dev.chromium.org/developers/how-tos/install-depot-tools)
+
+```
+# mkdir webrtcjingleproject
+# cd webrtcjingleproject
+# gclient config https://github.com/lukeweber/webrtc-jingle-client.git --name trunk
+# gclient sync
+
+or for an older stable build, take the head of the stable branch revision.
+# gclient sync --revision PUT_STABLE_HEAD_REV_HERE
+```
+
+## Android:
+
+### Prereqs:
 * [android NDK r8d](http://developer.android.com/sdk/ndk/index.html)
 * [Android SDK](http://developer.android.com/sdk/index.html)
 * [eclipse](http://www.eclipse.org/downloads/)
@@ -34,24 +46,15 @@ export ANDROID_HOME=$ANDROID_SDK_ROOT
 export ANDROID_NDK_HOME=$ANDROID_NDK_ROOT
 ```
 
-## Get started with the code:
+### Running the project
 
-```
-# mkdir webrtcjingleproject
-# cd webrtcjingleproject
-# gclient config https://github.com/lukeweber/webrtc-jingle-client.git --name trunk
-# gclient sync
-
-or for an older stable build, take the head of the stable branch revision.
-# gclient sync --revision PUT_STABLE_HEAD_REV_HERE
-```
 * Set your username, pass and connection setttings in android/voice-client-example/src/main/java/com/tuenti/voice/example/ui/LoginView.java.
 * Build the core(c++ code): cd trunk/android/voice-client-core && ./build.sh
 * Build the apks: cd trunk/android && mvn install
 * To run a debugger: build/android/gdb_apk -p com.tuenti.voice.example -l android/voice-client-core/obj/local/${app_abi}
 * Build, deploy to phone, and start debugger in one script: tools/badit_android.py
 
-## Run unittest
+### Run unittest
 * Build debug code jni in debug mode: cd trunk/android/voice-client-core && ./build.sh
 * Generate unittest apk: tools/gen_tests_apk.sh
 * Install unittest : adb install -r adb install -r voice_testing/${app_abi}/${lib}/${lib}-debug.apk
@@ -65,10 +68,35 @@ or for an older stable build, take the head of the stable branch revision.
 ```
 * Fetch unittest logs:  adb pull /sdcard/talk  talk-logs
 
-## IPhone
-* Working POC voice app.
-* See milestone for pending tickets and work that have been identified. 
-* For details on building, see ios/Readme.txt
+## IOS
+### Prereqs:
+* OSX machine
+* Download the latest xcode and command line tools.
 
-## Todo/Issues:
-* See Tickets
+### Running the project
+* Apply the following patch to third_party/expat
+
+```diff
+Index: expat.gyp
+===================================================================
+--- expat.gyp   (revision 169394)
++++ expat.gyp   (working copy)
+@@ -7,7 +7,7 @@
+     'conditions': [
+       # On Linux, we implicitly already depend on expat via fontconfig;
+       # let's not pull it in twice.
+-      ['os_posix == 1 and OS != "mac" and OS != "android"', {
++      ['os_posix == 1 and OS != "mac" and OS != "android" and OS != "ios"', {
+         'use_system_expat%': 1,
+       }, {
+         'use_system_expat%': 0,
+```
+* Autogenerate an xcode project with gyp with the following command:
+
+```
+./build/gyp_chromium --depth=.  -DOS=ios -Dinclude_tests=0 -Denable_protobuf=0 -Denable_video=0 webrtcjingle.gyp
+```
+* open trunk/webrtcjingle.xcodeproj
+* Modify users/hardcoded setttings, in ios/VoiceClientExample/VoiceClientDelegate.mm
+* In xcode, build and deploy
+* May experience issues about sse from audio_processing.gypi. If you push to an IOS device add -Dtarget_arch=arm. If emulator, the other command will probably work. 
