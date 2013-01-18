@@ -36,6 +36,7 @@ public class VoiceClient
     public static final int CALL_ERROR_EVENT = 5;
     public static final int AUDIO_PLAYOUT_EVENT = 6;
     public static final int STATS_UPDATE_EVENT = 7;
+    public static final int CALL_TRACKER_ID_EVENT = 8;
     //End Event constants
 
     private final static String TAG = "j-VoiceClient";
@@ -245,6 +246,20 @@ public class VoiceClient
             }
         }
     }
+
+    /**
+     * @see CallManager#handleCallTrackerId(int, String)
+     */
+    protected void handleCallTrackerId( long callId, String callTrackerId )
+    {
+        if ( mCallManager != null )
+        {
+            synchronized ( mLock )
+            {
+                mCallManager.handleCallTrackerId( callId, callTrackerId );
+            }
+        }
+    }
     @SuppressWarnings("UnusedDeclaration")
     //TODO: change the signature to be:
     //dispatchNativeEvent( int what, int code, String data )
@@ -272,6 +287,9 @@ public class VoiceClient
             case STATS_UPDATE_EVENT:
                 //NFHACK: WE NEED TO CHANGE THIS STRUCTURE SO ITS EASY TO PASS ANY DATA
                 handleStatsUpdate( remoteJid );
+            case CALL_TRACKER_ID_EVENT:
+                //NFHACK: Agreed, here the remoteJid is actually call_tracker_id
+                handleCallTrackerId( callId, remoteJid );
                 break;
         }
     }

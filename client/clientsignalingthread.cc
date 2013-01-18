@@ -68,12 +68,14 @@ struct ClientSignalingData: public talk_base::MessageData {
   ClientSignalingData(uint32 call_id, bool b) :
       call_id_(call_id),
       b_(b) {}
-  ClientSignalingData(std::string s) :
-      s_(s) {}
+    ClientSignalingData(std::string s, std::string s2) :
+      s_(s),
+      s2_(s2){}
   ClientSignalingData(uint32 call_id) :
       call_id_(call_id) {}
   uint32 call_id_;
   std::string s_;
+  std::string s2_;
   bool b_;
 };
 
@@ -199,6 +201,7 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
     if (auto_accept_) {
       AcceptCall(call->id());
     }
+    SignalCallTrackerId(call->id(), call->sessions()[0]->call_tracker_id().c_str());
     break;
     }
   case cricket::Session::STATE_RECEIVEDINITIATE_ACK:
@@ -409,9 +412,9 @@ void ClientSignalingThread::Disconnect() {
   signal_thread_->Post(this, MSG_DISCONNECT);
 }
 
-void ClientSignalingThread::Call(std::string remoteJid) {
+void ClientSignalingThread::Call(std::string remoteJid, std::string call_tracker_id) {
   LOGI("ClientSignalingThread::Call");
-  signal_thread_->Post(this, MSG_CALL, new ClientSignalingData(remoteJid));
+  signal_thread_->Post(this, MSG_CALL, new ClientSignalingData(remoteJid, call_tracker_id));
 }
 
 void ClientSignalingThread::MuteCall(uint32 call_id, bool mute) {
@@ -469,7 +472,8 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
     break;
   case MSG_CALL:
     LOGI("ClientSignalingThread::OnMessage - MSG_CALL");
-    CallS(static_cast<ClientSignalingData*>(message->pdata)->s_);
+    CallS(static_cast<ClientSignalingData*>(message->pdata)->s_,
+          static_cast<ClientSignalingData*>(message->pdata)->s2_);
     delete message->pdata;
     break;
   case MSG_MUTE_CALL:
@@ -631,7 +635,7 @@ void ClientSignalingThread::DisconnectS() {
   }
 }
 
-void ClientSignalingThread::CallS(const std::string &remoteJid) {
+void ClientSignalingThread::CallS(const std::string &remoteJid, const std::string &call_tracker_id) {
   LOGI("ClientSignalingThread::CallS");
   assert(talk_base::Thread::Current() == signal_thread_);
 
@@ -644,7 +648,7 @@ void ClientSignalingThread::CallS(const std::string &remoteJid) {
   // Just call whichever JID we get.
   buzz::Jid remote_jid(remoteJid);
   call = sp_media_client_->CreateCall();
-  call->InitiateSession(remote_jid, sp_media_client_->jid(), options);  // REQ_MAIN_THREAD
+  call->InitiateSession(remote_jid, sp_media_client_->jid(), options, call_tracker_id);  // REQ_MAIN_THREAD
 #else // Check the roster
   bool found = false;
   buzz::Jid callto_jid(remoteJid);
@@ -663,7 +667,7 @@ void ClientSignalingThread::CallS(const std::string &remoteJid) {
   if (found) {
     LOGI("Found online friend '%s'", found_jid.Str().c_str());
     call = sp_media_client_->CreateCall();
-    call->InitiateSession(found_jid, sp_media_client_->jid(), options);
+    call->InitiateSession(found_jid, sp_media_client_->jid(), options, call_tracker_id);
   } else {
     LOGI("Could not find online friend '%s'", remoteJid.c_str());
   }

@@ -85,6 +85,7 @@ class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
     int xmpp_port, bool use_ssl, int port_allocator_filter);
   void Disconnect();
   void Call(std::string remoteJid);
+  void CallWithTracker(std::string remoteJid, std::string call_tracker_id);
   void MuteCall(uint32 call_id, bool mute);
   void HoldCall(uint32 call_id, bool hold);
   void EndCall(uint32 call_id);
@@ -105,6 +106,7 @@ class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
   void OnSignalBuddyListRemove(const char *remote_jid);
   void OnSignalBuddyListAdd(const char *remote_jid, const char *nick);
   void OnSignalStatsUpdate(const char *stats);
+  void OnSignalCallTrackerId(int call_id, const char *call_tracker_id);
 
 
   // signaling thread functions initialization

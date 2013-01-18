@@ -20,6 +20,7 @@ public:
     void Logout();
     void Call();
     void OnSignalCallStateChange(int state, const char *remote_jid, int call_id);
+    void OnSignalCallTrackingId(int call_id, const char *call_tracker_id);
     void OnSignalAudioPlayout();
     void OnSignalCallError(int error, int call_id);
     void OnSignalXmppError(int error);
