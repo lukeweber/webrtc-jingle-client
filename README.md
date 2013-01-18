@@ -4,7 +4,7 @@ webrtc-jingle for android
 
 Discussion: [webrtc-jingle](https://groups.google.com/forum/?fromgroups#!forum/webrtc-jingle)
 
-## About:
+## About
 
 * Working example android and ios apps of libjingle and webrtc voice backend.
 * Based on libjingle trunk and webrtc trunk updated on regular intervals.
@@ -12,7 +12,7 @@ Discussion: [webrtc-jingle](https://groups.google.com/forum/?fromgroups#!forum/w
 * Can make calls between two phones, or between gmail and a phone.
 * Happy for any help, please see tickets, and send a pull request.
 
-## Getting the code:
+## Getting the code
 
 * Download and install [depot_tools](http://dev.chromium.org/developers/how-tos/install-depot-tools)
 
@@ -26,9 +26,9 @@ or for an older stable build, take the head of the stable branch revision.
 # gclient sync --revision PUT_STABLE_HEAD_REV_HERE
 ```
 
-## Android:
+## Android
 
-### Prereqs:
+### Prereqs
 * [android NDK r8d](http://developer.android.com/sdk/ndk/index.html)
 * [Android SDK](http://developer.android.com/sdk/index.html)
 * [eclipse](http://www.eclipse.org/downloads/)
@@ -54,7 +54,7 @@ export ANDROID_NDK_HOME=$ANDROID_NDK_ROOT
 * To run a debugger: build/android/gdb_apk -p com.tuenti.voice.example -l android/voice-client-core/obj/local/${app_abi}
 * Build, deploy to phone, and start debugger in one script: tools/badit_android.py
 
-### Run unittest
+### Run unittests
 * Build debug code jni in debug mode: cd trunk/android/voice-client-core && ./build.sh
 * Generate unittest apk: tools/gen_tests_apk.sh
 * Install unittest : adb install -r adb install -r voice_testing/${app_abi}/${lib}/${lib}-debug.apk
@@ -69,7 +69,7 @@ export ANDROID_NDK_HOME=$ANDROID_NDK_ROOT
 * Fetch unittest logs:  adb pull /sdcard/talk  talk-logs
 
 ## IOS
-### Prereqs:
+### Prereqs
 * OSX machine
 * Download the latest xcode and command line tools.
 
