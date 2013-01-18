@@ -2,6 +2,7 @@ package com.tuenti.voice.example.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import com.tuenti.voice.core.OnBuddyListener;
@@ -19,6 +20,8 @@ public class RosterView
     implements OnItemClickListener, OnCallListener, OnBuddyListener
 {
 // ------------------------------ FIELDS ------------------------------
+
+    private static final String LOG_TAG = "RosterView";
 
     private RosterAdapter mAdapter;
 
@@ -53,6 +56,7 @@ public class RosterView
     @Override
     public void onIncomingCall( final Call call )
     {
+        Log.d( LOG_TAG, "onIncomingCall" );
         if ( mCurrentCall != null )
         {
             declineCall( call.getCallId(), true );
@@ -70,6 +74,7 @@ public class RosterView
     @Override
     public void onIncomingCallTerminated( final Call call )
     {
+        Log.d( LOG_TAG, "onIncomingCallTerminated" );
         if ( mCurrentCall != null && call != null && mCurrentCall.getCallId() == call.getCallId() )
         {
             mCurrentCall = null;
@@ -79,6 +84,7 @@ public class RosterView
     @Override
     public void onOutgoingCall( final Call call )
     {
+        Log.d( LOG_TAG, "onOutgoingCall" );
         mCurrentCall = call;
 
         Intent intent = new Intent( this, CallView.class );
@@ -89,6 +95,7 @@ public class RosterView
     @Override
     public void onOutgoingCallTerminated( final Call call )
     {
+        Log.d( LOG_TAG, "onOutgoingCallTerminated" );
         if ( mCurrentCall != null && call != null && mCurrentCall.getCallId() == call.getCallId() )
         {
             mCurrentCall = null;
