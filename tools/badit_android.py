@@ -14,11 +14,11 @@ import getpass
 import logging
 import pprint
 
-build_bit = 0x1
-install_bit = 0x2
-start_bit = 0x4
-debug_bit = 0x8
-uninstall_bit = 0x16
+build_bit =     (1<<0)
+install_bit =   (1<<1)
+start_bit =     (1<<2)
+debug_bit =     (1<<3)
+uninstall_bit = (1<<4)
 
 #global vars
 taskMask = build_bit | install_bit | start_bit | debug_bit
@@ -32,6 +32,11 @@ supportedNDKs = ["r8", "r8d"]
 ##  --log-level [-l]. setting the log level dynamically
 ##  --profile [-p]. Setting build profile
 ##  --task-mask [-m]. skip over some tasks
+##  --build [-b] build. Build the apk
+##  --uninstall [-u] uninstall. Uninstall the apk
+##  --install [-i] install. Install the apk
+##  --start [-s] start. Start the apk
+##  --debug [-d] debug. Debug the apk
 
 logger = logging.getLogger(__name__)
 def usage():
@@ -47,40 +52,45 @@ def runCmd(name, cmdList):
 	if subprocess.call(cmdList) == 0:
 		logger.info("[OK] "+name+" = "+" ".join(cmdList))
 	else:
-		logger.info("[KO] "+name+" = "+" ".join(cmdList))
-		sys.exit(1)
+		logger.error("[KO] "+name+" = "+" ".join(cmdList))
+		return 1
+	return 0
 
 def mavenBuild():
 	if taskMask & build_bit:
 		if profile not in supportedProfiles:
 			logger.error("[KO] Build bad profile "+profile+"\noptions are: "+", ".join(supportedProfiles)+"\nexiting.")
 			sys.exit(1)
-		runCmd("Build", ["mvn", "install", "--activate-profiles", profile])
+		if runCmd("Build", ["mvn", "install", "--activate-profiles", profile]) != 0:
+			sys.exit(1)
 	else:
 		logger.info("skipping build")
+
+def uninstallApk():
+	if taskMask & uninstall_bit:
+		# we don't want to fail during the uninstall
+		runCmd("Uninstall", ["adb", "uninstall", "com.tuenti.voice.example"])
+	else:
+		logger.info("skipping uninstall");
 
 def installApk():
 	if taskMask & install_bit:
 		homePath = os.environ['HOME']
 		snapshotVersion = "1.0-SNAPSHOT"
-		#apkPath = os.path.join(homePath, ".m2", "repository", "com", "tuenti", "voice", "voice-example", snapshotVersion, "voice-example-"+snapshotVersion+".apk")
-		# ('-r' means reinstall the app, keeping its data)
-		#runCmd("Install", ["adb", "install", "-r", apkPath])
-		runCmd("Install", ["mvn", "-pl", "voice-client-example", "android:redeploy"])
+		if runCmd("Install", ["mvn", "-pl", "voice-client-example", "android:redeploy"]) != 0:
+			newTaskMask = (taskMask - (taskMask & build_bit)) | uninstall_bit
+			logger.error("New version is not compatible with the old version")
+			logger.error("This can be fixed with the below command:")
+			logger.error("\tNOTE: it will uninstall your previous installation")
+			sys.stderr.write(__file__+" --task-mask="+str(newTaskMask))
+			sys.exit(1)
 	else:
 		logger.info("skipping install");
 
-
-def uninstallApk():
-	if taskMask & uninstall_bit:
-		runCmd("Uninstall", ["adb", "uninstall", "com.tuenti.voice.example"])
-	else:
-		logger.info("skipping uninstall");
-
 def startApk():
 	if taskMask & start_bit:
-		#runCmd("Start", ["adb", "shell", "am", "start", "-a", "android.intent.action.VIEW", "-n", "com.tuenti.voice/.ui.LoginView"])
-		runCmd("Start", ["mvn", "-pl", "voice-client-example", "android:run"])
+		if runCmd("Start", ["mvn", "-pl", "voice-client-example", "android:run"]) != 0:
+			sys.exit(1)
 	else:
 		logger.info("skipping start");
 
@@ -141,8 +151,9 @@ def main(argv = None):
 	global profile
 	logLevel = "INFO"
 	logging.basicConfig(level=logging.INFO)
+	newTaskMask = 0
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], "hd:l:p:m:", ["help", "log-level=", "profile=", "task-mask="])
+		opts, args = getopt.getopt(sys.argv[1:], "hbuisdl:p:m:", ["help", "build", "uninstall", "install", "start", "debug", "log-level=", "profile=", "task-mask="])
 	except getopt.GetoptError, err:
 		# print help information and exit:
 		logger.error(err) # will print something like "option -a not recognized"
@@ -153,14 +164,26 @@ def main(argv = None):
 		if o in ("-h", "--help"):
 			usage()
 			sys.exit(1)
+		elif o in ("-b", "--build"):
+			newTaskMask |= build_bit
+		elif o in ("-u", "--uninstall"):
+			newTaskMask |= uninstall_bit
+		elif o in ("-i", "--install"):
+			newTaskMask |= install_bit
+		elif o in ("-s", "--start"):
+			newTaskMask |= start_bit
+		elif o in ("-d", "--debug"):
+			newTaskMask |= debug_bit
 		elif o in ("-l", "--log-level"):
 			logLevel = a
 		elif o in ("-p", "--profile"):
 			profile = a
 		elif o in ("-m", "--task-mask"):
-			taskMask = int(a)
+			newTaskMask |= int(a)
 		else:
 			usage()
+	if newTaskMask > 0:
+		taskMask = newTaskMask
 	if logLevel == "DEBUG":
 		logging.basicConfig(level=logging.DEBUG)
 	logger.info("Running with:\n\tprofile: "+profile+"\n\tlog-level: "+logLevel+"\n\ttask-mask: "+str(taskMask))
@@ -179,4 +202,5 @@ def main(argv = None):
 	return 0
 
 if __name__ == "__main__":
-  sys.exit(main())
+	newTaskMask = 1
+	sys.exit(main())
