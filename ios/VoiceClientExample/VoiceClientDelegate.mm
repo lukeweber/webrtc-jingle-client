@@ -44,7 +44,10 @@ void VoiceClientDelegate::Call(){
 }
 
 void VoiceClientDelegate::OnSignalCallStateChange(int state, const char *remote_jid, int call_id) {
+}
 
+void VoiceClientDelegate::OnSignalCallTrackingId(int call_id, const char *call_tracker_id) {
+    printf("------- Call Tracker Id %s for call_id %d", call_tracker_id, call_id);
 }
 
 void VoiceClientDelegate::OnSignalAudioPlayout() {

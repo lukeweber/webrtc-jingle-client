@@ -114,6 +114,8 @@ void VoiceClient::InitializeS() {
         this, &VoiceClient::OnSignalCallError);
     client_signaling_thread_->SignalAudioPlayout.connect(
         this, &VoiceClient::OnSignalAudioPlayout);
+    client_signaling_thread_->SignalCallTrackerId.connect(
+        this, &VoiceClient::OnSignalCallTrackerId);
 
     client_signaling_thread_->SignalXmppError.connect(
         this, &VoiceClient::OnSignalXmppError);
@@ -200,8 +202,15 @@ void VoiceClient::Disconnect() {
 void VoiceClient::Call(std::string remoteJid) {
   LOGI("VoiceClient::Call");
   if (client_signaling_thread_) {
-    client_signaling_thread_->Call(remoteJid);
+    client_signaling_thread_->Call(remoteJid, "");
   }
+}
+
+void VoiceClient::CallWithTracker(std::string remoteJid, std::string call_tracker_id){
+  LOGI("VoiceClient::Call");
+    if (client_signaling_thread_) {
+      client_signaling_thread_->Call(remoteJid, call_tracker_id);
+    }
 }
 
 void VoiceClient::MuteCall(uint32 call_id, bool mute) {
@@ -283,6 +292,10 @@ void VoiceClient::OnSignalStatsUpdate(const char *stats) {
   LOGI("Updating stats=%s", stats);
   CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_STATS_UPDATE_EVENT, 0, stats, 0);
 }
+
+void VoiceClient::OnSignalCallTrackerId(int call_id, const char* call_tracker_id) {
+  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_CALL_TRACKER_ID_EVENT, 0, call_tracker_id, call_id);
+}
 #elif IOS
 
 void VoiceClient::OnSignalCallStateChange(int state, const char *remote_jid, int call_id) {
@@ -323,6 +336,10 @@ void VoiceClient::OnSignalBuddyListAdd(const char *remote_jid, const char *nick)
 
 void VoiceClient::OnSignalStatsUpdate(const char *stats) {
     VoiceClientDelegate::getInstance()->OnSignalStatsUpdate(stats);
+}
+
+void VoiceClient::OnSignalCallTrackerId(int call_id, const char *call_tracker_id) {
+    VoiceClientDelegate::getInstance()->OnSignalCallTrackingId(call_id, call_tracker_id);
 }
 
 

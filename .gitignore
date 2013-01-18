@@ -47,6 +47,10 @@ local.properties
 proguard.cfg
 proguard-project.txt
 
+#XCode
+webrtcjingle.xcodeproj
+xcodebuild
+
 #Other
 .DS_Store
 tmp

@@ -125,7 +125,7 @@ class ClientSignalingThread: public talk_base::SignalThread,
              StunConfig* stun_config, const std::string &xmpp_host,
              int xmpp_port, bool use_ssl, uint32 port_allocator_filter);
   void Disconnect();
-  void Call(std::string remoteJid);
+  void Call(std::string remoteJid, std::string call_tracker_id);
   void AcceptCall(uint32 call_id);
   void DeclineCall(uint32 call_id, bool busy);
   void EndCall(uint32 call_id);
@@ -135,6 +135,7 @@ class ClientSignalingThread: public talk_base::SignalThread,
 
   // signals
   sigslot::signal3<int, const char *, int> SignalCallStateChange;
+  sigslot::signal2<int, const char *> SignalCallTrackerId;
   sigslot::signal2<int, int> SignalCallError;
 
   sigslot::signal1<int> SignalXmppError;
@@ -156,7 +157,7 @@ class ClientSignalingThread: public talk_base::SignalThread,
   // Worker methods
   void LoginS();
   void DisconnectS();
-  void CallS(const std::string &remoteJid);
+  void CallS(const std::string &remoteJid, const std::string &call_tracker_id);
   void MuteCallS(uint32 call_id, bool mute);
   void HoldCallS(uint32 call_id, bool hold);
   void AcceptCallS(uint32 call_id);

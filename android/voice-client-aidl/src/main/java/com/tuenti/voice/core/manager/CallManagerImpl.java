@@ -166,6 +166,12 @@ public class CallManagerImpl
         }
     }
 
+    @Override
+    public void handleCallTrackerId( long callId, String callTrackerId )
+    {
+        Log.d(TAG, "Call Tracker ID " + callTrackerId + " for call_id " + callId);
+    }
+
 // -------------------------- OTHER METHODS --------------------------
 
     public IBinder onBind()
