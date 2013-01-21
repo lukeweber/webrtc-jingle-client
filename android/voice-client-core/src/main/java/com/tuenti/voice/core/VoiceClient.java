@@ -263,18 +263,20 @@ public class VoiceClient
     @SuppressWarnings("UnusedDeclaration")
     //TODO: change the signature to be:
     //dispatchNativeEvent( int what, int code, String data )
-    private void dispatchNativeEvent( int what, int code, String remoteJid, long callId )
+    private void dispatchNativeEvent( int what, int code, String data, long callId )
     {
         switch ( what )
         {
             case CALL_STATE_EVENT:
-                handleCallStateChanged( code, remoteJid, callId );
+                // data contains remoteJid
+                handleCallStateChanged( code, data, callId );
                 break;
             case CALL_ERROR_EVENT:
                 handleCallError( code, callId );
                 break;
             case BUDDY_LIST_EVENT:
-                handleBuddyListChanged( code, remoteJid );
+                // data contains remoteJid
+                handleBuddyListChanged( code, data );
                 break;
             case XMPP_STATE_EVENT:
                 handleXmppStateChanged( code );
@@ -285,11 +287,11 @@ public class VoiceClient
             case XMPP_SOCKET_CLOSE_EVENT:
                 handleXmppSocketClose( code );
             case STATS_UPDATE_EVENT:
-                //NFHACK: WE NEED TO CHANGE THIS STRUCTURE SO ITS EASY TO PASS ANY DATA
-                handleStatsUpdate( remoteJid );
+                // data constains stats
+                handleStatsUpdate( data );
             case CALL_TRACKER_ID_EVENT:
-                //NFHACK: Agreed, here the remoteJid is actually call_tracker_id
-                handleCallTrackerId( callId, remoteJid );
+                // data contains call_tracking_id
+                handleCallTrackerId( callId, data );
                 break;
         }
     }
