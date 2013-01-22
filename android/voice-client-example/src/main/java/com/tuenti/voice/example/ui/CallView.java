@@ -25,14 +25,16 @@ import com.tuenti.voice.core.util.CallTimer;
 
 import static android.view.View.OnClickListener;
 import static android.view.WindowManager.LayoutParams;
-import static android.widget.PopupMenu.OnMenuItemClickListener;
+
+// NOTE: THIS HAS BEEN REMOVED AS IT IS NOT AVAILABLE UNTIL API level 11 and our minSdk is 9
+//import static android.widget.PopupMenu.OnMenuItemClickListener;
 import static com.tuenti.voice.core.util.AudioUtil.OnAudioChangeListener;
 import static com.tuenti.voice.core.util.CallTimer.OnTickListener;
 
 public class CallView
     extends VoiceActivity
-    implements OnClickListener, OnTickListener, OnCallListener, OnMenuItemClickListener, OnAudioChangeListener,
-    OnStatListener
+    // NOTE: THIS HAS BEEN REMOVED AS IT IS NOT AVAILABLE UNTIL API level 11 and our minSdk is 9
+    implements OnClickListener, OnTickListener, OnCallListener, OnAudioChangeListener, OnStatListener//, OnMenuItemClickListener 
 {
 // ------------------------------ FIELDS ------------------------------
 
@@ -218,8 +220,9 @@ public class CallView
     }
 
 // --------------------- Interface OnMenuItemClickListener ---------------------
+// NOTE: THIS HAS BEEN REMOVED AS IT IS NOT AVAILABLE UNTIL API level 11 and our minSdk is 9
 
-    @Override
+    //@Override
     public boolean onMenuItemClick( MenuItem item )
     {
         Log.d( TAG, "onMenuItemClick: " + item );
@@ -347,7 +350,8 @@ public class CallView
 
         mAudioModePopup = new PopupMenu( this, mAudioButton );
         mAudioModePopup.getMenuInflater().inflate( R.menu.audio_mode_menu, mAudioModePopup.getMenu() );
-        mAudioModePopup.setOnMenuItemClickListener( this );
+        // NOTE: THIS HAS BEEN REMOVED AS IT IS NOT AVAILABLE UNTIL API level 11 and our minSdk is 9
+        //mAudioModePopup.setOnMenuItemClickListener( this );
 
         boolean wiredHeadsetEnabled = mAudioUtil.wiredHeadsetEnabled();
 
