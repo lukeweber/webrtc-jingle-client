@@ -1,16 +1,12 @@
 package com.tuenti.voice.example.ui;
 
-import android.graphics.drawable.LayerDrawable;
 import android.os.Bundle;
 import android.text.format.DateUtils;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 import com.tuenti.voice.core.OnCallListener;
@@ -26,15 +22,12 @@ import com.tuenti.voice.core.util.CallTimer;
 import static android.view.View.OnClickListener;
 import static android.view.WindowManager.LayoutParams;
 
-// NOTE: THIS HAS BEEN REMOVED AS IT IS NOT AVAILABLE UNTIL API level 11 and our minSdk is 9
-//import static android.widget.PopupMenu.OnMenuItemClickListener;
 import static com.tuenti.voice.core.util.AudioUtil.OnAudioChangeListener;
 import static com.tuenti.voice.core.util.CallTimer.OnTickListener;
 
 public class CallView
     extends VoiceActivity
-    // NOTE: THIS HAS BEEN REMOVED AS IT IS NOT AVAILABLE UNTIL API level 11 and our minSdk is 9
-    implements OnClickListener, OnTickListener, OnCallListener, OnAudioChangeListener, OnStatListener//, OnMenuItemClickListener 
+    implements OnClickListener, OnTickListener, OnCallListener, OnAudioChangeListener, OnStatListener
 {
 // ------------------------------ FIELDS ------------------------------
 
@@ -43,8 +36,6 @@ public class CallView
     private ImageButton mAcceptButton;
 
     private ToggleButton mAudioButton;
-
-    private PopupMenu mAudioModePopup;
 
     private AudioUtil mAudioUtil;
 
@@ -87,36 +78,8 @@ public class CallView
             mWakeLockUtil.stopProximityLock();
         }
 
-        // close the audio mode popup
-        dismissAudioModePopup();
-
-        // - This is visible if the popup menu is enabled:
-        boolean showMoreIndicator = mAudioUtil.wiredHeadsetEnabled();
-
-        // - Foreground icons for the button.  Exactly one of these is enabled:
-        boolean showSpeakerOnIcon = mAudioUtil.isSpeakerOn();
-        boolean showSpeakerOffIcon = !showMoreIndicator && !showSpeakerOnIcon;
-        boolean showHandsetIcon = showMoreIndicator && !showSpeakerOnIcon;
-
-        // - This selector shows the blue bar below the button icon when
-        //   this button is a toggle *and* it's currently "checked".
-        boolean showToggle = !showMoreIndicator && showSpeakerOnIcon;
-
         // checked the audio button
-        mAudioButton.setChecked( !showSpeakerOffIcon );
-
-        // Constants used below with Drawable.setAlpha():
-        final int HIDDEN = 0;
-        final int VISIBLE = 255;
-
-        LayerDrawable layers = (LayerDrawable) mAudioButton.getBackground();
-
-        layers.findDrawableByLayerId( R.id.compoundBackgroundItem ).setAlpha( showToggle ? VISIBLE : HIDDEN );
-        layers.findDrawableByLayerId( R.id.moreIndicatorItem ).setAlpha( showMoreIndicator ? VISIBLE : HIDDEN );
-        layers.findDrawableByLayerId( R.id.bluetoothItem ).setAlpha( HIDDEN );
-        layers.findDrawableByLayerId( R.id.handsetItem ).setAlpha( showHandsetIcon ? VISIBLE : HIDDEN );
-        layers.findDrawableByLayerId( R.id.speakerphoneOnItem ).setAlpha( showSpeakerOnIcon ? VISIBLE : HIDDEN );
-        layers.findDrawableByLayerId( R.id.speakerphoneOffItem ).setAlpha( showSpeakerOffIcon ? VISIBLE : HIDDEN );
+        mAudioButton.setChecked( mAudioUtil.isSpeakerOn() );
     }
 
 // --------------------- Interface OnCallListener ---------------------
@@ -201,14 +164,7 @@ public class CallView
                 finish();
                 break;
             case R.id.audio_btn:
-                if ( mAudioUtil.wiredHeadsetEnabled() )
-                {
-                    showAudioModePopup();
-                }
-                else
-                {
-                    mAudioUtil.toggleSpeaker();
-                }
+                toggleAudio();
                 break;
             case R.id.mute_btn:
                 toggleMute( mCall.getCallId() );
@@ -217,31 +173,6 @@ public class CallView
                 toggleHold( mCall.getCallId() );
                 break;
         }
-    }
-
-// --------------------- Interface OnMenuItemClickListener ---------------------
-// NOTE: THIS HAS BEEN REMOVED AS IT IS NOT AVAILABLE UNTIL API level 11 and our minSdk is 9
-
-    //@Override
-    public boolean onMenuItemClick( MenuItem item )
-    {
-        Log.d( TAG, "onMenuItemClick: " + item );
-        Log.d( TAG, "  id: " + item.getItemId() );
-        Log.d( TAG, "  title: '" + item.getTitle() + "'" );
-
-        switch ( item.getItemId() )
-        {
-            case R.id.audio_mode_speaker:
-                mAudioUtil.turnOnSpeaker();
-                break;
-            case R.id.audio_mode_earpiece:
-                mAudioUtil.turnOnHeadset();
-                break;
-            case R.id.audio_mode_wired_headset:
-                mAudioUtil.turnOnWiredHeadset();
-                break;
-        }
-        return true;
     }
 
 // --------------------- Interface OnStatListener ---------------------
@@ -317,21 +248,6 @@ public class CallView
     }
 
     /**
-     * Dismisses the "Audio mode" popup if it's visible.
-     * <p/>
-     * This is safe to call even if the popup is already dismissed, or even if
-     * you never called showAudioModePopup() in the first place.
-     */
-    private void dismissAudioModePopup()
-    {
-        if ( mAudioModePopup != null )
-        {
-            mAudioModePopup.dismiss();  // safe even if already dismissed
-            mAudioModePopup = null;
-        }
-    }
-
-    /**
      * End a call
      */
     private void endCall()
@@ -339,41 +255,6 @@ public class CallView
         mWakeLockUtil.stopProximityLock();
         mCallTimer.cancelTimer();
         finish();
-    }
-
-    /**
-     * Brings up the "Audio mode" popup.
-     */
-    private void showAudioModePopup()
-    {
-        Log.d( TAG, "showAudioModePopup()..." );
-
-        mAudioModePopup = new PopupMenu( this, mAudioButton );
-        mAudioModePopup.getMenuInflater().inflate( R.menu.audio_mode_menu, mAudioModePopup.getMenu() );
-        // NOTE: THIS HAS BEEN REMOVED AS IT IS NOT AVAILABLE UNTIL API level 11 and our minSdk is 9
-        //mAudioModePopup.setOnMenuItemClickListener( this );
-
-        boolean wiredHeadsetEnabled = mAudioUtil.wiredHeadsetEnabled();
-
-        Menu menu = mAudioModePopup.getMenu();
-
-        MenuItem speakerItem = menu.findItem( R.id.audio_mode_speaker );
-        speakerItem.setVisible( true );
-        speakerItem.setEnabled( true );
-
-        MenuItem earpieceItem = menu.findItem( R.id.audio_mode_earpiece );
-        earpieceItem.setVisible( !wiredHeadsetEnabled );
-        earpieceItem.setEnabled( !wiredHeadsetEnabled );
-
-        MenuItem wiredHeadsetItem = menu.findItem( R.id.audio_mode_wired_headset );
-        wiredHeadsetItem.setVisible( wiredHeadsetEnabled );
-        wiredHeadsetItem.setEnabled( wiredHeadsetEnabled );
-
-        MenuItem bluetoothItem = menu.findItem( R.id.audio_mode_bluetooth );
-        bluetoothItem.setVisible( false );
-        bluetoothItem.setEnabled( false );
-
-        mAudioModePopup.show();
     }
 
     /**
@@ -387,6 +268,28 @@ public class CallView
         mBottomBar.setVisibility( View.VISIBLE );
         mAcceptButton.setVisibility( View.GONE );
         onAudioChange();
+    }
+
+    /**
+     * Toggle between device/speaker or wired headset/speaker when a wired headset is plugged.
+     */
+    private void toggleAudio()
+    {
+        if ( mAudioUtil.isSpeakerOn() )
+        {
+            if ( mAudioUtil.wiredHeadsetEnabled() )
+            {
+                mAudioUtil.turnOnWiredHeadset();
+            }
+            else
+            {
+                mAudioUtil.turnOnHeadset();
+            }
+        }
+        else
+        {
+            mAudioUtil.turnOnSpeaker();
+        }
     }
 
     private void updateCallDisplay()
