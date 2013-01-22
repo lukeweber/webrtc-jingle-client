@@ -15,51 +15,15 @@
 
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- The standard "compound button" background, used to distinguish
-         between the "checked" and "unchecked" states when this button is
-         simply an on/off toggle for the speaker.
-         (In states where the audio button *not* a toggle, we explicitly
-         hide this layer.) -->
+    <!-- The standard "compound button" background. -->
     <item
         android:id="@+id/compoundBackgroundItem"
         android:drawable="@drawable/btn_compound_background" />
-
-    <!-- The little triangle that indicates that this isn't a plain
-          button, but will instead pop up a menu.  This layer is *not*
-          shown when the audio button is simply an on/off toggle. -->
-    <!-- Use an explicit <bitmap> to avoid scaling the icon up to the full
-         size of the button. -->
-    <item android:id="@+id/moreIndicatorItem">
-        <bitmap
-            android:src="@drawable/ic_more_indicator_holo_dark"
-            android:gravity="center" />
-    </item>
-
-    <!-- Bluetooth is active -->
-    <item android:id="@+id/bluetoothItem">
-        <bitmap
-            android:src="@drawable/ic_sound_bluetooth_holo_dark"
-            android:gravity="center" />
-    </item>
-
-    <!-- Handset earpiece is active -->
-    <item android:id="@+id/handsetItem">
-        <bitmap
-            android:src="@drawable/ic_sound_handset_holo_dark"
-            android:gravity="center" />
-    </item>
 
     <!-- Speakerphone icon showing 'speaker on' state -->
     <item android:id="@+id/speakerphoneOnItem">
         <bitmap
             android:src="@drawable/ic_sound_speakerphone_holo_dark"
-            android:gravity="center" />
-    </item>
-
-    <!-- Speakerphone icon showing 'speaker off' state -->
-    <item android:id="@+id/speakerphoneOffItem">
-        <bitmap
-            android:src="@drawable/ic_sound_off_speakerphone_holo_dark"
             android:gravity="center" />
     </item>
 
