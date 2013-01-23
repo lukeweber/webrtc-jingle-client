@@ -129,6 +129,33 @@
     </pluginRepositories>
     <profiles>
         <profile>
+            <id>video_debug</id>
+            <properties>
+                <android.liboutdir>video_debug</android.liboutdir>
+                <android.apk.debug>true</android.apk.debug>
+                <android.ndkappfile>jni/video_debug.mk</android.ndkappfile>
+                <android.manifest.debuggable>true</android.manifest.debuggable>
+            </properties>
+        </profile>
+        <profile>
+            <id>video_release</id>
+            <properties>
+                <android.liboutdir>video_release</android.liboutdir>
+                <android.apk.debug>false</android.apk.debug>
+                <android.ndkappfile>jni/video_release.mk</android.ndkappfile>
+                <android.manifest.debuggable>false</android.manifest.debuggable>
+            </properties>
+        </profile>
+        <profile>
+            <id>video_final</id>
+            <properties>
+                <android.liboutdir>video_final</android.liboutdir>
+                <android.apk.debug>false</android.apk.debug>
+                <android.ndkappfile>jni/video_final.mk</android.ndkappfile>
+                <android.manifest.debuggable>false</android.manifest.debuggable>
+            </properties>
+        </profile>
+        <profile>
             <id>default_debug</id>
             <activation>
                 <activeByDefault>true</activeByDefault>

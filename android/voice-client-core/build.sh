@@ -52,6 +52,15 @@ if [ $# -gt 0 ]; then
                 td )                filename='tuenti_debug.mk'
                                     version='debug';
                                     ;;
+                vd )                filename='video_debug.mk'
+                                    version='debug';
+                                    ;;
+                vf )                filename='video_final.mk'
+                                    version='final';
+                                    ;;
+                vr )                filename='video_release.mk'
+                                    version='release';
+                                    ;;
                 -h | --help )       usage
                                     exit
                                     ;;

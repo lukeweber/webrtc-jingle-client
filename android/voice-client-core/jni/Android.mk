@@ -56,29 +56,38 @@ include $(MY_ANDROID_MAKE_FILES_PATH)/gtest.mk
 endif
 
 #Video specific stuff, not yet completed.
-#ifeq ($(ENABLE_VIDEO), 1)
-#include $(MY_WEBRTC_PATH)/common_video/libyuv/Android.mk
-#include $(MY_WEBRTC_PATH)/common_video/jpeg/Android.mk
-#include $(MY_WEBRTC_PATH)/modules/video_capture/main/source/Android.mk
-#include $(MY_WEBRTC_PATH)/modules/video_coding/main/source/Android.mk
-#include $(MY_WEBRTC_PATH)/modules/video_coding/codecs/vp8/Android.mk
-#include $(MY_WEBRTC_PATH)/modules/video_coding/codecs/i420/main/source/Android.mk
-#include $(MY_WEBRTC_PATH)/modules/video_processing/main/source/Android.mk
-#include $(MY_WEBRTC_PATH)/modules/video_render/main/source/Android.mk
-#include $(MY_WEBRTC_PATH)/modules/bitrate_controller/Android.mk
-#include $(MY_WEBRTC_PATH)/video_engine/Android.mk
-#include $(MY_ANDROID_MAKE_FILES_PATH)/yuv.mk
-#include $(MY_ANDROID_MAKE_FILES_PATH)/libvpx.mk
-#include $(MY_ANDROID_MAKE_FILES_PATH)/libjpeg_turbo.mk
+ifeq ($(ENABLE_VIDEO), 1)
 
-#LOCAL_ARM_MODE := arm
-#LOCAL_MODULE := libwebrtc_video
-#LOCAL_MODULE_TAGS := optional
-#LOCAL_WHOLE_STATIC_LIBRARIES := \
+include $(CLEAR_VARS)
+LOCAL_C_INCLUDES := \
+	$(MY_ROOT_PATH)/../
+LOCAL_PATH := $(MY_THIRD_PARTY_PATH)/libvpx/source/
+include $(MY_THIRD_PARTY_PATH)/libvpx/source/libvpx/build/make/Android.mk
+include $(MY_WEBRTC_PATH)/common_video/Android.mk
+include $(MY_WEBRTC_PATH)/common_video/libyuv/Android.mk
+include $(MY_WEBRTC_PATH)/common_video/jpeg/Android.mk
+include $(MY_WEBRTC_PATH)/modules/video_capture/Android.mk
+include $(MY_WEBRTC_PATH)/modules/video_coding/main/source/Android.mk
+include $(MY_WEBRTC_PATH)/modules/video_coding/codecs/vp8/Android.mk
+include $(MY_WEBRTC_PATH)/modules/video_coding/codecs/i420/main/source/Android.mk
+include $(MY_WEBRTC_PATH)/modules/video_processing/main/source/Android.mk
+include $(MY_WEBRTC_PATH)/modules/video_render/Android.mk
+include $(MY_WEBRTC_PATH)/modules/bitrate_controller/Android.mk
+include $(MY_WEBRTC_PATH)/video_engine/Android.mk
+include $(MY_ANDROID_MAKE_FILES_PATH)/libyuv.mk
+include $(MY_ANDROID_MAKE_FILES_PATH)/libjpeg_turbo.mk
+
+LOCAL_PATH := $(call my-dir)
+include $(CLEAR_VARS)
+LOCAL_ARM_MODE := arm
+LOCAL_MODULE := libwebrtc_video
+LOCAL_MODULE_TAGS := optional
+LOCAL_WHOLE_STATIC_LIBRARIES := \
 	libjpeg_turbo \
 	libyuv \
-    libvpx \
+	libvpx \
 	libwebrtc_video_coding \
+	libwebrtc_common_video \
 	libwebrtc_jpeg \
 	libwebrtc_yuv \
 	libwebrtc_vie_core \
@@ -88,10 +97,9 @@ endif
 	libwebrtc_bitrate_controller \
 	libwebrtc_vp8 \
 	libwebrtc_i420
-#LOCAL_LDLIBS := -lgcc -llog -lOpenSLES -lGLESv2
 
 #LOCAL_CFLAGS := \
-#	-DHAVE_WEBRTC_VIDEO
+	-DHAVE_WEBRTC_VIDEO
 
 #LOCAL_C_INCLUDES := \
 	$(MY_WEBRTC_PATH) \
@@ -100,8 +108,12 @@ endif
 	$(MY_WEBRTC_PATH)/modules/video_capture/main/interface \
 	$(MY_WEBRTC_PATH)/modules/video_coding/main/interface \
 	$(MY_WEBRTC_PATH)/modules/video_processing/main/interface \
-	$(MY_WEBRTC_PATH)/modules/video_render/main/interface \
-#endif
+	$(MY_WEBRTC_PATH)/modules/video_render/main/interface 
+
+LOCAL_LDLIBS := -lgcc -llog -lOpenSLES -lGLESv2
+LOCAL_PRELINK_MODULE := false
+include $(BUILD_STATIC_LIBRARY)
+endif
 
 include $(MY_THIRD_PARTY_PATH)/libjingle/Android.mk
 
@@ -211,14 +223,22 @@ LOCAL_C_INCLUDES := \
 	$(MY_THIRD_PARTY_PATH)/webrtc/voice_engine
 
 LOCAL_PRELINK_MODULE := false
+ifeq ($(ENABLE_VIDEO), 1)
+LOCAL_WHOLE_STATIC_LIBRARIES := \
+	libjingle \
+	libwebrtc_voice \
+	libwebrtc_video
+LOCAL_LDLIBS := -lgcc -llog -lOpenSLES -lGLESv2
+else
 LOCAL_WHOLE_STATIC_LIBRARIES := \
 	libjingle \
 	libwebrtc_voice
+LOCAL_LDLIBS := -lOpenSLES -llog
+endif
+
 LOCAL_SHARED_LIBRARIES := \
 	libutils \
 	libandroid \
 	libGLESv2
-LOCAL_LDLIBS := -lOpenSLES -llog
 include $(BUILD_SHARED_LIBRARY)
-
 endif
