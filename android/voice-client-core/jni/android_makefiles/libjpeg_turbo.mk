@@ -49,7 +49,7 @@ LOCAL_SRC_FILES := \
 	jquant2.c \
 	jutils.c
 
-ifeq ($(ARCH_ARM_HAVE_ARMV7A),true)
+ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 LOCAL_SRC_FILES += \
 	simd/jsimd_arm.c \
 	simd/jsimd_arm_neon.S
