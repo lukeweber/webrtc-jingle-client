@@ -15,10 +15,10 @@ import logging
 # import pprint
 
 build_bit =     (1 << 0)
-install_bit =   (1 << 1)
-start_bit =     (1 << 2)
-debug_bit =     (1 << 3)
-uninstall_bit = (1 << 4)
+uninstall_bit = (1 << 1)
+install_bit =   (1 << 2)
+start_bit =     (1 << 3)
+debug_bit =     (1 << 4)
 
 #global vars
 taskMask = build_bit | install_bit | start_bit | debug_bit
@@ -84,13 +84,17 @@ def installApk():
     if taskMask & install_bit:
         # homePath = os.environ['HOME']
         # snapshotVersion = "1.0-SNAPSHOT"
-        if runCmd("Install", ["mvn", "-pl", "voice-client-example", "android:redeploy"]) != 0:
-            newTaskMask = (taskMask - (taskMask & build_bit)) | uninstall_bit
-            logger.error("New version is not compatible with the old version")
-            logger.error("This can be fixed with the below command:")
-            logger.error("\tNOTE: it will uninstall your previous installation")
-            sys.stderr.write(__file__ + " --task-mask=" + str(newTaskMask))
-            sys.exit(1)
+        uninstalled = False
+        success = False
+        while not success:
+            if runCmd("Install", ["mvn", "-pl", "voice-client-example", "android:redeploy"]) == 0:
+                success = True
+            elif not uninstalled:
+                logger.info("install failed trying uninstall first")
+                uninstallApk()
+                uninstalled = True
+            else:
+                sys.exit(1)
     else:
         logger.info("skipping install")
 
