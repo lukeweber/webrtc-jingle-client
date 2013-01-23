@@ -18,10 +18,10 @@ deps = {
 
   "trunk/testing":
     Var("chromium_trunk") + "/src/testing@" + Var("chromium_revision"),
-  
+
   "trunk/base":
     Var("chromium_trunk") + "/src/base@" + Var("chromium_revision"),
-  
+
   "trunk/testing/gmock":
     (Var("googlecode_url") % "googlemock") + "/trunk@405",
 
@@ -36,15 +36,15 @@ deps = {
 
   "trunk/third_party/libjpeg":
     Var("chromium_trunk") + "/src/third_party/libjpeg@" + Var("chromium_revision"),
-  
+
   "trunk/third_party/mach_override":
     Var("chromium_trunk") + "/src/third_party/mach_override@" + Var("chromium_revision"),
-  
+
   "trunk/third_party/libjpeg_turbo":
-    Var("chromium_git_url") + "/chromium/deps/libjpeg_turbo.git@2fdc3a8097b6a3f5de84aa9e6c901544d7166dec",
+    Var("chromium_git_url") + "/chromium/deps/libjpeg_turbo.git@82ce8a6d4ebe12a177c0c3597192f2b4f09e81c3",
 
   "trunk/third_party/libyuv":
-    Var("chromium_git_url") + "/external/libyuv.git@5bf29b59db8f0efc294d969c4ad90910ff319324",
+    Var("chromium_git_url") + "/external/libyuv.git@a9c9242a557c0202454733bab66521bff2e35fc9",
 
   "trunk/third_party/protobuf":
     Var("chromium_trunk") + "/src/third_party/protobuf@" + Var("chromium_revision"),
@@ -85,10 +85,10 @@ deps = {
 
   "trunk/third_party/webrtc":
     "https://github.com/lukeweber/webrtc-src-override.git",
-  
+
   "trunk/tools/gyp":
     "https://github.com/lukeweber/gyp-override.git",
-  
+
   "trunk/third_party/modp_b64":
     Var("chromium_trunk") + "/src/third_party/modp_b64@" + Var("chromium_revision"),
 
@@ -97,12 +97,15 @@ deps = {
 
   "trunk/third_party/libevent":
     Var("chromium_trunk") + "/src/third_party/libevent@" + Var("chromium_revision"),
-  
+
   "trunk/third_party/icu":
     Var("chromium_git_url") + "/chromium/deps/icu46.git@53ac6db57d9d09e43079f54feec59b735ed23670",
-  
+
   "trunk/third_party/openssl":
     "https://github.com/lukeweber/openssl-override.git",
+
+  "trunk/third_party/libvpx/source/libvpx":
+    "http://git.chromium.org/webm/libvpx.git@7a09f6b8",
 }
 
 hooks = [

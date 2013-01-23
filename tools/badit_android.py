@@ -23,7 +23,8 @@ uninstall_bit = (1 << 4)
 #global vars
 taskMask = build_bit | install_bit | start_bit | debug_bit
 profile = "default_debug"
-supportedProfiles = ["default_debug", "default_release", "default_final",
+supportedProfiles = ["video_debug", "video_final", "video_release",
+                     "default_debug", "default_release", "default_final",
                      "tuenti_debug", "tuenti_release", "tuenti_final"]
 supportedNDKs = ["r8", "r8d"]
 
