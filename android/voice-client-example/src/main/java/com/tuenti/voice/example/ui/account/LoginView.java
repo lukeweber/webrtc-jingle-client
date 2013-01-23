@@ -1,4 +1,4 @@
-package com.tuenti.voice.example.ui;
+package com.tuenti.voice.example.ui.account;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,6 +12,7 @@ import com.tuenti.voice.core.VoiceActivity;
 import com.tuenti.voice.core.data.Connection;
 import com.tuenti.voice.core.service.VoiceClientService;
 import com.tuenti.voice.example.R;
+import com.tuenti.voice.example.ui.RosterView;
 
 import static android.view.View.OnClickListener;
 
@@ -20,6 +21,16 @@ public class LoginView
     implements OnClickListener, OnConnectionListener
 {
 // ------------------------------ FIELDS ------------------------------
+
+    /**
+     * Auth token type parameter
+     */
+    public static final String PARAM_AUTHTOKEN_TYPE = "authtokenType";
+
+    /**
+     * Initial user name
+     */
+    public static final String PARAM_USERNAME = "username";
 
     // Template Google Settings
     private static final String MY_USER = "";

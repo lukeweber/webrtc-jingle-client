@@ -2,6 +2,8 @@ package com.tuenti.voice.example.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -10,14 +12,17 @@ import com.tuenti.voice.core.OnCallListener;
 import com.tuenti.voice.core.VoiceListActivity;
 import com.tuenti.voice.core.data.Buddy;
 import com.tuenti.voice.core.data.Call;
+import com.tuenti.voice.core.data.Connection;
 import com.tuenti.voice.core.service.VoiceClientService;
+
+import java.util.List;
 
 import static android.widget.AdapterView.OnItemClickListener;
 import static com.tuenti.voice.example.Intents.EXTRA_CALL;
 
 public class RosterView
     extends VoiceListActivity
-    implements OnItemClickListener, OnCallListener, OnBuddyListener
+    implements OnItemClickListener, OnCallListener, OnBuddyListener, LoaderCallbacks<List<Connection>>
 {
 // ------------------------------ FIELDS ------------------------------
 
@@ -28,6 +33,24 @@ public class RosterView
     private Call mCurrentCall;
 
 // ------------------------ INTERFACE METHODS ------------------------
+
+// --------------------- Interface LoaderCallbacks ---------------------
+
+    @Override
+    public Loader<List<Connection>> onCreateLoader( int id, Bundle args )
+    {
+        return null;
+    }
+
+    @Override
+    public void onLoadFinished( Loader<List<Connection>> loader, List<Connection> data )
+    {
+    }
+
+    @Override
+    public void onLoaderReset( Loader<List<Connection>> loader )
+    {
+    }
 
 // --------------------- Interface OnBuddyListener ---------------------
 

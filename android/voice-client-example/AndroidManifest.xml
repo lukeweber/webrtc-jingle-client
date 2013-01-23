@@ -4,7 +4,9 @@
     android:versionName="1.0"
     package="com.tuenti.voice.example">
 
-    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
     <uses-permission android:name="android.permission.BROADCAST_STICKY" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -24,21 +26,21 @@
         android:label="@string/app_name"
         android:debuggable="true">
         <activity
-            android:name=".ui.LoginView"
+            android:name=".ui.account.LoginView"
             android:label="@string/app_name"
-            android:screenOrientation="portrait">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ui.RosterView"
             android:excludeFromRecents="true"
             android:launchMode="singleInstance"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|keyboardHidden|uiMode"
-            android:exported="false" />
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".ui.CallView"
             android:label="@string/app_name"
@@ -59,7 +61,11 @@
                 <action android:name="com.tuenti.voice.core.service.IBuddyService" />
                 <action android:name="com.tuenti.voice.core.service.ICallService" />
                 <action android:name="com.tuenti.voice.core.service.IStatService" />
+                <action android:name="android.accounts.AccountAuthenticator" />
             </intent-filter>
+            <meta-data
+                android:name="android.accounts.AccountAuthenticator"
+                android:resource="@xml/authenticator" />
         </service>
     </application>
 </manifest>
