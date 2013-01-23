@@ -69,13 +69,16 @@ export ANDROID_NDK_HOME=$ANDROID_NDK_ROOT
 * Fetch unittest logs:  adb pull /sdcard/talk  talk-logs
 
 ### Build for Video(Experimental)
-*
+* Builds on linux and mac
+* Need to wire the java code in example app, using third_party/webrtc/video_engine/test/android/src/org/webrtc/videoengineapp/WebRTCDemo.java as a template.
+* Have to look at libjingle and clientsignalingthread.cc and see how to toggle video, maybe callclient.cc from libjingle offers some ideas.
 
 ```
 # cd android/voice-client-core/
 # ln -s [insert_full_path_here]/trunk/third_party/libvpx/source/libvpx jni/libvpx
+# cd third_party/libvpx/source 
 # git pull https://gerrit.chromium.org/gerrit/webm/libvpx refs/changes/99/41299/1
-# jni/libvpx/configure --target=armv7-android-gcc --disable-examples --sdk-path=$ANDROID_NDK_ROOT --enable-error-concealment --enable-realtime-only --disable-vp9 --enable-pic
+# libvpx/configure --target=armv7-android-gcc --disable-examples --sdk-path=$ANDROID_NDK_ROOT --enable-error-concealment --enable-realtime-only --disable-vp9 --enable-pic
 # Open jni/libvpx/build/make/Android.mk => change BUILD_SHARED_LIBRARY to BUILD_STATIC_LIBRARY
 # 
 ```
