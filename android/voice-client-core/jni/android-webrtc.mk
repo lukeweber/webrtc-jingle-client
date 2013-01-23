@@ -41,7 +41,7 @@ ifneq (,$(filter '-DWEBRTC_DETECT_ARM_NEON' '-DWEBRTC_ARCH_ARM_NEON', \
 WEBRTC_BUILD_NEON_LIBS := true
 endif
 
-ifeq ($(ARCH_ARM_HAVE_ARMV7A),true)
+ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 MY_WEBRTC_COMMON_DEFS += \
     '-DWEBRTC_ARCH_ARM_V7A'
 endif

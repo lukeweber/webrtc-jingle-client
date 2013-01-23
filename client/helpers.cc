@@ -27,7 +27,11 @@
 
 #include "client/helpers.h"
 #include "voice_engine_defines.h"
-#include "voice_engine/voice_engine_impl.h"
+#include "webrtc/voice_engine/include/voe_base.h"
+
+#ifdef HAVE_WEBRTC_VIDEO
+#include "webrtc/video_engine/include/vie_base.h"
+#endif
 
 jmethodID GetMethodIDCachedReferenced(JNIEnv *env, jclass clazz,
                                       JavaMethodIDCache *cache) {
@@ -61,6 +65,9 @@ bool SetJavaObject(JavaObjectReference *ref, JNIEnv *env, jobject object, jobjec
   ref->jvm = jvm;
 
   webrtc::VoiceEngine::SetAndroidObjects(jvm, env, context);
+#ifdef HAVE_WEBRTC_VIDEO
+  webrtc::VideoEngine::SetAndroidObjects(jvm, context);
+#endif
 
   env->DeleteLocalRef(localClass);
 
