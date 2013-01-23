@@ -50,9 +50,28 @@ def usage():
         if line.find("##") == 0:
             sys.stderr.write(line)
 
+def which(program):
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            path = path.strip('"')
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
 
 def runCmd(name, cmdList):
     logger.info("=> " + name + " = " + " ".join(cmdList))
+    if which(cmdList[0]) == None:
+        logger.info("[KO] [" + cmdList[0] + "] command doesn't exist you must install it")
+        return 1
     if subprocess.call(cmdList) == 0:
         logger.info("[OK] " + name + " = " + " ".join(cmdList))
     else:
