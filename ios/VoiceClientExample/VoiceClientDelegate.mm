@@ -25,7 +25,6 @@ void VoiceClientDelegate::Init(){
     if (voiceClient_ == NULL){
         printf("initing");
         voiceClient_ = new tuenti::VoiceClient();
-        voiceClient_->Init();
     }
 }
 
@@ -63,14 +62,6 @@ void VoiceClientDelegate::OnSignalXmppSocketClose(int state) {
 }
 
 void VoiceClientDelegate::OnSignalXmppStateChange(int state) {
-    printf("state %i\n", state);
-    if (buzz::XmppEngine::STATE_NONE == state){
-        //Login after this event.
-    }
-    
-    if (buzz::XmppEngine::STATE_OPEN == state){
-        printf("Calling\n");
-    }
 }
 
 void VoiceClientDelegate::OnSignalBuddyListReset() {
