@@ -31,7 +31,6 @@
 #include <map>
 
 #include "talk/base/signalthread.h"
-#include "talk/base/sigslot.h"
 #include "talk/base/constructormagic.h"
 #include "talk/base/thread.h"
 #include "talk/base/sigslot.h"
@@ -40,8 +39,14 @@
 #include "talk/media/base/mediachannel.h"  // Needed for enum cricket::ReceiveDataParams
 #include "talk/base/basicpacketsocketfactory.h"
 #include "talk/base/scoped_ptr.h"
+#include "talk/base/physicalsocketserver.h"
 #include "talk/xmpp/pingtask.h"
+#include "talk/xmpp/xmppengine.h"
 
+#include "client/xmppmessage.h"
+#include "client/sendmessagetask.h"
+#include "client/receivemessagetask.h"
+#include "client/keepalivetask.h"
 #include "client/status.h"
 #include "client/txmpppump.h"  // Needed for TXmppPumpNotify
 #include "client/voiceclient.h"
@@ -67,16 +72,165 @@ class PresencePushTask;
 class PresenceOutTask;
 }
 
-struct RosterItem {
-  buzz::Jid jid;
-  buzz::Status::Show show;
-  std::string status;
-  std::string nick;
-};
 namespace tuenti {
+
 class TXmppPump;
 class VoiceClientNotify;
 
+enum ClientSignals {
+  // From Main to Worker
+  // ST_MSG_WORKER_DONE is defined in SignalThread.h
+  MSG_LOGIN = talk_base::SignalThread::ST_MSG_FIRST_AVAILABLE,
+  MSG_DISCONNECT,  // Logout
+  MSG_CALL,
+  MSG_ACCEPT_CALL,
+  MSG_SEND_XMPP_MESSAGE,
+  MSG_HOLD_CALL,
+  MSG_DECLINE_CALL,
+  MSG_MUTE_CALL,
+  MSG_END_CALL,
+  MSG_PRINT_STATS,
+
+  // From Worker to Main
+  MSG_XMPP_STATE,
+  MSG_XMPP_ERROR,
+  MSG_XMPP_SOCKET_CLOSE,
+  MSG_CALL_STATE,
+  MSG_CALL_ERROR,
+  MSG_CONNECTION_ERROR,
+  MSG_INCOMING_MESSAGE,
+  MSG_ROSTER_ADD,
+  MSG_ROSTER_REMOVE,
+  MSG_ROSTER_RESET,
+};
+
+#if LOGGING
+struct ClientSignalingMap : std::map<unsigned int, std::string>
+{
+  ClientSignalingMap()
+  {
+  this->operator[]( MSG_LOGIN ) = "MSG_LOGIN";
+  this->operator[]( MSG_DISCONNECT ) = "MSG_DISCONNECT";
+  this->operator[]( MSG_CALL ) = "MSG_CALL";
+  this->operator[]( MSG_ACCEPT_CALL ) = "MSG_ACCEPT_CALL";
+  this->operator[]( MSG_SEND_XMPP_MESSAGE ) = "MSG_SEND_XMPP_MESSAGE";
+  this->operator[]( MSG_HOLD_CALL ) = "MSG_HOLD_CALL";
+  this->operator[]( MSG_DECLINE_CALL ) = "MSG_DECLINE_CALL";
+  this->operator[]( MSG_MUTE_CALL ) = "MSG_MUTE_CALL";
+  this->operator[]( MSG_END_CALL ) = "MSG_END_CALL";
+  this->operator[]( MSG_PRINT_STATS ) = "MSG_PRINT_STATS";
+  this->operator[]( MSG_XMPP_STATE ) = "MSG_XMPP_STATE";
+  this->operator[]( MSG_XMPP_ERROR ) = "MSG_XMPP_ERROR";
+  this->operator[]( MSG_XMPP_SOCKET_CLOSE ) = "MSG_XMPP_SOCKET_CLOSE";
+  this->operator[]( MSG_CALL_STATE ) = "MSG_CALL_STATE";
+  this->operator[]( MSG_CALL_ERROR ) = "MSG_CALL_ERROR";
+  this->operator[]( MSG_CONNECTION_ERROR ) = "MSG_CONNECTION_ERROR";
+  this->operator[]( MSG_INCOMING_MESSAGE ) = "MSG_INCOMING_MESSAGE";
+  this->operator[]( MSG_ROSTER_ADD ) = "MSG_ROSTER_ADD";
+  this->operator[]( MSG_ROSTER_REMOVE ) = "MSG_ROSTER_REMOVE";
+  this->operator[]( MSG_ROSTER_RESET ) = "MSG_ROSTER_RESET";
+  };
+  ~ClientSignalingMap(){};
+};
+struct XmppEngineErrorMap : std::map<unsigned int, std::string>
+{
+  XmppEngineErrorMap()
+  {
+  this->operator[]( buzz::XmppEngine::ERROR_NONE ) = "ERROR_NONE - No error";
+  this->operator[]( buzz::XmppEngine::ERROR_XML )
+      = "ERROR_XML - Malformed XML or encoding error";
+  this->operator[]( buzz::XmppEngine::ERROR_STREAM )
+      = "ERROR_STREAM - XMPP stream error - see GetStreamError()";
+  this->operator[]( buzz::XmppEngine::ERROR_VERSION )
+      = "ERROR_VERSION - XMPP version error";
+  this->operator[]( buzz::XmppEngine::ERROR_UNAUTHORIZED )
+      = "ERROR_UNAUTHORIZED -  User is not authorized (rejected credentials)";
+  this->operator[]( buzz::XmppEngine::ERROR_TLS )
+      = "ERROR_TLS - TLS could not be negotiated";
+  this->operator[]( buzz::XmppEngine::ERROR_AUTH )
+      = "ERROR_AUTH - Authentication could not be negotiated";
+  this->operator[]( buzz::XmppEngine::ERROR_BIND )
+      = "ERROR_BIND - Resource or session binding could not be negotiated";
+  this->operator[]( buzz::XmppEngine::ERROR_CONNECTION_CLOSED )
+      = "ERROR_CONNECTION_CLOSED - Connection closed by output handler.";
+  this->operator[]( buzz::XmppEngine::ERROR_DOCUMENT_CLOSED )
+      = "ERROR_DOCUMENT_CLOSED - Closed by </stream:stream>";
+  this->operator[]( buzz::XmppEngine::ERROR_SOCKET )
+      = "ERROR_SOCKET - Socket error";
+  this->operator[]( buzz::XmppEngine::ERROR_NETWORK_TIMEOUT )
+      = "ERROR_NETWORK_TIMEOUT - Some sort of timeout (eg., we never got the roster)";
+  this->operator[]( buzz::XmppEngine::ERROR_MISSING_USERNAME )
+      = "ERROR_MISSING_USERNAME - User has a Google Account but no nickname";  };
+  ~XmppEngineErrorMap(){};
+};
+struct CallSessionMap : std::map<unsigned int, std::string>
+{
+  CallSessionMap()
+  {
+  this->operator[]( cricket::Session::STATE_INIT ) = "STATE_INIT";
+  this->operator[]( cricket::Session::STATE_SENTINITIATE )
+      = "STATE_SENTINITIATE - sent initiate, waiting for Accept or Reject";
+  this->operator[]( cricket::Session::STATE_RECEIVEDINITIATE )
+      = "STATE_RECEIVEDINITIATE - received an initiate. Call Accept or Reject";
+  this->operator[]( cricket::Session::STATE_RECEIVEDINITIATE_ACK )
+      = "STATE_RECEIVEDINITIATE_ACK - received an initiate ack. Client is alive.";
+  this->operator[]( cricket::Session::STATE_SENTPRACCEPT )
+      = "STATE_SENTPRACCEPT - sent provisional Accept";
+  this->operator[]( cricket::Session::STATE_SENTACCEPT )
+      = "STATE_SENTACCEPT - sent accept. begin connecting transport";
+  this->operator[]( cricket::Session::STATE_RECEIVEDPRACCEPT )
+      = "STATE_RECEIVEDPRACCEPT - received provisional Accept, waiting for Accept";
+  this->operator[]( cricket::Session::STATE_RECEIVEDACCEPT )
+      = "STATE_RECEIVEDACCEPT - received accept. begin connecting transport";
+  this->operator[]( cricket::Session::STATE_SENTMODIFY )
+      = "STATE_SENTMODIFY - sent modify, waiting for Accept or Reject";
+  this->operator[]( cricket::Session::STATE_RECEIVEDMODIFY )
+      = "STATE_RECEIVEDMODIFY - received modify, call Accept or Reject";
+  this->operator[]( cricket::Session::STATE_SENTBUSY )
+      = "STATE_SENTBUSY - sent busy after receiving initiate";
+  this->operator[]( cricket::Session::STATE_SENTREJECT )
+      = "STATE_SENTREJECT - sent reject after receiving initiate";
+  this->operator[]( cricket::Session::STATE_RECEIVEDBUSY )
+      = "STATE_RECEIVEDBUSY - received busy after sending initiate";
+  this->operator[]( cricket::Session::STATE_RECEIVEDREJECT )
+      = "STATE_RECEIVEDREJECT - received reject after sending initiate";
+  this->operator[]( cricket::Session::STATE_SENTREDIRECT )
+      = "STATE_SENTREDIRECT - sent direct after receiving initiate";
+  this->operator[]( cricket::Session::STATE_SENTTERMINATE )
+      = "STATE_SENTTERMINATE - sent terminate (any time / either side)";
+  this->operator[]( cricket::Session::STATE_RECEIVEDTERMINATE )
+      = "STATE_RECEIVEDTERMINATE - received terminate (any time / either side)";
+  this->operator[]( cricket::Session::STATE_INPROGRESS )
+      = "STATE_INPROGRESS - session accepted and in progress";
+  this->operator[]( cricket::Session::STATE_DEINIT )
+      = "STATE_DEINIT - session is being destroyed";
+  };
+  ~CallSessionMap(){};
+};
+struct CallSessionErrorMap : std::map<unsigned int, std::string>
+{
+  CallSessionErrorMap()
+  {
+  this->operator[]( cricket::Session::ERROR_NONE ) = "ERROR_NONE - No error";
+  this->operator[]( cricket::Session::ERROR_TIME )
+      = "ERROR_TIME - no response to signaling";
+  this->operator[]( cricket::Session::ERROR_RESPONSE )
+      = "ERROR_RESPONSE - error during signaling";
+  this->operator[]( cricket::Session::ERROR_NETWORK )
+      = "ERROR_NETWORK - network error, could not allocate network resources";
+  this->operator[]( cricket::Session::ERROR_CONTENT )
+      = "ERROR_CONTENT -  channel errors in SetLocalContent/SetRemoteContent";
+  this->operator[]( cricket::Session::ERROR_TRANSPORT )
+      = "ERROR_TRANSPORT - transport error of some kind";
+  this->operator[]( cricket::Session::ERROR_ACK_TIME )
+      = "ERROR_ACK_TIME - no ack response to signaling, client not available";
+  }
+  ~CallSessionErrorMap(){};
+};
+#endif
+
+
+//TODO: No longer accurate.
 ///////////////////////////////////////////////////////////////////////////////
 // ClientSignalingThread - Derived from Base class SignalThread for worker
 // threads.  The main thread should call
@@ -95,11 +249,12 @@ class VoiceClientNotify;
 //   tasks in the context of the main thread.
 ///////////////////////////////////////////////////////////////////////////////
 
-class ClientSignalingThread: public talk_base::SignalThread,
-    public TXmppPumpNotify {
+class ClientSignalingThread
+    : public talk_base::MessageHandler,
+      public sigslot::has_slots<>,
+      public TXmppPumpNotify {
  public:
-  ClientSignalingThread(
-      talk_base::Thread *signal_thread);
+  ClientSignalingThread();
   virtual ~ClientSignalingThread();
   // Public Library Callbacks
   void OnSessionState(cricket::Call* call, cricket::Session* session,
@@ -131,7 +286,8 @@ class ClientSignalingThread: public talk_base::SignalThread,
   void EndCall(uint32 call_id);
   void MuteCall(uint32 call_id, bool mute);
   void HoldCall(uint32 call_id, bool hold);
-  void Destroy();
+  void SendXmppMessage(const tuenti::XmppMessage &m);
+
 
   // signals
   sigslot::signal3<int, const char *, int> SignalCallStateChange;
@@ -141,17 +297,17 @@ class ClientSignalingThread: public talk_base::SignalThread,
   sigslot::signal1<int> SignalXmppError;
   sigslot::signal1<int> SignalXmppSocketClose;
   sigslot::signal1<int> SignalXmppStateChange;
+  sigslot::signal1<const XmppMessage &> SignalXmppMessage;
 
   sigslot::signal0<> SignalAudioPlayout;
   sigslot::signal0<> SignalBuddyListReset;
-  sigslot::signal1<const char *> SignalBuddyListRemove;
-  sigslot::signal2<const char *, const char *> SignalBuddyListAdd;
+  sigslot::signal1<const RosterItem&> SignalBuddyListRemove;
+  sigslot::signal1<const RosterItem&> SignalBuddyListAdd;
   sigslot::signal1<const char *> SignalStatsUpdate;
+
 
  protected:
   virtual void OnMessage(talk_base::Message* message);
-  // Context: Worker Thread.
-  virtual void DoWork();
 
  private:
   // Worker methods
@@ -165,16 +321,16 @@ class ClientSignalingThread: public talk_base::SignalThread,
   void EndCallS(uint32 call_id);
   cricket::Call* GetCall(uint32 call_id);
   bool EndAllCalls();
-  void OnKeepAliveS();
   void PrintStatsS();
-  void ScheduleKeepAlive();
+  void SendXmppMessageS(const tuenti::XmppMessage &m);
+  void OnConnected();
   void PresenceInPrivacy(const std::string &action);
+  void OnIncomingMessage(const tuenti::XmppMessage &msg);
+  void OnIncomingMessageS(const tuenti::XmppMessage &msg);
 
   // These should live inside of the TXmppPump
-  void InitMedia();
   void ResetMedia();
   void InitPresence();
-  void InitPing();
 
   void SetPortAllocatorFilter(uint32 filter) { port_allocator_filter_ = filter; };
 
@@ -193,11 +349,14 @@ class ClientSignalingThread: public talk_base::SignalThread,
   talk_base::scoped_ptr<talk_base::BasicNetworkManager> sp_network_manager_;
 
   talk_base::Thread *signal_thread_;
+  talk_base::scoped_ptr<talk_base::Thread> main_thread_;
   RosterMap *roster_;
   BuddyListMap *buddy_list_;
   buzz::PresencePushTask* presence_push_;
   buzz::PresenceOutTask* presence_out_;
-  buzz::PingTask* ping_;
+  buzz::PingTask* ping_task_;
+  KeepAliveTask * keepalive_task_;
+  ReceiveMessageTask *receive_message_task_;
   cricket::SessionManagerTask *session_manager_task_;
   cricket::Call* call_;
   uint32 port_allocator_flags_;
@@ -211,6 +370,13 @@ class ClientSignalingThread: public talk_base::SignalThread,
   // use default constructors
   buzz::Status my_status_;
   buzz::XmppClientSettings xcs_;
+  talk_base::PhysicalSocketServer pss_;
+#if LOGGING
+  ClientSignalingMap client_signal_map_debug_;
+  XmppEngineErrorMap xmpp_error_map_debug_;
+  CallSessionMap call_session_map_debug_;
+  CallSessionErrorMap call_session_error_map_debug_;
+#endif
   DISALLOW_COPY_AND_ASSIGN(ClientSignalingThread);
 };
 

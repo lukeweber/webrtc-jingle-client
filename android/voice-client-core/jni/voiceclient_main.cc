@@ -184,7 +184,6 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeRelease(
   talk_base::CritScope lock(&native_release_cs_);
   LOGI("Java_com_tuenti_voice_core_VoiceClient_nativeRelease");
   if (client_) {
-    client_->Destroy();
     delete client_;
     client_ = NULL;
     delete stun_config_;

@@ -25,6 +25,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "client/client_defines.h"
 #include "client/xmpplog.h"
 #include "client/txmpppump.h"
 #include "client/txmppauth.h"
@@ -61,13 +62,13 @@ void TXmppPump::DoLogin(const buzz::XmppClientSettings & xcs) {
     client_ = new buzz::XmppClient(this);  // NOTE: deleted by TaskRunner
   }
 
-#if LOGGING
+#if XMPP_LOG_STANZAS
   xmpp_log_ = new XmppLog();
   if (client_ ) {
     client_->SignalLogInput.connect(xmpp_log_, &XmppLog::Input);
     client_->SignalLogOutput.connect(xmpp_log_, &XmppLog::Output);
   }
-#endif  // LOGGING
+#endif  // XMPP_LOG_STANZAS
 
   if (client_ && !AllChildrenDone()) {
     OnStateChange(buzz::XmppEngine::STATE_START);
@@ -84,10 +85,10 @@ void TXmppPump::DoDisconnect() {
   // Maybe we don't need both conditions
   if (client_ && !AllChildrenDone()) {
     client_->Disconnect();
-#if LOGGING
+#if XMPP_LOG_STANZAS
     delete xmpp_log_;
     xmpp_log_ = NULL;
-#endif
+#endif  // XMPP_LOG_STANZAS
   }
   OnStateChange(buzz::XmppEngine::STATE_CLOSED);
 }

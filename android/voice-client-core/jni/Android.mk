@@ -175,6 +175,9 @@ LOCAL_CPP_EXTENSION := .cc
 LOCAL_SRC_FILES := \
 	voiceclient_main.cc \
 	../../../client/helpers.cc \
+	../../../client/receivemessagetask.cc \
+	../../../client/sendmessagetask.cc \
+	../../../client/keepalivetask.cc \
 	../../../client/presenceouttask.cc \
 	../../../client/presencepushtask.cc \
 	../../../client/clientsignalingthread.cc \
