@@ -43,6 +43,7 @@
 #include "talk/base/criticalsection.h"
 
 #include "client/status.h"
+#include "client/xmppmessage.h"
 
 namespace tuenti {
 
@@ -51,6 +52,13 @@ typedef enum {
   REMOVE,
   RESET
 } BuddyList;
+
+typedef struct {
+  buzz::Jid jid;
+  buzz::Status::Show show;
+  std::string status;
+  std::string nick;
+} RosterItem;
 
 typedef struct {
   std::string stun;
@@ -67,7 +75,7 @@ typedef struct {
 
 class ClientSignalingThread;
 
-class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
+class VoiceClient: public sigslot::has_slots<> {
  public:
   // initialization
 #ifdef ANDROID
@@ -84,7 +92,8 @@ class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
     StunConfig *stun_config, const std::string &xmpp_host,
     int xmpp_port, bool use_ssl, int port_allocator_filter);
   void Disconnect();
-  void Call(std::string remoteJid);
+  void Call(std::string remote_jid);
+  void SendMessage(const std::string &remote_jid, const std::string &msg);
   void CallWithTracker(std::string remoteJid, std::string call_tracker_id);
   void MuteCall(uint32 call_id, bool mute);
   void HoldCall(uint32 call_id, bool hold);
@@ -92,36 +101,26 @@ class VoiceClient: public sigslot::has_slots<>, talk_base::MessageHandler {
   void AcceptCall(uint32 call_id);
   void DeclineCall(uint32 call_id, bool busy);
 
- private:
-
   // signals
   void OnSignalCallStateChange(int state, const char *remote_jid, int call_id);
   void OnSignalCallError(int error, int call_id);
   void OnSignalAudioPlayout();
+  void OnSignalXmppMessage(const XmppMessage &msg);
 
   void OnSignalXmppError(int error);
   void OnSignalXmppSocketClose(int state);
   void OnSignalXmppStateChange(int state);
   void OnSignalBuddyListReset();
-  void OnSignalBuddyListRemove(const char *remote_jid);
-  void OnSignalBuddyListAdd(const char *remote_jid, const char *nick);
+  void OnSignalBuddyListRemove(const RosterItem &item);
+  void OnSignalBuddyListAdd(const RosterItem &item);
   void OnSignalStatsUpdate(const char *stats);
   void OnSignalCallTrackerId(int call_id, const char *call_tracker_id);
-
-
-  // signaling thread functions initialization
-  void InitializeS();
-  void DestroyS();
-
-  // signaling thread functions other
-  void OnMessage(talk_base::Message *msg);
 
   std::string stunserver_;
   std::string relayserver_;
 #ifdef ANDROID
   JavaObjectReference *reference_;
 #endif
-  talk_base::Thread *signal_thread_;
   tuenti::ClientSignalingThread *client_signaling_thread_;
   StunConfig *stun_config_;
   talk_base::CriticalSection destroy_cs_;
