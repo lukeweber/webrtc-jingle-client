@@ -14,7 +14,7 @@ testing/*
 base/*
 build/*
 gyp-mac-tool
-voice-client-core/supplement.gypi
+client/supplement.gypi
 
 #Android generated
 bin
