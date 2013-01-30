@@ -69,9 +69,10 @@ export ANDROID_NDK_HOME=$ANDROID_NDK_ROOT
 * Fetch unittest logs:  adb pull /sdcard/talk  talk-logs
 
 ### Build for Video(Experimental)
-* Builds on linux and mac
+* NO UI YET, need more changes in libjingle core to make this work.
+* DEPS build on linux and mac.
 * Need to wire the java code in example app, using third_party/webrtc/video_engine/test/android/src/org/webrtc/videoengineapp/WebRTCDemo.java as a template.
-* Have to look at libjingle and clientsignalingthread.cc and see how to toggle video, maybe callclient.cc from libjingle offers some ideas.
+* webrtcvideoengine.cc will certainly need changes, as will VideoRenderer to enable passing a java ref down to webrtc, contact me if you want to give this a shot.
 
 ```
 # cd android/voice-client-core/
