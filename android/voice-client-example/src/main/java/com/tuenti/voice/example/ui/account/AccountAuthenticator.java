@@ -36,8 +36,8 @@ public class AccountAuthenticator
     {
         Log.d( TAG, "addAccount" );
 
-        final Intent intent = new Intent( mContext, LoginView.class );
-        intent.putExtra( LoginView.PARAM_AUTHTOKEN_TYPE, authTokenType );
+        final Intent intent = new Intent( mContext, AccountViewActivity.class );
+        //intent.putExtra( AccountViewActivity.PARAM_AUTHTOKEN_TYPE, authTokenType );
         intent.putExtra( KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response );
 
         final Bundle bundle = new Bundle();
@@ -102,12 +102,12 @@ public class AccountAuthenticator
     {
         Log.d( TAG, "getAuthToken" );
 
-        final Intent intent = new Intent( mContext, LoginView.class );
-        intent.putExtra( LoginView.PARAM_AUTHTOKEN_TYPE, authTokenType );
+        final Intent intent = new Intent( mContext, AccountViewActivity.class );
+        //intent.putExtra( AccountViewActivity.PARAM_AUTHTOKEN_TYPE, authTokenType );
         intent.putExtra( KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response );
         if ( !TextUtils.isEmpty( account.name ) )
         {
-            intent.putExtra( LoginView.PARAM_USERNAME, account.name );
+            //intent.putExtra( AccountViewActivity.PARAM_USERNAME, account.name );
         }
 
         final Bundle bundle = new Bundle();
@@ -117,8 +117,8 @@ public class AccountAuthenticator
 
     private Intent createLoginIntent( final AccountAuthenticatorResponse response )
     {
-        final Intent intent = new Intent( mContext, LoginView.class );
-        intent.putExtra( LoginView.PARAM_AUTHTOKEN_TYPE, AccountConstants.ACCOUNT_TYPE );
+        final Intent intent = new Intent( mContext, AccountViewActivity.class );
+        //intent.putExtra( AccountViewActivity.PARAM_AUTHTOKEN_TYPE, AccountConstants.ACCOUNT_TYPE );
         intent.putExtra( KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response );
         return intent;
     }

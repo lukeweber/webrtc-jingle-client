@@ -24,23 +24,23 @@
 
     <application
         android:label="@string/app_name"
-        android:debuggable="true">
+        android:theme="@style/Theme.Sherlock.Light">
         <activity
-            android:name=".ui.account.LoginView"
-            android:label="@string/app_name"
-            android:screenOrientation="portrait" />
+            android:name=".ui.account.AccountViewActivity"
+            android:label="@string/accounts"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".ui.RosterView"
             android:excludeFromRecents="true"
             android:launchMode="singleInstance"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|keyboardHidden|uiMode"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:exported="false" />
         <activity
             android:name=".ui.CallView"
             android:label="@string/app_name"

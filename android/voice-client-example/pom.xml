@@ -27,6 +27,12 @@
             <type>apklib</type>
         </dependency>
         <dependency>
+            <groupId>com.github.kevinsawicki</groupId>
+            <artifactId>wishlist</artifactId>
+            <version>0.8</version>
+            <type>apklib</type>
+        </dependency>
+        <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>voice-core</artifactId>
             <version>${project.version}</version>

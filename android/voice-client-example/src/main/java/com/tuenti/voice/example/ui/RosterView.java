@@ -22,7 +22,7 @@ import static com.tuenti.voice.example.Intents.EXTRA_CALL;
 
 public class RosterView
     extends VoiceListActivity
-    implements OnItemClickListener, OnCallListener, OnBuddyListener, LoaderCallbacks<List<Connection>>
+    implements OnItemClickListener, OnCallListener, OnBuddyListener
 {
 // ------------------------------ FIELDS ------------------------------
 
@@ -33,24 +33,6 @@ public class RosterView
     private Call mCurrentCall;
 
 // ------------------------ INTERFACE METHODS ------------------------
-
-// --------------------- Interface LoaderCallbacks ---------------------
-
-    @Override
-    public Loader<List<Connection>> onCreateLoader( int id, Bundle args )
-    {
-        return null;
-    }
-
-    @Override
-    public void onLoadFinished( Loader<List<Connection>> loader, List<Connection> data )
-    {
-    }
-
-    @Override
-    public void onLoaderReset( Loader<List<Connection>> loader )
-    {
-    }
 
 // --------------------- Interface OnBuddyListener ---------------------
 

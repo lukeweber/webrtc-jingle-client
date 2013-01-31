@@ -62,4 +62,7 @@
     <string name="audio_mode_wired_headset">"Wired headset"</string>
     <string name="audio_mode_bluetooth">"Bluetooth"</string>
 
+    <string name="accounts">Accounts</string>
+    <string name="add_account">Add Account</string>
+
 </resources>
