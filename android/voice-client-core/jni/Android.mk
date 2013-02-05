@@ -15,6 +15,9 @@ MY_GTEST_PATH := $(MY_THIRD_PARTY_PATH)/gtest
 MY_WEBRTC_PATH := $(MY_THIRD_PARTY_PATH)/webrtc
 MY_ANDROID_MAKE_FILES_PATH := $(MY_ROOT_PATH)/android_makefiles
 
+include $(MY_ROOT_PATH)/libjingle_config.mk
+include $(MY_ROOT_PATH)/android-webrtc.mk
+
 include $(MY_WEBRTC_PATH)/common_audio/resampler/Android.mk
 include $(MY_WEBRTC_PATH)/common_audio/signal_processing/Android.mk
 include $(MY_WEBRTC_PATH)/common_audio/vad/Android.mk
@@ -46,7 +49,7 @@ include $(MY_WEBRTC_PATH)/modules/media_file/source/Android.mk
 include $(MY_WEBRTC_PATH)/modules/rtp_rtcp/source/Android.mk
 include $(MY_WEBRTC_PATH)/system_wrappers/source/Android.mk
 include $(MY_WEBRTC_PATH)/voice_engine/Android.mk
-include $(MY_WEBRTC_PATH)/modules/pacing/Android.mk 
+include $(MY_WEBRTC_PATH)/modules/pacing/Android.mk
 
 include $(MY_ANDROID_MAKE_FILES_PATH)/expat.mk
 include $(MY_ANDROID_MAKE_FILES_PATH)/openssl.mk
@@ -54,6 +57,8 @@ include $(MY_ANDROID_MAKE_FILES_PATH)/libsrtp.mk
 ifeq ($(ENABLE_UNITTEST), 1)
 include $(MY_ANDROID_MAKE_FILES_PATH)/gtest.mk
 endif
+
+include $(MY_CLIENT_PATH)/Android.mk
 
 #Video specific stuff, not yet completed.
 ifeq ($(ENABLE_VIDEO), 1)
@@ -98,24 +103,13 @@ LOCAL_WHOLE_STATIC_LIBRARIES := \
 	libwebrtc_vp8 \
 	libwebrtc_i420
 
-#LOCAL_CFLAGS := \
-	-DHAVE_WEBRTC_VIDEO
-
-#LOCAL_C_INCLUDES := \
-	$(MY_WEBRTC_PATH) \
-	$(MY_THIRD_PARTY_PATH)/libjpeg_turbo \
-	$(MY_WEBRTC_PATH)/video_engine/include \
-	$(MY_WEBRTC_PATH)/modules/video_capture/main/interface \
-	$(MY_WEBRTC_PATH)/modules/video_coding/main/interface \
-	$(MY_WEBRTC_PATH)/modules/video_processing/main/interface \
-	$(MY_WEBRTC_PATH)/modules/video_render/main/interface 
-
 LOCAL_LDLIBS := -lgcc -llog -lOpenSLES -lGLESv2
 LOCAL_PRELINK_MODULE := false
 include $(BUILD_STATIC_LIBRARY)
 endif
 
 include $(MY_THIRD_PARTY_PATH)/libjingle/Android.mk
+
 
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
@@ -173,44 +167,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := libvoiceclient
 LOCAL_CPP_EXTENSION := .cc
 LOCAL_SRC_FILES := \
-	voiceclient_main.cc \
-	../../../client/helpers.cc \
-	../../../client/receivemessagetask.cc \
-	../../../client/sendmessagetask.cc \
-	../../../client/keepalivetask.cc \
-	../../../client/presenceouttask.cc \
-	../../../client/presencepushtask.cc \
-	../../../client/clientsignalingthread.cc \
-	../../../client/voiceclient.cc \
-	../../../client/txmppauth.cc \
-	../../../client/txmpppump.cc \
-	../../../client/txmppsocket.cc \
-	../../../client/xmpplog.cc \
-
-LOCAL_CFLAGS := \
-	$(WEBRTC_LOGIN_CREDENTIALS) \
-	$(JINGLE_CONFIG) \
-	-DWEBRTC_RELATIVE_PATH \
-	-DEXPAT_RELATIVE_PATH \
-	-DJSONCPP_RELATIVE_PATH \
-	-DHAVE_WEBRTC_VOICE \
-	-DWEBRTC_TARGET_PC \
-	-DWEBRTC_ANDROID \
-	-DDISABLE_DYNAMIC_CAST \
-	-D_REENTRANT \
-	-DPOSIX \
-	-DOS_LINUX=OS_LINUX \
-	-DLINUX \
-	-DANDROID \
-	-DEXPAT_RELATIVE_PATH \
-	-DXML_STATIC \
-	-DFEATURE_ENABLE_SSL \
-	-DHAVE_OPENSSL_SSL_H=1 \
-	-DFEATURE_ENABLE_VOICEMAIL \
-	-DFEATURE_ENABLE_PSTN \
-	-DSRTP_RELATIVE_PATH \
-	-DHAVE_SRTP \
-	-DWEBRTC_LINUX
+	voiceclient_main.cc
 
 LOCAL_C_INCLUDES := \
 	$(MY_CLIENT_PATH)/../ \
@@ -225,17 +182,24 @@ LOCAL_C_INCLUDES := \
 	$(MY_THIRD_PARTY_PATH)/webrtc/modules/audio_processing/include \
 	$(MY_THIRD_PARTY_PATH)/webrtc/voice_engine
 
-LOCAL_PRELINK_MODULE := false
-ifeq ($(ENABLE_VIDEO), 1)
+LOCAL_CFLAGS := \
+	$(LIBJINGLE_CPPFLAGS) \
+	-DJSONCPP_RELATIVE_PATH \
+	-DWEBRTC_TARGET_PC \
+	-DWEBRTC_ANDROID \
+	-DWEBRTC_LINUX
+
 LOCAL_WHOLE_STATIC_LIBRARIES := \
 	libjingle \
 	libwebrtc_voice \
+	libwebrtcjingle
+
+LOCAL_PRELINK_MODULE := false
+ifeq ($(ENABLE_VIDEO), 1)
+LOCAL_WHOLE_STATIC_LIBRARIES += \
 	libwebrtc_video
 LOCAL_LDLIBS := -lgcc -llog -lOpenSLES -lGLESv2
 else
-LOCAL_WHOLE_STATIC_LIBRARIES := \
-	libjingle \
-	libwebrtc_voice
 LOCAL_LDLIBS := -lOpenSLES -llog
 endif
 

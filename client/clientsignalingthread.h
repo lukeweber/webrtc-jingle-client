@@ -286,7 +286,7 @@ class ClientSignalingThread
   void EndCall(uint32 call_id);
   void MuteCall(uint32 call_id, bool mute);
   void HoldCall(uint32 call_id, bool hold);
-  void SendXmppMessage(const tuenti::XmppMessage &m);
+  void SendXmppMessage(const tuenti::XmppMessage m);
 
 
   // signals
@@ -297,12 +297,12 @@ class ClientSignalingThread
   sigslot::signal1<int> SignalXmppError;
   sigslot::signal1<int> SignalXmppSocketClose;
   sigslot::signal1<int> SignalXmppStateChange;
-  sigslot::signal1<const XmppMessage &> SignalXmppMessage;
+  sigslot::signal1<const XmppMessage> SignalXmppMessage;
 
   sigslot::signal0<> SignalAudioPlayout;
   sigslot::signal0<> SignalBuddyListReset;
-  sigslot::signal1<const RosterItem&> SignalBuddyListRemove;
-  sigslot::signal1<const RosterItem&> SignalBuddyListAdd;
+  sigslot::signal1<const RosterItem> SignalBuddyListRemove;
+  sigslot::signal1<const RosterItem> SignalBuddyListAdd;
   sigslot::signal1<const char *> SignalStatsUpdate;
 
 
@@ -322,11 +322,11 @@ class ClientSignalingThread
   cricket::Call* GetCall(uint32 call_id);
   bool EndAllCalls();
   void PrintStatsS();
-  void SendXmppMessageS(const tuenti::XmppMessage &m);
+  void SendXmppMessageS(const tuenti::XmppMessage m);
   void OnConnected();
   void PresenceInPrivacy(const std::string &action);
-  void OnIncomingMessage(const tuenti::XmppMessage &msg);
-  void OnIncomingMessageS(const tuenti::XmppMessage &msg);
+  void OnIncomingMessage(const tuenti::XmppMessage msg);
+  void OnIncomingMessageS(const tuenti::XmppMessage msg);
 
   // These should live inside of the TXmppPump
   void ResetMedia();

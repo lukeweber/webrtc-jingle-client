@@ -108,9 +108,10 @@ void VoiceClient::Login(const std::string &username,
   }
 }
 
-void VoiceClient::SendMessage(const std::string &remote_jid, const std::string &msg){
+void VoiceClient::SendMessage(const std::string &remote_jid, const int &state,
+                              const std::string &msg){
   if (client_signaling_thread_){
-    XmppMessage xmpp_to_send(remote_jid, msg);
+    XmppMessage xmpp_to_send(remote_jid, static_cast<XmppMessageState>(state), msg);
     client_signaling_thread_->SendXmppMessage(xmpp_to_send);
   }
 }
@@ -202,11 +203,11 @@ void VoiceClient::OnSignalBuddyListReset() {
   CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT, RESET, "", 0);
 }
 
-void VoiceClient::OnSignalBuddyListRemove(const RosterItem &item) {
+void VoiceClient::OnSignalBuddyListRemove(const RosterItem item) {
   CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT, REMOVE, item.jid.BareJid().Str().c_str(), 0);
 }
 
-void VoiceClient::OnSignalBuddyListAdd(const RosterItem &item) {
+void VoiceClient::OnSignalBuddyListAdd(const RosterItem item) {
   CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT, ADD, item.jid.BareJid().Str().c_str(), 0);
 }
 
@@ -219,7 +220,7 @@ void VoiceClient::OnSignalCallTrackerId(int call_id, const char* call_tracker_id
   CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_CALL_TRACKER_ID_EVENT, 0, call_tracker_id, call_id);
 }
 
-void VoiceClient::OnSignalXmppMessage(const XmppMessage &m){
+void VoiceClient::OnSignalXmppMessage(const XmppMessage m){
   //Implement me.
 }
 #elif IOS
@@ -252,11 +253,11 @@ void VoiceClient::OnSignalBuddyListReset() {
     VoiceClientDelegate::getInstance()->OnSignalBuddyListReset();
 }
 
-void VoiceClient::OnSignalBuddyListRemove(const RosterItem &item) {
+void VoiceClient::OnSignalBuddyListRemove(const RosterItem item) {
     VoiceClientDelegate::getInstance()->OnSignalBuddyListRemove(item.jid.BareJid().Str().c_str());
 }
 
-void VoiceClient::OnSignalBuddyListAdd(const RosterItem &item) {
+void VoiceClient::OnSignalBuddyListAdd(const RosterItem item) {
     VoiceClientDelegate::getInstance()->OnSignalBuddyListAdd(item.jid.BareJid().Str().c_str(), item.nick.c_str());
 }
 
@@ -268,7 +269,7 @@ void VoiceClient::OnSignalCallTrackerId(int call_id, const char *call_tracker_id
     VoiceClientDelegate::getInstance()->OnSignalCallTrackingId(call_id, call_tracker_id);
 }
 
-void VoiceClient::OnSignalXmppMessage(const XmppMessage &m){
+void VoiceClient::OnSignalXmppMessage(const XmppMessage m){
   printf("Message from: %s\n", m.jid.BareJid().Str().c_str());
   printf("Message body: %s\n", m.body.c_str());
 }

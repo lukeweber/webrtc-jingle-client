@@ -7,7 +7,7 @@
 # be found in the AUTHORS file in the root of the source tree.
 #
 {
-  'includes': [ 'third_party/webrtc/build/common.gypi', ],
+  'includes': [ 'third_party/webrtc/build/common.gypi'],
   'variables': {
     'webrtc_ios': 'ios',
     'webrtc_android': 'android/voice-client-core/jni',
