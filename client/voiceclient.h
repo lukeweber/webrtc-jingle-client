@@ -93,7 +93,7 @@ class VoiceClient: public sigslot::has_slots<> {
     int xmpp_port, bool use_ssl, int port_allocator_filter);
   void Disconnect();
   void Call(std::string remote_jid);
-  void SendMessage(const std::string &remote_jid, const std::string &msg);
+  void SendMessage(const std::string &remote_jid, const int &state, const std::string &msg);
   void CallWithTracker(std::string remoteJid, std::string call_tracker_id);
   void MuteCall(uint32 call_id, bool mute);
   void HoldCall(uint32 call_id, bool hold);
@@ -105,14 +105,14 @@ class VoiceClient: public sigslot::has_slots<> {
   void OnSignalCallStateChange(int state, const char *remote_jid, int call_id);
   void OnSignalCallError(int error, int call_id);
   void OnSignalAudioPlayout();
-  void OnSignalXmppMessage(const XmppMessage &msg);
+  void OnSignalXmppMessage(const XmppMessage msg);
 
   void OnSignalXmppError(int error);
   void OnSignalXmppSocketClose(int state);
   void OnSignalXmppStateChange(int state);
   void OnSignalBuddyListReset();
-  void OnSignalBuddyListRemove(const RosterItem &item);
-  void OnSignalBuddyListAdd(const RosterItem &item);
+  void OnSignalBuddyListRemove(const RosterItem item);
+  void OnSignalBuddyListAdd(const RosterItem item);
   void OnSignalStatsUpdate(const char *stats);
   void OnSignalCallTrackerId(int call_id, const char *call_tracker_id);
 

@@ -41,7 +41,7 @@ class ReceiveMessageTask : public buzz::XmppTask  {
   virtual int ProcessStart();
 
   sigslot::signal0<> SignalError;
-  sigslot::signal1<const tuenti::XmppMessage&> SignalIncomingXmppMessage;
+  sigslot::signal1<const tuenti::XmppMessage> SignalIncomingXmppMessage;
 };
 
 } // namespace tuenti

@@ -52,12 +52,12 @@
 namespace tuenti {
 
 struct XmppMessageData : talk_base::MessageData {
-  XmppMessageData(const tuenti::XmppMessage &m) : m_(m) {}
+  XmppMessageData(const tuenti::XmppMessage m) : m_(m) {}
   tuenti::XmppMessage m_;
 };
 
 struct RosterData : talk_base::MessageData {
-  RosterData(const RosterItem &item) : item_(item) {}
+  RosterData(const RosterItem item) : item_(item) {}
   RosterItem item_;
 };
 
@@ -451,7 +451,7 @@ void ClientSignalingThread::DeclineCall(uint32 call_id, bool busy) {
       busy));
 }
 
-void ClientSignalingThread::SendXmppMessage(const tuenti::XmppMessage &m) {
+void ClientSignalingThread::SendXmppMessage(const tuenti::XmppMessage m) {
   signal_thread_->Post(this, MSG_SEND_XMPP_MESSAGE, new XmppMessageData(m));
 }
 
@@ -658,7 +658,7 @@ void ClientSignalingThread::LoginS() {
   sp_pump_->DoLogin(xcs_);
 }
 
-void ClientSignalingThread::SendXmppMessageS(const tuenti::XmppMessage &m) {
+void ClientSignalingThread::SendXmppMessageS(const tuenti::XmppMessage m) {
   assert(talk_base::Thread::Current() == signal_thread_);
   SendMessageTask * smt = new SendMessageTask(sp_pump_.get()->client());
   smt->Send(m);
@@ -907,7 +907,7 @@ bool ClientSignalingThread::EndAllCalls() {
   return calls_processed;
 }
 
-void ClientSignalingThread::OnIncomingMessage(const tuenti::XmppMessage &msg) {
+void ClientSignalingThread::OnIncomingMessage(const tuenti::XmppMessage msg) {
   assert(talk_base::Thread::Current() == signal_thread_);
   main_thread_->Post(this, MSG_INCOMING_MESSAGE, new XmppMessageData(msg));
 }

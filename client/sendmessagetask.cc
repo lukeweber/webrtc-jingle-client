@@ -26,11 +26,39 @@ bool SendMessageTask::HandleStanza(const buzz::XmlElement* stanza) {
 int SendMessageTask::ProcessStart() {
   buzz::XmlElement* stanza = new buzz::XmlElement(buzz::QN_MESSAGE);
   stanza->AddAttr(buzz::QN_TO, pending_xmpp_msg_.jid.BareJid().Str());
+
+  buzz::XmlElement* state = NULL;
+  switch (pending_xmpp_msg_.state) {
+    case XMPP_CHAT_NONE:
+      //NO OP
+      break;
+    case XMPP_CHAT_ACTIVE:
+      state = new buzz::XmlElement(buzz::QN_CS_ACTIVE);
+      break;
+    case XMPP_CHAT_COMPOSING:
+      state = new buzz::XmlElement(buzz::QN_CS_COMPOSING);
+      break;
+    case XMPP_CHAT_PAUSED:
+      state = new buzz::XmlElement(buzz::QN_CS_PAUSED);
+      break;
+    case XMPP_CHAT_INACTIVE:
+      state = new buzz::XmlElement(buzz::QN_CS_INACTIVE);
+      break;
+    case XMPP_CHAT_GONE:
+      state = new buzz::XmlElement(buzz::QN_CS_GONE);
+      break;
+  }
   stanza->AddAttr(buzz::QN_ID, task_id());
   stanza->AddAttr(buzz::QN_TYPE, "chat");
-  buzz::XmlElement* body = new buzz::XmlElement(buzz::QN_BODY);
-  body->SetBodyText(pending_xmpp_msg_.body);
-  stanza->AddElement(body);
+
+  if (pending_xmpp_msg_.body != ""){
+    buzz::XmlElement* body = new buzz::XmlElement(buzz::QN_BODY);
+    body->SetBodyText(pending_xmpp_msg_.body);
+    stanza->AddElement(body);
+  }
+  if(state){
+      stanza->AddElement(state);
+  }
 
   SendStanza(stanza);
 
