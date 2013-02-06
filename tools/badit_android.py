@@ -128,23 +128,26 @@ def startApk():
 
 
 def debugApk():
-    cpuInfoCmd = ["adb", "shell", "cat", "/system/build.prop"]
-    p = subprocess.Popen(cpuInfoCmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = p.communicate()
-    if len(err) != 0:
-        logger.error(" ".join(cpuInfoCmd) + " exited with errors:\n" + err)
-        sys.exit(1)
-    for line in out.splitlines():
-        if line.startswith("ro.product.cpu.abi="):
-            cpuAbi = line.split("=")[1]
-    androidBuildDir = os.path.join("build", "android")
-    gdbApk = os.path.join(androidBuildDir, "gdb_apk")
-    envSetup = os.path.join(androidBuildDir, "envsetup.sh")
-    abiSymbolDir = os.path.join("android", "voice-client-core", "obj", profile, "local", cpuAbi)
-    debugCmd = ["bash", "-c", "'source " + envSetup + " && " + gdbApk + " -p com.tuenti.voice.example -s VoiceClientService -l " + abiSymbolDir + "'"]
-    logger.info("Debugging requires a shell.  Copy paste the below to begin debugging:\n" + " ".join(debugCmd))
-    #runCmd("Debug", debugCmd)
-
+    if taskMask & debug_bit:
+        os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        cpuInfoCmd = ["adb", "shell", "cat", "/system/build.prop"]
+        p = subprocess.Popen(cpuInfoCmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        if len(err) != 0:
+            logger.error(" ".join(cpuInfoCmd) + " exited with errors:\n" + err)
+            sys.exit(1)
+        for line in out.splitlines():
+            if line.startswith("ro.product.cpu.abi="):
+                cpuAbi = line.split("=")[1]
+        androidBuildDir = os.path.join("build", "android")
+        gdbApk = os.path.join(androidBuildDir, "gdb_apk")
+        envSetup = os.path.join(androidBuildDir, "envsetup.sh")
+        abiSymbolDir = os.path.join("android", "voice-client-core", "obj", profile, "local", cpuAbi)
+        debugCmd = ["bash", "-c", "'source " + envSetup + " && " + gdbApk + " -p com.tuenti.voice.example -s VoiceClientService -l " + abiSymbolDir + "'"]
+        logger.info("Debugging requires a shell.  Copy paste the below to begin debugging:\n" + " ".join(debugCmd))
+        runCmd("Debug", debugCmd)
+    else:
+        logger.info("skipping debug")
 
 def checkSDK():
         try:
@@ -231,7 +234,6 @@ def main(argv=None):
     uninstallApk()
     installApk()
     startApk()
-    os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     debugApk()
     os.chdir(savedPath)
     logger.info("Done!")
