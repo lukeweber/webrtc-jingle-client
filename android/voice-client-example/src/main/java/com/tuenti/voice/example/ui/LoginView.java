@@ -22,9 +22,9 @@ public class LoginView
 // ------------------------------ FIELDS ------------------------------
 
     // Template Google Settings
-    private static final String MY_USER = "nicktuentitesting2@gmail.com";
+    private static final String MY_USER = "";
 
-    private static final String MY_PASS = "20testing2";
+    private static final String MY_PASS = "";
 
     private Handler mHandler = new Handler();
 
