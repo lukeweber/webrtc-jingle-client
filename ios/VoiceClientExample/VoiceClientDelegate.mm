@@ -30,8 +30,9 @@ void VoiceClientDelegate::Init(){
 
 void VoiceClientDelegate::Login(){
     stun_config_.stun = "stun.l.google.com:19302";
-    voiceClient_->Login("username@gmail.com","password",
-                        &stun_config_, "talk.google.com", 5222, true, 0);
+    voiceClient_->Login("nicktuentitesting@gmail.com","20testing", &stun_config_, "talk.google.com", 5222, true, 0);
+    //voiceClient_->Login("username@gmail.com","password",
+    //                    &stun_config_, "talk.google.com", 5222, true, 0);
 }
 
 void VoiceClientDelegate::Logout(){
@@ -39,7 +40,8 @@ void VoiceClientDelegate::Logout(){
 }
 
 void VoiceClientDelegate::Call(){
-    voiceClient_->Call("userto@gmail.com");
+    voiceClient_->Call("nicktuentitesting2@gmail.com");
+    //voiceClient_->Call("userto@gmail.com");
 }
 
 void VoiceClientDelegate::OnSignalCallStateChange(int state, const char *remote_jid, int call_id) {
