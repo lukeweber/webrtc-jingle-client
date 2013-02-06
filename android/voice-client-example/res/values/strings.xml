@@ -56,11 +56,9 @@
     <string name="turn_username">RFC Turn Username</string>
     <string name="turn_username_key">turn_username_key</string>
     <string name="turn_username_value"></string>
-    <!--string name="turn_username_value">59989700</string-->
     <string name="turn_password">RFC Turn Password</string>
     <string name="turn_password_key">turn_password_key</string>
     <string name="turn_password_value"></string>
-    <!--string name="turn_password_value">ae2659c64f3d2d4d92dc44aa71119a84</string-->
 
     <string name="audio_mode_speaker">"Speaker"</string>
     <string name="audio_mode_earpiece">"Handset earpiece"</string>
