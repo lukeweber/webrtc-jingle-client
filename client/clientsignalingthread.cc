@@ -153,7 +153,7 @@ ClientSignalingThread::ClientSignalingThread()
 
 ClientSignalingThread::~ClientSignalingThread() {
   LOGI("ClientSignalingThread::~ClientSignalingThread");
-  assert(talk_base::Thread::Current() == signal_thread_);
+  Disconnect();
   if (roster_) {
     LOGI("ClientSignalingThread::~ClientSignalingThread - "
         "deleting roster_@(0x%x)", reinterpret_cast<int>(roster_));
