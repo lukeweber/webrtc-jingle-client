@@ -695,12 +695,7 @@ void ClientSignalingThread::CallS(const std::string &remoteJid, const std::strin
   cricket::CallOptions options;
   options.is_muc = false;
 
-#if XMPP_DISABLE_ROSTER
-  // Just call whichever JID we get.
-  buzz::Jid remote_jid(remoteJid);
-  call = sp_media_client_->CreateCall();
-  call->InitiateSession(remote_jid, sp_media_client_->jid(), options, call_tracker_id);  // REQ_MAIN_THREAD
-#else // Check the roster
+#if XMPP_ENABLE_ROSTER //Check the roster
   bool found = false;
   buzz::Jid callto_jid(remoteJid);
   buzz::Jid found_jid;
@@ -722,7 +717,12 @@ void ClientSignalingThread::CallS(const std::string &remoteJid, const std::strin
   } else {
     LOGI("Could not find online friend '%s'", remoteJid.c_str());
   }
-#endif  // !XMPP_DISABLE_ROSTER
+#else
+  // Just call whichever JID we get.
+  buzz::Jid remote_jid(remoteJid);
+  call = sp_media_client_->CreateCall();
+  call->InitiateSession(remote_jid, sp_media_client_->jid(), options, call_tracker_id);  // REQ_MAIN_THREAD
+#endif  // !XMPP_ENABLE_ROSTER
 }
 
 void ClientSignalingThread::MuteCallS(uint32 call_id, bool mute) {
