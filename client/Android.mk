@@ -53,7 +53,9 @@ LOCAL_MODULE := webrtcjingle_unittest
 LOCAL_CPP_EXTENSION:= .cc
 
 LOCAL_SRC_FILES := \
-	receivemessagetask_unittest.cc
+	unit/webrtcjingletest.cc \
+	unit/receivemessagetask_unittest.cc \
+	unit/clientsignalingthread_unittest.cc
 
 LOCAL_C_INCLUDES := \
 	$(MY_LIBJINGLE_C_INCLUDES) \
