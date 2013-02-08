@@ -12,12 +12,13 @@ deps = {
   "trunk/third_party/libevent": "http://src.chromium.org/svn/trunk/src/third_party/libevent@169394",
   "trunk/third_party/libjingle": "https://github.com/lukeweber/libjingle-override.git@259e06d",
   "trunk/third_party/libjpeg": "http://src.chromium.org/svn/trunk/src/third_party/libjpeg@169394",
-  "trunk/third_party/libjpeg_turbo": "http://git.chromium.org/chromium/deps/libjpeg_turbo.git@2fdc3a8097b6a3f5de84aa9e6c901544d7166dec",
+  "trunk/third_party/libjpeg_turbo": "http://git.chromium.org/chromium/deps/libjpeg_turbo.git@82ce8a6d4ebe12a177c0c3597192f2b4f09e81c3",
   "trunk/third_party/libsrtp/source": "http://git.chromium.org/chromium/deps/libsrtp.git@362c71e8d0dc205a4ad9f4709d42c25864ac872a",
-  "trunk/third_party/libyuv": "http://git.chromium.org/external/libyuv.git@5bf29b59db8f0efc294d969c4ad90910ff319324",
+  "trunk/third_party/libvpx/source/libvpx": "http://git.chromium.org/webm/libvpx.git@7a09f6b8",
+  "trunk/third_party/libyuv": "http://git.chromium.org/external/libyuv.git@a9c9242a557c0202454733bab66521bff2e35fc9",
   "trunk/third_party/mach_override": "http://src.chromium.org/svn/trunk/src/third_party/mach_override@169394",
   "trunk/third_party/modp_b64": "http://src.chromium.org/svn/trunk/src/third_party/modp_b64@169394",
-  "trunk/third_party/openssl": "https://github.com/lukeweber/openssl-override.git@5c2172",
+  "trunk/third_party/openssl": "https://github.com/lukeweber/openssl-override.git@5c21728",
   "trunk/third_party/protobuf": "http://src.chromium.org/svn/trunk/src/third_party/protobuf@169394",
   "trunk/third_party/webrtc": "https://github.com/lukeweber/webrtc-src-override.git@2aa2ac2",
   "trunk/third_party/yasm": "http://src.chromium.org/svn/trunk/src/third_party/yasm@169394",
@@ -27,7 +28,6 @@ deps = {
   "trunk/tools/python": "http://src.chromium.org/svn/trunk/src/tools/python@169394",
   "trunk/tools/valgrind": "http://src.chromium.org/svn/trunk/src/tools/valgrind@169394",
   "trunk/tools/win/supalink": "http://src.chromium.org/svn/trunk/src/tools/win/supalink@169394",
-  "trunk/third_party/libvpx/source/libvpx": "http://git.chromium.org/webm/libvpx.git@7a09f6b8",
 }
 hooks = [
   {
