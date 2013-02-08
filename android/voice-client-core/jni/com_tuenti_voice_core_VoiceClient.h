@@ -23,6 +23,8 @@ extern "C" {
 #define com_tuenti_voice_core_VoiceClient_AUDIO_PLAYOUT_EVENT 6L
 #undef com_tuenti_voice_core_VoiceClient_STATS_UPDATE_EVENT
 #define com_tuenti_voice_core_VoiceClient_STATS_UPDATE_EVENT 7L
+#undef com_tuenti_voice_core_VoiceClient_CALL_TRACKER_ID_EVENT
+#define com_tuenti_voice_core_VoiceClient_CALL_TRACKER_ID_EVENT 8L
 /*
  * Class:     com_tuenti_voice_core_VoiceClient
  * Method:    nativeAcceptCall

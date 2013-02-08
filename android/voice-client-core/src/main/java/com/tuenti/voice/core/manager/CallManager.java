@@ -7,4 +7,6 @@ public interface CallManager
     void handleCallError( int error, long callId );
 
     void handleCallStateChanged( int state, String remoteJid, long callId );
+
+    void handleCallTrackerId( long callId, String callTrackerId );
 }

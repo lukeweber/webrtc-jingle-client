@@ -25,13 +25,17 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <assert.h>
+#include "client/client_defines.h"
+#include "client/xmppmessage.h"
 #include "client/clientsignalingthread.h"
 #include "client/logging.h"
-#include "client/client_defines.h"
+#include "client/receivemessagetask.h"
+#include "client/keepalivetask.h"
+#include "client/sendmessagetask.h"
 #include "client/presenceouttask.h"
 #include "client/presencepushtask.h"
-#include "client/voiceclient.h"  // Needed for notify_ would be nice to remove
 #include "talk/base/logging.h"
+#include "client/voiceclient.h"//TODO: Remove
 #include "talk/base/signalthread.h"
 #include "talk/base/ssladapter.h"
 #include "talk/p2p/base/session.h"
@@ -42,38 +46,66 @@
 #include "talk/p2p/client/basicportallocator.h"
 #include "talk/p2p/client/sessionmanagertask.h"
 
-
 #include "talk/xmllite/xmlelement.h"
 #include "talk/xmpp/constants.h"
-#include "../../client/client_defines.h"
 
 namespace tuenti {
 
-enum {
-  // ST_MSG_WORKER_DONE is defined in SignalThread.h
-  MSG_LOGIN = talk_base::SignalThread::ST_MSG_FIRST_AVAILABLE,
-  MSG_DISCONNECT,  // Logout
-  MSG_CALL,
-  MSG_ACCEPT_CALL,
-  MSG_HOLD_CALL,
-  MSG_DECLINE_CALL,
-  MSG_MUTE_CALL,
-  MSG_END_CALL,
-  MSG_KEEPALIVE,
-  MSG_PRINT_STATS,
-//  , MSG_DESTROY
+struct XmppMessageData : talk_base::MessageData {
+  XmppMessageData(const tuenti::XmppMessage m) : m_(m) {}
+  tuenti::XmppMessage m_;
+};
+
+struct RosterData : talk_base::MessageData {
+  RosterData(const RosterItem item) : item_(item) {}
+  RosterItem item_;
+};
+
+struct CallErrorData : talk_base::MessageData {
+  CallErrorData(const int error, const int call_id)
+    : call_id_(call_id),
+    error_(error) {}
+  int call_id_;
+  int error_;
+};
+
+struct CallStateData : talk_base::MessageData{
+  CallStateData(const int state, const std::string jid, const int call_id )
+    : call_id_(call_id),
+    state_(state),
+    jid_(jid) {}
+  int call_id_;
+  int state_;
+  std::string jid_;
+};
+
+struct XmppStateData : talk_base::MessageData {
+  XmppStateData(const buzz::XmppEngine::State &m ): state_(m) {}
+  buzz::XmppEngine::State state_;
+};
+
+struct XmppSocketCloseState : talk_base::MessageData {
+  XmppSocketCloseState(const int &m ): state_(m) {}
+  int state_;
+};
+
+struct XmppEngineErrorData : talk_base::MessageData {
+  XmppEngineErrorData(const buzz::XmppEngine::Error &m ): error_(m) {}
+  buzz::XmppEngine::Error error_;
 };
 
 struct ClientSignalingData: public talk_base::MessageData {
   ClientSignalingData(uint32 call_id, bool b) :
       call_id_(call_id),
       b_(b) {}
-  ClientSignalingData(std::string s) :
-      s_(s) {}
+    ClientSignalingData(std::string s, std::string s2) :
+      s_(s),
+      s2_(s2){}
   ClientSignalingData(uint32 call_id) :
       call_id_(call_id) {}
   uint32 call_id_;
   std::string s_;
+  std::string s2_;
   bool b_;
 };
 
@@ -81,14 +113,13 @@ struct ClientSignalingData: public talk_base::MessageData {
 // ClientSignalingThread
 ///////////////////////////////////////////////////////////////////////////////
 
-ClientSignalingThread::ClientSignalingThread(
-    talk_base::Thread *signal_thread)
-    : signal_thread_(signal_thread),
-    roster_(NULL),
+ClientSignalingThread::ClientSignalingThread()
+    : roster_(NULL),
     buddy_list_(NULL),
     presence_push_(NULL),
     presence_out_(NULL),
-    ping_(NULL),
+    ping_task_(NULL),
+    keepalive_task_(NULL),
     session_manager_task_(NULL),
     call_(NULL),
     port_allocator_flags_(0),
@@ -99,7 +130,10 @@ ClientSignalingThread::ClientSignalingThread(
     xmpp_state_(buzz::XmppEngine::STATE_NONE) {
   // int numRelayPorts = 0;
   LOGI("ClientSignalingThread::ClientSignalingThread");
-  assert(talk_base::Thread::Current() == signal_thread_);
+  main_thread_.reset(new talk_base::AutoThread());
+  main_thread_.get()->Start();
+  signal_thread_ = new talk_base::Thread(&pss_);
+  signal_thread_->Start();
 #if LOGGING
   // Set debugging to verbose in libjingle if LOGGING on android.
   talk_base::LogMessage::LogToDebug(talk_base::LS_VERBOSE);
@@ -115,12 +149,11 @@ ClientSignalingThread::ClientSignalingThread(
   sp_network_manager_.reset(new talk_base::BasicNetworkManager());
   my_status_.set_caps_node("http://github.com/lukeweber/webrtc-jingle");
   my_status_.set_version("1.0-SNAPSHOT");
-
 }
 
 ClientSignalingThread::~ClientSignalingThread() {
   LOGI("ClientSignalingThread::~ClientSignalingThread");
-  assert(talk_base::Thread::Current() == signal_thread_);
+  Disconnect();
   if (roster_) {
     LOGI("ClientSignalingThread::~ClientSignalingThread - "
         "deleting roster_@(0x%x)", reinterpret_cast<int>(roster_));
@@ -131,8 +164,7 @@ ClientSignalingThread::~ClientSignalingThread() {
     delete buddy_list_;
     buddy_list_ = NULL;
   }
-
-  LOGI("ClientSignalingThread::~ClientSignalingThread - done");
+  delete signal_thread_;
 }
 
 void ClientSignalingThread::OnStatusUpdate(const buzz::Status& status) {
@@ -154,7 +186,7 @@ void ClientSignalingThread::OnStatusUpdate(const buzz::Status& status) {
     if (buddy_iter == buddy_list_->end()) {
       // LOGI("Adding to roster: %s, %s", key.c_str(), item.nick.c_str());
       (*buddy_list_)[bare_jid_str] = 1;
-      SignalBuddyListAdd(bare_jid_str.c_str(), item.nick.c_str());
+      main_thread_->Post(this, MSG_ROSTER_ADD, new RosterData(item));
     // New Available client of existing buddy
     } else if (iter == roster_->end()) {
       (*buddy_iter).second++;
@@ -170,7 +202,7 @@ void ClientSignalingThread::OnStatusUpdate(const buzz::Status& status) {
       if (buddy_iter != buddy_list_->end() && --((*buddy_iter).second) == 0) {
         // LOGI("Removing from roster: %s", key.c_str());
         buddy_list_->erase(buddy_iter);
-        SignalBuddyListRemove(bare_jid_str.c_str());
+        main_thread_->Post(this, MSG_ROSTER_REMOVE, new RosterData(item));
       }
     }
   }
@@ -178,39 +210,28 @@ void ClientSignalingThread::OnStatusUpdate(const buzz::Status& status) {
 
 void ClientSignalingThread::OnSessionState(cricket::Call* call,
     cricket::Session* session, cricket::Session::State state) {
-  LOGI("ClientSignalingThread::OnSessionState");
+#if LOGGING
+  LOG(LS_INFO) << "ClientSignalingThread::OnSessionState "
+               << call_session_map_debug_[state];
+#endif
   assert(talk_base::Thread::Current() == signal_thread_);
   switch (state) {
   default:
-    LOGI("VoiceClient::OnSessionState - UNKNOWN_STATE");
-    break;
-  case cricket::BaseSession::STATE_SENTTERMINATE:
-    LOGI("VoiceClient::OnSessionState - STATE_SENTTERMINATE doing nothing...");
-    break;
-  case cricket::BaseSession::STATE_DEINIT:
-    LOGI("VoiceClient::OnSessionState - STATE_DEINIT doing nothing...");
+    //
     break;
   case cricket::Session::STATE_RECEIVEDINITIATE:
     {
-    LOGI("VoiceClient::OnSessionState - "
-      "STATE_RECEIVEDINITIATE setting up call...");
     buzz::Jid jid(session->remote_name());
-    LOGI("Incoming call from '%s', call_id %d", jid.Str().c_str(), call->id());
+    LOG(LS_INFO) << "Incoming call from " << jid.Str() << " call_id  "
+                 << call->id();
     if (auto_accept_) {
       AcceptCall(call->id());
     }
+    SignalCallTrackerId(call->id(), call->sessions()[0]->call_tracker_id().c_str());
     break;
     }
-  case cricket::Session::STATE_RECEIVEDINITIATE_ACK:
-    LOGI("VoiceClient::OnSessionState - STATE_RECEIVEDINITIATE_ACK");
-    break;
-  case cricket::Session::STATE_SENTINITIATE:
-    LOGI("VoiceClient::OnSessionState - STATE_SENTINITIATE doing nothing...");
-    break;
   case cricket::Session::STATE_RECEIVEDACCEPT:
   case cricket::Session::STATE_SENTACCEPT:
-    LOGI("VoiceClient::OnSessionState - "
-      "STATE_RECEIVEDACCEPT transfering data.");
     //Last accept has focus
     call_ = call;
     sp_media_client_->SetFocus(call);
@@ -218,21 +239,8 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
     signal_thread_->PostDelayed(1000, this, MSG_PRINT_STATS);
 #endif
     break;
-  case cricket::Session::STATE_RECEIVEDREJECT:
-    LOGI("VoiceClient::OnSessionState - STATE_RECEIVEDREJECT doing nothing...");
-    break;
   case cricket::Session::STATE_INPROGRESS:
-    LOGI("VoiceClient::OnSessionState - STATE_INPROGRESS monitoring...");
     call->StartSpeakerMonitor(session);
-    break;
-  case cricket::Session::STATE_RECEIVEDTERMINATE:
-    LOGI("VoiceClient::OnSessionState - STATE_RECEIVEDTERMINATE");
-    break;
-  case cricket::Session::STATE_SENTBUSY:
-    LOGI("VoiceClient::OnSessionState - Sent Busy");
-    break;
-  case cricket::Session::STATE_RECEIVEDBUSY:
-    LOGI("VoiceClient::OnSessionState - Received Busy");
     break;
   }
 
@@ -241,83 +249,91 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
   if (!(state == cricket::Session::STATE_RECEIVEDTERMINATE || state == cricket::Session::STATE_DEINIT)) {
     jid_str = session->remote_name();
   }
-  SignalCallStateChange(state, jid_str.c_str(), call->id());
+  main_thread_->Post(this, MSG_CALL_STATE, new CallStateData(state, jid_str, call->id()));
 }
 
 void ClientSignalingThread::OnSessionError(cricket::Call* call,
     cricket::Session* session, cricket::Session::Error error) {
-  switch ( error ){
-  case cricket::Session::ERROR_NONE:
-    // no error
-    break;
-  case cricket::Session::ERROR_TIME:
-    // no response to signaling
-    break;
-  case cricket::Session::ERROR_RESPONSE:
-    // error during signaling
-    break;
-  case cricket::Session::ERROR_NETWORK:
-    // network error, could not allocate network resources
-    break;
-  case cricket::Session::ERROR_CONTENT:
-    // channel errors in SetLocalContent/SetRemoteContent
-    break;
-  case cricket::Session::ERROR_TRANSPORT:
-    // transport error of some kind
-    break;
-  case cricket::Session::ERROR_ACK_TIME:
-    // no ack response to signaling
-    break;
-  }
-  SignalCallError(error, call->id());
+#if LOGGING
+  LOG(LS_INFO) << "ClientSignalingThread::OnSessionError "
+               << call_session_error_map_debug_[error];
+#endif
+  main_thread_->Post(this, MSG_CALL_ERROR, new CallErrorData(error, call->id()));
 }
 
 void ClientSignalingThread::OnXmppError(buzz::XmppEngine::Error error) {
-  SignalXmppError(error);
+#if LOGGING
+  LOG(LS_INFO) << "ClientSignalingThread::OnXmppError: "
+               << xmpp_error_map_debug_[error];
+#endif
+  main_thread_->Post(this, MSG_XMPP_ERROR, new XmppEngineErrorData(error));
 }
 
 void ClientSignalingThread::OnXmppSocketClose(int state) {
-  SignalXmppSocketClose(state);
+  main_thread_->Post(this, MSG_XMPP_SOCKET_CLOSE, new XmppSocketCloseState(state));
 }
 
 void ClientSignalingThread::OnStateChange(buzz::XmppEngine::State state) {
-  LOGI("ClientSignalingThread::OnStateChange");
   assert(talk_base::Thread::Current() == signal_thread_);
-  switch (state) {
-  default:
-    LOGI("ClientSignalingThread::OnStateChange - Unknown State (---) "
-            "doing nothing...");
-    break;
-  case buzz::XmppEngine::STATE_NONE:
-    LOGI("ClientSignalingThread::OnStateChange - State (STATE_NONE) "
-            "doing nothing...");
-    break;
-  case buzz::XmppEngine::STATE_START:
-    LOGI("ClientSignalingThread::OnStateChange - State (STATE_START) "
-            "doing nothing...");
-    break;
-  case buzz::XmppEngine::STATE_OPENING:
-    LOGI("ClientSignalingThread::OnStateChange - State (STATE_OPENING) "
-            "doing nothing...");
-    break;
-  case buzz::XmppEngine::STATE_OPEN:
-    LOGI("ClientSignalingThread::OnStateChange - State (STATE_OPEN) "
-            "initing media & presence...");
-    InitMedia();
-    InitPresence();
+  if (state == buzz::XmppEngine::STATE_OPEN)
+    OnConnected();
+  if (state == buzz::XmppEngine::STATE_CLOSED)
+    ResetMedia();
+
+  xmpp_state_ = state;
+  main_thread_->Post(this, MSG_XMPP_STATE, new XmppStateData(state));
+}
+
+void ClientSignalingThread::OnConnected(){
+  assert(talk_base::Thread::Current() == signal_thread_);
+  std::string client_unique = sp_pump_->client()->jid().Str();
+  talk_base::InitRandom(client_unique.c_str(), client_unique.size());
+
+  // TODO(alex) We need to modify the last params of this to add TURN servers
+  sp_session_manager_->SignalRequestSignaling.connect(this,
+      &ClientSignalingThread::OnRequestSignaling);
+  sp_session_manager_->SignalSessionCreate.connect(this,
+      &ClientSignalingThread::OnSessionCreate);
+  sp_session_manager_->OnSignalingReady();
+
+  // This is deleted by the task runner.
+  session_manager_task_ =
+      new cricket::SessionManagerTask(sp_pump_->client(),
+                                      sp_session_manager_.get());
+  session_manager_task_->EnableOutgoingMessages();
+  session_manager_task_->Start();
+
+#if XMPP_CHAT_ENABLED
+  receive_message_task_ = new ReceiveMessageTask(sp_pump_->client(), buzz::XmppEngine::HL_ALL);
+  receive_message_task_->SignalIncomingXmppMessage.connect(this, &ClientSignalingThread::OnIncomingMessage);
+  receive_message_task_->Start();
+#endif
+  sp_media_client_.reset(new cricket::MediaSessionClient(
+                                      sp_pump_->client()->jid(),
+                                      sp_session_manager_.get()));
+  sp_media_client_->SignalCallCreate.connect(this,
+      &ClientSignalingThread::OnCallCreate);
+  sp_media_client_->SignalCallDestroy.connect(this,
+      &ClientSignalingThread::OnCallDestroy);
+#if ENABLE_SRTP
+  sp_media_client_->set_secure(cricket::SEC_ENABLED);
+#else
+  sp_media_client_->set_secure(cricket::SEC_DISABLED);
+#endif
+  InitPresence();
+
 #if XMPP_WHITESPACE_KEEPALIVE_ENABLED
-    ScheduleKeepAlive();
+  keepalive_task_ = new KeepAliveTask(sp_pump_->client(), signal_thread_,
+      XmppKeepAliveInterval);
+  keepalive_task_->Start();
 #endif
 #if XMPP_PING_ENABLED
-    InitPing();
+  assert(talk_base::Thread::Current() == signal_thread_);
+  ping_task_ = new buzz::PingTask(sp_pump_->client(), talk_base::Thread::Current(),
+      PingInterval, PingTimeout);
+  ping_task_->SignalTimeout.connect(this, &ClientSignalingThread::OnPingTimeout);
+  ping_task_->Start();
 #endif
-    break;
-  case buzz::XmppEngine::STATE_CLOSED:
-    ResetMedia();
-    break;
-  }
-  xmpp_state_ = state;
-  SignalXmppStateChange(state);
 }
 
 void ClientSignalingThread::OnAudioPlayout(){
@@ -364,10 +380,10 @@ void ClientSignalingThread::OnMediaEngineTerminate() {
 }
 
 void ClientSignalingThread::OnPingTimeout() {
-  LOGE("XMPP ping timeout. Will keep trying...");
-  InitPing();
+  //TODO: What do we want to do on timeout? Tear down, try again?
+  //InitPing();
 }
-    
+
 void ClientSignalingThread::OnCallStatsUpdate(char *stats) {
   LOGI("ClientSignalingThread::OnCallStatsUpdate");
 }
@@ -409,9 +425,9 @@ void ClientSignalingThread::Disconnect() {
   signal_thread_->Post(this, MSG_DISCONNECT);
 }
 
-void ClientSignalingThread::Call(std::string remoteJid) {
+void ClientSignalingThread::Call(std::string remoteJid, std::string call_tracker_id) {
   LOGI("ClientSignalingThread::Call");
-  signal_thread_->Post(this, MSG_CALL, new ClientSignalingData(remoteJid));
+  signal_thread_->Post(this, MSG_CALL, new ClientSignalingData(remoteJid, call_tracker_id));
 }
 
 void ClientSignalingThread::MuteCall(uint32 call_id, bool mute) {
@@ -435,6 +451,10 @@ void ClientSignalingThread::DeclineCall(uint32 call_id, bool busy) {
       busy));
 }
 
+void ClientSignalingThread::SendXmppMessage(const tuenti::XmppMessage m) {
+  signal_thread_->Post(this, MSG_SEND_XMPP_MESSAGE, new XmppMessageData(m));
+}
+
 void ClientSignalingThread::EndCall(uint32 call_id) {
   LOGI("ClientSignalingThread::EndCall %d", call_id);
   signal_thread_->Post(this, MSG_END_CALL, new ClientSignalingData(call_id));
@@ -444,65 +464,52 @@ void ClientSignalingThread::EndCall(uint32 call_id) {
 // THESE ARE THE ONLY FUNCTIONS THAT CAN BE CALLED USING ANY THREAD
 // ================================================================
 
-void ClientSignalingThread::Destroy() {
-  LOGI("ClientSignalingThread::Destroy");
-  assert(talk_base::Thread::Current() == signal_thread_);
-  DisconnectS();
-  // These depend on SignalThred::worker(), so delete them first.
-  sp_session_manager_.reset(NULL);
-  sp_socket_factory_.reset(NULL);
-  SignalThread::Destroy(true);
-}
-
 void ClientSignalingThread::OnMessage(talk_base::Message* message) {
-  LOGI("ClientSignalingThread::OnMessage");
-  assert(talk_base::Thread::Current() == signal_thread_);
   ClientSignalingData* data;
+#if LOGGING
+  LOG(LS_INFO) << "ClientSignalingThread::OnMessage: "
+               << client_signal_map_debug_[message->message_id];
+#endif
   switch (message->message_id) {
+
+  // ------> Events on Signaling Thread <------
   case MSG_LOGIN:
-    LOGI("ClientSignalingThread::OnMessage - MSG_LOGIN");
     LoginS();
     break;
+  case MSG_SEND_XMPP_MESSAGE:
+      SendXmppMessageS(static_cast<XmppMessageData*>(message->pdata)->m_);
+      delete message->pdata;
+      break;
   case MSG_DISCONNECT:
-    LOGI("ClientSignalingThread::OnMessage - MSG_DISCONNECT");
     DisconnectS();
     break;
   case MSG_CALL:
-    LOGI("ClientSignalingThread::OnMessage - MSG_CALL");
-    CallS(static_cast<ClientSignalingData*>(message->pdata)->s_);
+    CallS(static_cast<ClientSignalingData*>(message->pdata)->s_,
+          static_cast<ClientSignalingData*>(message->pdata)->s2_);
     delete message->pdata;
     break;
   case MSG_MUTE_CALL:
-    LOGI("ClientSignallingThread::OnMessage - MSG_MUTE_CALL");
     data = static_cast<ClientSignalingData*>(message->pdata);
     MuteCallS(data->call_id_, data->b_);
     delete message->pdata;
     break;
   case MSG_ACCEPT_CALL:
-    LOGI("ClientSignalingThread::OnMessage - MSG_ACCEPT_CALL");
     AcceptCallS(static_cast<ClientSignalingData*>(message->pdata)->call_id_);
     delete message->pdata;
     break;
   case MSG_DECLINE_CALL:
-    LOGI("ClientSignalingThread::OnMessage - MSG_DECLINE_CALL");
     data = static_cast<ClientSignalingData*>(message->pdata);
     DeclineCallS(data->call_id_, data->b_);
     delete message->pdata;
     break;
   case MSG_HOLD_CALL:
-    LOGI("ClientSignalingThread::OnMessage - MSG_HOLD_CALL");
     data = static_cast<ClientSignalingData*>(message->pdata);
     HoldCallS(data->call_id_, data->b_);
     delete message->pdata;
     break;
   case MSG_END_CALL:
-    LOGI("ClientSignalingThread::OnMessage - MSG_END_CALL");
     EndCallS(static_cast<ClientSignalingData*>(message->pdata)->call_id_);
     delete message->pdata;
-    break;
-  case MSG_KEEPALIVE:
-    OnKeepAliveS();
-    ScheduleKeepAlive();
     break;
   case MSG_PRINT_STATS:
     LOGI("ClientSignalingThread::OnMessage - MSG_PRINT_STATS");
@@ -511,31 +518,70 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
       signal_thread_->PostDelayed(1000, this, MSG_PRINT_STATS);
     }
     break;
+
+
+  // ------> Events on Main Thread <------
+  case MSG_XMPP_STATE:
+    assert(talk_base::Thread::Current() == main_thread_.get());
+    SignalXmppStateChange(static_cast<XmppStateData*>(message->pdata)->state_);
+    break;
+  case MSG_XMPP_ERROR:
+    assert(talk_base::Thread::Current() == main_thread_.get());
+    SignalXmppError(static_cast<XmppEngineErrorData*>(message->pdata)->error_);
+    delete message->pdata;
+    break;
+  case MSG_XMPP_SOCKET_CLOSE:
+    assert(talk_base::Thread::Current() == main_thread_.get());
+    SignalXmppSocketClose(static_cast<XmppSocketCloseState*>(message->pdata)->state_);
+    delete message->pdata;
+    break;
+  case MSG_CALL_ERROR:
+    {
+    assert(talk_base::Thread::Current() == main_thread_.get());
+    CallErrorData* cd = static_cast<CallErrorData*>(message->pdata);
+    SignalCallError(cd->error_, cd->call_id_);
+    delete message->pdata;
+    break;
+    }
+  case MSG_INCOMING_MESSAGE:
+    {
+    assert(talk_base::Thread::Current() == main_thread_.get());
+    SignalXmppMessage(static_cast<XmppMessageData*>(message->pdata)->m_);
+    delete message->pdata;
+    break;
+    }
+  case MSG_ROSTER_REMOVE:
+    {
+    assert(talk_base::Thread::Current() == main_thread_.get());
+    SignalBuddyListRemove(static_cast<RosterData*>(message->pdata)->item_);
+    delete message->pdata;
+    break;
+    }
+  case MSG_ROSTER_ADD:
+    {
+    assert(talk_base::Thread::Current() == main_thread_.get());
+    SignalBuddyListAdd(static_cast<RosterData*>(message->pdata)->item_);
+    delete message->pdata;
+    break;
+    }
+  case MSG_ROSTER_RESET:
+    {
+    assert(talk_base::Thread::Current() == main_thread_.get());
+    SignalBuddyListReset();
+    break;
+    }
+  case MSG_CALL_STATE:
+    {
+    assert(talk_base::Thread::Current() == main_thread_.get());
+    CallStateData *csd = static_cast<CallStateData*>(message->pdata);
+    SignalCallStateChange(csd->state_, csd->jid_.c_str(), csd->call_id_);
+    delete message->pdata;
+    break;
+    }
   default:
-    LOGI("ClientSignalingThread::OnMessage - UNKNOWN "
-            "falling back to base class");
-    SignalThread::OnMessage(message);
+    //
     break;
   }
-}
-
-void ClientSignalingThread::OnKeepAliveS(){
-  if(sp_pump_->client()){
-    sp_pump_->client()->SendRaw(" ");
-    ScheduleKeepAlive();
-  }
-}
-
-void ClientSignalingThread::ScheduleKeepAlive() {
-  //We ping a white space every 10 minutes to avoid the connection dropping.
-  signal_thread_->PostDelayed(XmppKeepAlivePingInterval, this, MSG_KEEPALIVE);
-}
-
-
-void ClientSignalingThread::DoWork() {
-  LOGI("ClientSignalingThread::DoWork");
-  assert(talk_base::Thread::Current() == worker());
-  worker()->ProcessMessages(talk_base::kForever);
 }
 
 void ClientSignalingThread::ResetMedia() {
@@ -548,7 +594,7 @@ void ClientSignalingThread::ResetMedia() {
     roster_->clear();
   }
   if (buddy_list_) {
-    SignalBuddyListReset();
+    main_thread_->Post(this, MSG_ROSTER_RESET);
     buddy_list_->clear();
   }
 
@@ -574,7 +620,7 @@ void ClientSignalingThread::LoginS() {
 
   // TODO(Luke): Add option to force relay, ie DISABLE_UDP,DISABLE_TCP,
   // DISABLE_STUN
-  sp_socket_factory_.reset(new talk_base::BasicPacketSocketFactory(worker()));
+  sp_socket_factory_.reset(new talk_base::BasicPacketSocketFactory(signal_thread_));
   sp_port_allocator_.reset(
           new cricket::BasicPortAllocator(sp_network_manager_.get(),
                                           sp_socket_factory_.get(), stun));
@@ -602,7 +648,7 @@ void ClientSignalingThread::LoginS() {
     sp_port_allocator_->set_filter(port_allocator_filter_);
   }
   sp_session_manager_.reset(
-      new cricket::SessionManager(sp_port_allocator_.get(), worker()));
+      new cricket::SessionManager(sp_port_allocator_.get(), signal_thread_));
 
   if (xcs_.use_tls() == buzz::TLS_REQUIRED) {
     talk_base::InitializeSSL();
@@ -610,6 +656,13 @@ void ClientSignalingThread::LoginS() {
 
   sp_pump_.reset(new TXmppPump(this));
   sp_pump_->DoLogin(xcs_);
+}
+
+void ClientSignalingThread::SendXmppMessageS(const tuenti::XmppMessage m) {
+  assert(talk_base::Thread::Current() == signal_thread_);
+  SendMessageTask * smt = new SendMessageTask(sp_pump_.get()->client());
+  smt->Send(m);
+  smt->Start();
 }
 
 void ClientSignalingThread::DisconnectS() {
@@ -629,9 +682,11 @@ void ClientSignalingThread::DisconnectS() {
     }
     sp_pump_->DoDisconnect();
   }
+  sp_session_manager_.reset(NULL);
+  sp_socket_factory_.reset(NULL);
 }
 
-void ClientSignalingThread::CallS(const std::string &remoteJid) {
+void ClientSignalingThread::CallS(const std::string &remoteJid, const std::string &call_tracker_id) {
   LOGI("ClientSignalingThread::CallS");
   assert(talk_base::Thread::Current() == signal_thread_);
 
@@ -640,12 +695,7 @@ void ClientSignalingThread::CallS(const std::string &remoteJid) {
   cricket::CallOptions options;
   options.is_muc = false;
 
-#if XMPP_DISABLE_ROSTER
-  // Just call whichever JID we get.
-  buzz::Jid remote_jid(remoteJid);
-  call = sp_media_client_->CreateCall();
-  call->InitiateSession(remote_jid, sp_media_client_->jid(), options);  // REQ_MAIN_THREAD
-#else // Check the roster
+#if XMPP_ENABLE_ROSTER //Check the roster
   bool found = false;
   buzz::Jid callto_jid(remoteJid);
   buzz::Jid found_jid;
@@ -663,11 +713,16 @@ void ClientSignalingThread::CallS(const std::string &remoteJid) {
   if (found) {
     LOGI("Found online friend '%s'", found_jid.Str().c_str());
     call = sp_media_client_->CreateCall();
-    call->InitiateSession(found_jid, sp_media_client_->jid(), options);
+    call->InitiateSession(found_jid, sp_media_client_->jid(), options, call_tracker_id);
   } else {
     LOGI("Could not find online friend '%s'", remoteJid.c_str());
   }
-#endif  // !XMPP_DISABLE_ROSTER
+#else
+  // Just call whichever JID we get.
+  buzz::Jid remote_jid(remoteJid);
+  call = sp_media_client_->CreateCall();
+  call->InitiateSession(remote_jid, sp_media_client_->jid(), options, call_tracker_id);  // REQ_MAIN_THREAD
+#endif  // !XMPP_ENABLE_ROSTER
 }
 
 void ClientSignalingThread::MuteCallS(uint32 call_id, bool mute) {
@@ -723,40 +778,6 @@ void ClientSignalingThread::EndCallS(uint32 call_id) {
   if (call) {
     call->Terminate();
   }
-}
-
-void ClientSignalingThread::InitMedia() {
-  LOGI("ClientSignalingThread::InitMedia");
-  assert(talk_base::Thread::Current() == signal_thread_);
-  std::string client_unique = sp_pump_->client()->jid().Str();
-  talk_base::InitRandom(client_unique.c_str(), client_unique.size());
-
-  // TODO(alex) We need to modify the last params of this to add TURN servers
-  sp_session_manager_->SignalRequestSignaling.connect(this,
-      &ClientSignalingThread::OnRequestSignaling);
-  sp_session_manager_->SignalSessionCreate.connect(this,
-      &ClientSignalingThread::OnSessionCreate);
-  sp_session_manager_->OnSignalingReady();
-
-  // This is deleted by the task runner.
-  session_manager_task_ =
-      new cricket::SessionManagerTask(sp_pump_->client(),
-                                      sp_session_manager_.get());
-  session_manager_task_->EnableOutgoingMessages();
-  session_manager_task_->Start();
-
-  sp_media_client_.reset(new cricket::MediaSessionClient(
-                                      sp_pump_->client()->jid(),
-                                      sp_session_manager_.get()));
-  sp_media_client_->SignalCallCreate.connect(this,
-      &ClientSignalingThread::OnCallCreate);
-  sp_media_client_->SignalCallDestroy.connect(this,
-      &ClientSignalingThread::OnCallDestroy);
-#if ENABLE_SRTP
-  sp_media_client_->set_secure(cricket::SEC_ENABLED);
-#else
-  sp_media_client_->set_secure(cricket::SEC_DISABLED);
-#endif
 }
 
 void ClientSignalingThread::PrintStatsS() {
@@ -830,7 +851,7 @@ void ClientSignalingThread::InitPresence() {
   my_status_.set_show(buzz::Status::SHOW_ONLINE);
 #endif
 
-#if not XMPP_DISABLE_ROSTER
+#if XMPP_ENABLE_ROSTER
   presence_push_ = new buzz::PresencePushTask(sp_pump_->client());
   presence_push_->SignalStatusUpdate.connect(this,
       &ClientSignalingThread::OnStatusUpdate);
@@ -862,15 +883,6 @@ void ClientSignalingThread::PresenceInPrivacy(const std::string& action){
   }
 }
 
-void ClientSignalingThread::InitPing() {
-  LOGI("ClientSignalingThread::InitPing");
-  assert(talk_base::Thread::Current() == signal_thread_);
-  ping_ = new buzz::PingTask(sp_pump_->client(), talk_base::Thread::Current(),
-      PingInterval, PingTimeout);
-  ping_->SignalTimeout.connect(this, &ClientSignalingThread::OnPingTimeout);
-  ping_->Start();
-}
-
 cricket::Call* ClientSignalingThread::GetCall(uint32 call_id) {
   const std::map<uint32, cricket::Call*>& calls = sp_media_client_->calls();
   for (std::map<uint32, cricket::Call*>::const_iterator i = calls.begin();
@@ -894,4 +906,10 @@ bool ClientSignalingThread::EndAllCalls() {
   call_  = NULL;
   return calls_processed;
 }
+
+void ClientSignalingThread::OnIncomingMessage(const tuenti::XmppMessage msg) {
+  assert(talk_base::Thread::Current() == signal_thread_);
+  main_thread_->Post(this, MSG_INCOMING_MESSAGE, new XmppMessageData(msg));
+}
+
 }  // namespace tuenti

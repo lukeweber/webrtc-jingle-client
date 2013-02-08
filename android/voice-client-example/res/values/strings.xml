@@ -57,4 +57,9 @@
     <string name="turn_password_key">turn_password_key</string>
     <string name="turn_password_value"></string>
 
+    <string name="audio_mode_speaker">"Speaker"</string>
+    <string name="audio_mode_earpiece">"Handset earpiece"</string>
+    <string name="audio_mode_wired_headset">"Wired headset"</string>
+    <string name="audio_mode_bluetooth">"Bluetooth"</string>
+
 </resources>

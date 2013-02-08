@@ -35,7 +35,7 @@
         <android.api.version>14</android.api.version>
         <android.version>4.0.1.2</android.version>
 
-        <android-maven-plugin.version>3.3.3-SNAPSHOT</android-maven-plugin.version>
+        <android-maven-plugin.version>3.5.1-SNAPSHOT</android-maven-plugin.version>
         <maven-enforcer-plugin.version>1.2</maven-enforcer-plugin.version>
         <maven-clean-plugin.version>2.5</maven-clean-plugin.version>
         <maven-compiler-plugin.version>2.3.2</maven-compiler-plugin.version>
@@ -128,6 +128,33 @@
         </pluginRepository>
     </pluginRepositories>
     <profiles>
+        <profile>
+            <id>video_debug</id>
+            <properties>
+                <android.liboutdir>video_debug</android.liboutdir>
+                <android.apk.debug>true</android.apk.debug>
+                <android.ndkappfile>jni/video_debug.mk</android.ndkappfile>
+                <android.manifest.debuggable>true</android.manifest.debuggable>
+            </properties>
+        </profile>
+        <profile>
+            <id>video_release</id>
+            <properties>
+                <android.liboutdir>video_release</android.liboutdir>
+                <android.apk.debug>false</android.apk.debug>
+                <android.ndkappfile>jni/video_release.mk</android.ndkappfile>
+                <android.manifest.debuggable>false</android.manifest.debuggable>
+            </properties>
+        </profile>
+        <profile>
+            <id>video_final</id>
+            <properties>
+                <android.liboutdir>video_final</android.liboutdir>
+                <android.apk.debug>false</android.apk.debug>
+                <android.ndkappfile>jni/video_final.mk</android.ndkappfile>
+                <android.manifest.debuggable>false</android.manifest.debuggable>
+            </properties>
+        </profile>
         <profile>
             <id>default_debug</id>
             <activation>

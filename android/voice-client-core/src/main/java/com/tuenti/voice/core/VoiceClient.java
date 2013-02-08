@@ -36,6 +36,7 @@ public class VoiceClient
     public static final int CALL_ERROR_EVENT = 5;
     public static final int AUDIO_PLAYOUT_EVENT = 6;
     public static final int STATS_UPDATE_EVENT = 7;
+    public static final int CALL_TRACKER_ID_EVENT = 8;
     //End Event constants
 
     private final static String TAG = "j-VoiceClient";
@@ -245,21 +246,37 @@ public class VoiceClient
             }
         }
     }
+
+    /**
+     * @see CallManager#handleCallTrackerId(int, String)
+     */
+    protected void handleCallTrackerId( long callId, String callTrackerId )
+    {
+        if ( mCallManager != null )
+        {
+            synchronized ( mLock )
+            {
+                mCallManager.handleCallTrackerId( callId, callTrackerId );
+            }
+        }
+    }
     @SuppressWarnings("UnusedDeclaration")
     //TODO: change the signature to be:
     //dispatchNativeEvent( int what, int code, String data )
-    private void dispatchNativeEvent( int what, int code, String remoteJid, long callId )
+    private void dispatchNativeEvent( int what, int code, String data, long callId )
     {
         switch ( what )
         {
             case CALL_STATE_EVENT:
-                handleCallStateChanged( code, remoteJid, callId );
+                // data contains remoteJid
+                handleCallStateChanged( code, data, callId );
                 break;
             case CALL_ERROR_EVENT:
                 handleCallError( code, callId );
                 break;
             case BUDDY_LIST_EVENT:
-                handleBuddyListChanged( code, remoteJid );
+                // data contains remoteJid
+                handleBuddyListChanged( code, data );
                 break;
             case XMPP_STATE_EVENT:
                 handleXmppStateChanged( code );
@@ -270,8 +287,11 @@ public class VoiceClient
             case XMPP_SOCKET_CLOSE_EVENT:
                 handleXmppSocketClose( code );
             case STATS_UPDATE_EVENT:
-                //NFHACK: WE NEED TO CHANGE THIS STRUCTURE SO ITS EASY TO PASS ANY DATA
-                handleStatsUpdate( remoteJid );
+                // data constains stats
+                handleStatsUpdate( data );
+            case CALL_TRACKER_ID_EVENT:
+                // data contains call_tracking_id
+                handleCallTrackerId( callId, data );
                 break;
         }
     }

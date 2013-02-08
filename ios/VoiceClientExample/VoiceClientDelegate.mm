@@ -25,7 +25,6 @@ void VoiceClientDelegate::Init(){
     if (voiceClient_ == NULL){
         printf("initing");
         voiceClient_ = new tuenti::VoiceClient();
-        voiceClient_->Init();
     }
 }
 
@@ -44,7 +43,10 @@ void VoiceClientDelegate::Call(){
 }
 
 void VoiceClientDelegate::OnSignalCallStateChange(int state, const char *remote_jid, int call_id) {
+}
 
+void VoiceClientDelegate::OnSignalCallTrackingId(int call_id, const char *call_tracker_id) {
+    printf("------- Call Tracker Id %s for call_id %d", call_tracker_id, call_id);
 }
 
 void VoiceClientDelegate::OnSignalAudioPlayout() {
@@ -60,14 +62,6 @@ void VoiceClientDelegate::OnSignalXmppSocketClose(int state) {
 }
 
 void VoiceClientDelegate::OnSignalXmppStateChange(int state) {
-    printf("state %i\n", state);
-    if (buzz::XmppEngine::STATE_NONE == state){
-        //Login after this event.
-    }
-    
-    if (buzz::XmppEngine::STATE_OPEN == state){
-        printf("Calling\n");
-    }
 }
 
 void VoiceClientDelegate::OnSignalBuddyListReset() {

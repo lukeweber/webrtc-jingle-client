@@ -14,7 +14,7 @@ testing/*
 base/*
 build/*
 gyp-mac-tool
-voice-client-core/supplement.gypi
+client/supplement.gypi
 
 #Android generated
 bin
@@ -46,6 +46,10 @@ ant.properties
 local.properties
 proguard.cfg
 proguard-project.txt
+
+#XCode
+webrtcjingle.xcodeproj
+xcodebuild
 
 #Other
 .DS_Store

@@ -97,7 +97,7 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true">
+        android:gravity="center">
 
         <LinearLayout
             android:orientation="horizontal"
@@ -120,12 +120,21 @@
         <LinearLayout
             android:id="@+id/bottom_bar"
             android:orientation="horizontal"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/dialpad_background"
             android:paddingLeft="@dimen/button_cluster_side_padding"
             android:paddingRight="@dimen/button_cluster_side_padding"
             android:visibility="gone">
+
+            <!-- Separator -->
+            <View style="@style/VerticalSeparator" />
+
+            <!-- "Audio mode" -->
+            <ToggleButton
+                android:id="@+id/audio_btn"
+                style="@style/InCallCompoundButton"
+                android:background="@drawable/btn_compound_audio" />
 
             <!-- Separator -->
             <View style="@style/VerticalSeparator"/>

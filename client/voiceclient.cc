@@ -37,6 +37,7 @@
 
 #include "client/voiceclient.h"
 #include "client/logging.h"
+#include "client/xmppmessage.h"
 #include "client/threadpriorityhandler.h"
 #include "client/clientsignalingthread.h"
 #include "talk/base/thread.h"
@@ -44,139 +45,56 @@
 
 namespace tuenti {
 
-enum {
-  MSG_INIT, MSG_DESTROY,
-};
-
-const char* msgNames[] = { "MSG_INIT", "MSG_DESTROY", };
-
 #ifdef ANDROID
-VoiceClient::VoiceClient(JavaObjectReference *reference)
-    : reference_(reference),
-    signal_thread_(NULL),
-    client_signaling_thread_(NULL) {
+VoiceClient::VoiceClient(JavaObjectReference *reference) {
+    reference_ = reference;
     Init();
 }
 #elif IOS
-VoiceClient::VoiceClient()
-    : signal_thread_(NULL),
-    client_signaling_thread_(NULL) {
+VoiceClient::VoiceClient() {
     Init();
 }
 #endif
 
-void VoiceClient::Init(){
-#ifdef TUENTI_CUSTOM_BUILD
-  LOG(INFO) << "LOGT RUNNING WITH TUENTI_CUSTOM_BUILD";
-#endif //TUENTI_CUSTOM_BUILD
-  // a few standard logs not sure why they are not working
-  talk_base::LogMessage::LogThreads();
-  talk_base::LogMessage::LogTimestamps();
-
-  // this creates all objects on the signaling thread
-  if (signal_thread_ == NULL) {
-    signal_thread_ = new talk_base::Thread();
-    signal_thread_->Start();
-    signal_thread_->Post(this, MSG_INIT);
-  }
-
-}
-
 VoiceClient::~VoiceClient() {
   LOGI("VoiceClient::~VoiceClient");
+  delete client_signaling_thread_;
 }
 
-void VoiceClient::Destroy() {
-  LOGI("VoiceClient::Destroy");
-  signal_thread_->Post(this, MSG_DESTROY);
-  while( client_signaling_thread_ != NULL ){
-    LOGI("VoiceClient::Destroy - loop");
-    // Investigate if we could add Chromium base thread logic
-    // PlatformThread::YieldCurrentThread()
-    talk_base::Thread::Current()->SleepMs(10);
-  }
-}
+void VoiceClient::Init() {
+  LOGI("VoiceClient::VoiceClient - new ClientSignalingThread "
+          "client_signaling_thread_@(0x%x)",
+          reinterpret_cast<int>(client_signaling_thread_));
 
-void VoiceClient::InitializeS() {
-  assert(talk_base::Thread::Current() == signal_thread_);
-  LOGI("VoiceClient::InitializeS");
+  client_signaling_thread_  = new tuenti::ClientSignalingThread();
+  client_signaling_thread_->SignalCallStateChange.connect(
+      this, &VoiceClient::OnSignalCallStateChange);
+  client_signaling_thread_->SignalCallError.connect(
+      this, &VoiceClient::OnSignalCallError);
+  client_signaling_thread_->SignalAudioPlayout.connect(
+      this, &VoiceClient::OnSignalAudioPlayout);
+  client_signaling_thread_->SignalCallTrackerId.connect(
+      this, &VoiceClient::OnSignalCallTrackerId);
 
-  if (client_signaling_thread_ == NULL) {
-    client_signaling_thread_ = new tuenti::ClientSignalingThread(
-        signal_thread_);
-    LOGI("VoiceClient::VoiceClient - new ClientSignalingThread "
-            "client_signaling_thread_@(0x%x)",
-            reinterpret_cast<int>(client_signaling_thread_));
+  client_signaling_thread_->SignalXmppError.connect(
+      this, &VoiceClient::OnSignalXmppError);
+  client_signaling_thread_->SignalXmppSocketClose.connect(
+      this, &VoiceClient::OnSignalXmppSocketClose);;
+  client_signaling_thread_->SignalXmppStateChange.connect(
+      this, &VoiceClient::OnSignalXmppStateChange);
 
-    client_signaling_thread_->SignalCallStateChange.connect(
-        this, &VoiceClient::OnSignalCallStateChange);
-    client_signaling_thread_->SignalCallError.connect(
-        this, &VoiceClient::OnSignalCallError);
-    client_signaling_thread_->SignalAudioPlayout.connect(
-        this, &VoiceClient::OnSignalAudioPlayout);
-
-    client_signaling_thread_->SignalXmppError.connect(
-        this, &VoiceClient::OnSignalXmppError);
-    client_signaling_thread_->SignalXmppSocketClose.connect(
-        this, &VoiceClient::OnSignalXmppSocketClose);;
-    client_signaling_thread_->SignalXmppStateChange.connect(
-        this, &VoiceClient::OnSignalXmppStateChange);
-
-    client_signaling_thread_->SignalBuddyListReset.connect(
-        this, &VoiceClient::OnSignalBuddyListReset);
-    client_signaling_thread_->SignalBuddyListRemove.connect(
-        this, &VoiceClient::OnSignalBuddyListRemove);
-    client_signaling_thread_->SignalBuddyListAdd.connect(
-        this, &VoiceClient::OnSignalBuddyListAdd);
-#ifdef LOGGING
-    client_signaling_thread_->SignalStatsUpdate.connect(
-        this, &VoiceClient::OnSignalStatsUpdate);
-#endif
-    client_signaling_thread_->Start();
-
-    //We know the client is alive when we get this state.
-    OnSignalXmppStateChange(buzz::XmppEngine::STATE_NONE);
-  }
-}
-
-void VoiceClient::DestroyS() {
-  LOGI("VoiceClient::DestroyS");
-  talk_base::CritScope lock(&destroy_cs_);
-  if (client_signaling_thread_ != NULL) {
-    LOGI("VoiceClient::VoiceClient - destroy ClientSignalingThread "
-            "client_signaling_thread_@(0x%x)",
-            reinterpret_cast<int>(client_signaling_thread_));
-    LOGI("VoiceClient::DestroyS client_signaling_thread_ - Destroy()");
-    // This call, will call SignalThread::Destroy(true)
-    // This will quit the thread and join it, thus deleting client_signaling_thread
-    client_signaling_thread_->Destroy();
-    client_signaling_thread_ = NULL;
-    LOGI("VoiceClient::DestroyS client_signaling_thread_ = NULL");
-    if (signal_thread_ != NULL) {
-      signal_thread_->Clear(NULL);
-      signal_thread_->Quit();
-      signal_thread_ = NULL;
-    }
-  }
-}
-
-void VoiceClient::OnMessage(talk_base::Message *msg) {
-  LOGI("VoiceClient::OnMessage");
-  assert(talk_base::Thread::Current() == signal_thread_);
-  switch (msg->message_id) {
-  default:
-    LOGE("VoiceClient::OnMessage - Unknown State (%s) doing nothing...",
-            msgNames[msg->message_id]);
-    break;
-  case MSG_INIT:
-    LOGI("VoiceClient::OnMessage - (%s)", msgNames[msg->message_id]);
-    InitializeS();
-    break;
-  case MSG_DESTROY:
-    LOGI("VoiceClient::OnMessage - (%s)", msgNames[msg->message_id]);
-    DestroyS();
-    break;
-  }
+  client_signaling_thread_->SignalBuddyListReset.connect(
+      this, &VoiceClient::OnSignalBuddyListReset);
+  client_signaling_thread_->SignalBuddyListRemove.connect(
+      this, &VoiceClient::OnSignalBuddyListRemove);
+  client_signaling_thread_->SignalBuddyListAdd.connect(
+      this, &VoiceClient::OnSignalBuddyListAdd);
+  client_signaling_thread_->SignalXmppMessage.connect(
+      this, &VoiceClient::OnSignalXmppMessage);
+  #ifdef LOGGING
+  client_signaling_thread_->SignalStatsUpdate.connect(
+      this, &VoiceClient::OnSignalStatsUpdate);
+  #endif
 }
 
 void VoiceClient::Login(const std::string &username,
@@ -190,6 +108,15 @@ void VoiceClient::Login(const std::string &username,
   }
 }
 
+void VoiceClient::SendMessage(const std::string &remote_jid, const int &state,
+                              const std::string &msg){
+  if (client_signaling_thread_){
+    XmppMessage xmpp_to_send(remote_jid, static_cast<XmppMessageState>(state), msg);
+    client_signaling_thread_->SendXmppMessage(xmpp_to_send);
+  }
+}
+
+
 void VoiceClient::Disconnect() {
   LOGI("VoiceClient::Disconnect");
   if (client_signaling_thread_) {
@@ -200,8 +127,15 @@ void VoiceClient::Disconnect() {
 void VoiceClient::Call(std::string remoteJid) {
   LOGI("VoiceClient::Call");
   if (client_signaling_thread_) {
-    client_signaling_thread_->Call(remoteJid);
+    client_signaling_thread_->Call(remoteJid, "");
   }
+}
+
+void VoiceClient::CallWithTracker(std::string remoteJid, std::string call_tracker_id){
+  LOGI("VoiceClient::Call");
+    if (client_signaling_thread_) {
+      client_signaling_thread_->Call(remoteJid, call_tracker_id);
+    }
 }
 
 void VoiceClient::MuteCall(uint32 call_id, bool mute) {
@@ -269,19 +203,25 @@ void VoiceClient::OnSignalBuddyListReset() {
   CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT, RESET, "", 0);
 }
 
-void VoiceClient::OnSignalBuddyListRemove(const char *remote_jid) {
-  LOGI("Removing from buddy list: %s", remote_jid);
-  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT, REMOVE, remote_jid, 0);
+void VoiceClient::OnSignalBuddyListRemove(const RosterItem item) {
+  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT, REMOVE, item.jid.BareJid().Str().c_str(), 0);
 }
 
-void VoiceClient::OnSignalBuddyListAdd(const char *remote_jid, const char *nick) {
-  LOGI("Adding to buddy list: %s, %s", remote_jid, nick);
-  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT, ADD, remote_jid, 0);
+void VoiceClient::OnSignalBuddyListAdd(const RosterItem item) {
+  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT, ADD, item.jid.BareJid().Str().c_str(), 0);
 }
 
 void VoiceClient::OnSignalStatsUpdate(const char *stats) {
   LOGI("Updating stats=%s", stats);
   CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_STATS_UPDATE_EVENT, 0, stats, 0);
+}
+
+void VoiceClient::OnSignalCallTrackerId(int call_id, const char* call_tracker_id) {
+  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_CALL_TRACKER_ID_EVENT, 0, call_tracker_id, call_id);
+}
+
+void VoiceClient::OnSignalXmppMessage(const XmppMessage m){
+  //Implement me.
 }
 #elif IOS
 
@@ -313,18 +253,26 @@ void VoiceClient::OnSignalBuddyListReset() {
     VoiceClientDelegate::getInstance()->OnSignalBuddyListReset();
 }
 
-void VoiceClient::OnSignalBuddyListRemove(const char *remote_jid) {
-    VoiceClientDelegate::getInstance()->OnSignalBuddyListRemove(remote_jid);
+void VoiceClient::OnSignalBuddyListRemove(const RosterItem item) {
+    VoiceClientDelegate::getInstance()->OnSignalBuddyListRemove(item.jid.BareJid().Str().c_str());
 }
 
-void VoiceClient::OnSignalBuddyListAdd(const char *remote_jid, const char *nick) {
-    VoiceClientDelegate::getInstance()->OnSignalBuddyListAdd(remote_jid, nick);
+void VoiceClient::OnSignalBuddyListAdd(const RosterItem item) {
+    VoiceClientDelegate::getInstance()->OnSignalBuddyListAdd(item.jid.BareJid().Str().c_str(), item.nick.c_str());
 }
 
 void VoiceClient::OnSignalStatsUpdate(const char *stats) {
     VoiceClientDelegate::getInstance()->OnSignalStatsUpdate(stats);
 }
 
+void VoiceClient::OnSignalCallTrackerId(int call_id, const char *call_tracker_id) {
+    VoiceClientDelegate::getInstance()->OnSignalCallTrackingId(call_id, call_tracker_id);
+}
 
+void VoiceClient::OnSignalXmppMessage(const XmppMessage m){
+  printf("Message from: %s\n", m.jid.BareJid().Str().c_str());
+  printf("Message body: %s\n", m.body.c_str());
+}
 #endif  //IOS
+
 }  // namespace tuenti
