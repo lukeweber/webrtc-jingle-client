@@ -1,16 +1,25 @@
-package com.tuenti.voice.example.ui.account;
+package com.tuenti.voice.example.service;
 
-import android.accounts.*;
+import android.accounts.AbstractAccountAuthenticator;
+import android.accounts.Account;
+import android.accounts.AccountAuthenticatorResponse;
+import android.accounts.AccountManager;
+import android.accounts.NetworkErrorException;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import com.tuenti.voice.example.ui.account.AddAccountActivity;
 
 import static android.accounts.AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE;
+import static android.accounts.AccountManager.KEY_BOOLEAN_RESULT;
 import static android.accounts.AccountManager.KEY_INTENT;
+import static com.tuenti.voice.example.ui.account.AccountConstants.ACCOUNT_TYPE;
+import static com.tuenti.voice.example.ui.account.AddAccountActivity.PARAM_AUTH_TOKEN_TYPE;
+import static com.tuenti.voice.example.ui.account.AddAccountActivity.PARAM_USERNAME;
 
-public class AccountAuthenticator
+class AccountAuthenticator
     extends AbstractAccountAuthenticator
 {
 // ------------------------------ FIELDS ------------------------------
@@ -36,8 +45,9 @@ public class AccountAuthenticator
     {
         Log.d( TAG, "addAccount" );
 
-        final Intent intent = new Intent( mContext, AccountViewActivity.class );
-        //intent.putExtra( AccountViewActivity.PARAM_AUTHTOKEN_TYPE, authTokenType );
+
+        final Intent intent = new Intent( mContext, AddAccountActivity.class );
+        intent.putExtra( PARAM_AUTH_TOKEN_TYPE, authTokenType );
         intent.putExtra( KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response );
 
         final Bundle bundle = new Bundle();
@@ -62,11 +72,8 @@ public class AccountAuthenticator
                                 final String authTokenType, final Bundle options )
         throws NetworkErrorException
     {
-        Log.d( TAG, "getAuthToken" );
-
         final Bundle bundle = new Bundle();
-
-        if ( !AccountConstants.ACCOUNT_TYPE.equals( authTokenType ) )
+        if ( !ACCOUNT_TYPE.equals( authTokenType ) )
         {
             return bundle;
         }
@@ -76,24 +83,32 @@ public class AccountAuthenticator
         if ( TextUtils.isEmpty( password ) )
         {
             bundle.putParcelable( KEY_INTENT, createLoginIntent( response ) );
+            return bundle;
         }
-
         return bundle;
     }
 
     @Override
-    public String getAuthTokenLabel( String s )
+    public String getAuthTokenLabel( final String authTokenType )
     {
-        Log.d( TAG, "getAuthTokenLabel" );
-        return null;
+        if ( ACCOUNT_TYPE.equals( authTokenType ) )
+        {
+            return authTokenType;
+        }
+        else
+        {
+            return null;
+        }
     }
 
     @Override
-    public Bundle hasFeatures( AccountAuthenticatorResponse accountAuthenticatorResponse, Account account,
-                               String[] strings )
+    public Bundle hasFeatures( final AccountAuthenticatorResponse accountAuthenticatorResponse, final Account account,
+                               final String[] features )
         throws NetworkErrorException
     {
-        return null;
+        final Bundle result = new Bundle();
+        result.putBoolean( KEY_BOOLEAN_RESULT, false );
+        return result;
     }
 
     @Override
@@ -102,12 +117,12 @@ public class AccountAuthenticator
     {
         Log.d( TAG, "getAuthToken" );
 
-        final Intent intent = new Intent( mContext, AccountViewActivity.class );
-        //intent.putExtra( AccountViewActivity.PARAM_AUTHTOKEN_TYPE, authTokenType );
+        final Intent intent = new Intent( mContext, AddAccountActivity.class );
+        intent.putExtra( PARAM_AUTH_TOKEN_TYPE, authTokenType );
         intent.putExtra( KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response );
         if ( !TextUtils.isEmpty( account.name ) )
         {
-            //intent.putExtra( AccountViewActivity.PARAM_USERNAME, account.name );
+            intent.putExtra( PARAM_USERNAME, account.name );
         }
 
         final Bundle bundle = new Bundle();
@@ -117,8 +132,8 @@ public class AccountAuthenticator
 
     private Intent createLoginIntent( final AccountAuthenticatorResponse response )
     {
-        final Intent intent = new Intent( mContext, AccountViewActivity.class );
-        //intent.putExtra( AccountViewActivity.PARAM_AUTHTOKEN_TYPE, AccountConstants.ACCOUNT_TYPE );
+        final Intent intent = new Intent( mContext, AddAccountActivity.class );
+        intent.putExtra( PARAM_AUTH_TOKEN_TYPE, ACCOUNT_TYPE );
         intent.putExtra( KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response );
         return intent;
     }

@@ -4,7 +4,6 @@ import android.accounts.AccountManager;
 import android.content.Intent;
 import android.os.IBinder;
 import com.tuenti.voice.core.service.VoiceClientService;
-import com.tuenti.voice.example.ui.account.AccountAuthenticator;
 
 public final class AuthenticatedVoiceClientService
     extends VoiceClientService

@@ -1,6 +1,8 @@
 package com.tuenti.voice.example.ui.account;
 
 import android.accounts.Account;
+import android.os.Bundle;
+import android.support.v4.content.Loader;
 import android.view.View;
 import android.widget.ListView;
 import com.github.kevinsawicki.wishlist.SingleTypeAdapter;
@@ -8,9 +10,19 @@ import com.tuenti.voice.example.ui.ItemListFragment;
 
 import java.util.List;
 
-public abstract class AccountsFragment
+public class AccountsFragment
     extends ItemListFragment<Account>
 {
+// ------------------------ INTERFACE METHODS ------------------------
+
+// --------------------- Interface LoaderCallbacks ---------------------
+
+    @Override
+    public Loader<List<Account>> onCreateLoader( int id, Bundle bundle )
+    {
+        return new AccountLoader( getActivity() );
+    }
+
 // -------------------------- OTHER METHODS --------------------------
 
     @Override

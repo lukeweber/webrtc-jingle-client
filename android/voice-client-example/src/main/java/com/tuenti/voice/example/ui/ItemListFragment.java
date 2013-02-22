@@ -11,6 +11,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import com.actionbarsherlock.app.SherlockFragment;
 import com.github.kevinsawicki.wishlist.SingleTypeAdapter;
+import com.tuenti.voice.example.R;
 
 import java.util.Collections;
 import java.util.List;
@@ -43,13 +44,14 @@ public abstract class ItemListFragment<E>
     @Override
     public Loader<List<E>> onCreateLoader( int id, Bundle args )
     {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return null;
     }
 
     @Override
-    public void onLoadFinished( Loader<List<E>> loader, List<E> data )
+    public void onLoadFinished( Loader<List<E>> loader, List<E> items )
     {
-        //To change body of implemented methods use File | Settings | File Templates.
+        mItems = items;
+        mListView.setAdapter( createAdapter( mItems ) );
     }
 
     @Override
@@ -69,7 +71,7 @@ public abstract class ItemListFragment<E>
     @Override
     public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState )
     {
-        return null;
+        return inflater.inflate( R.layout.item_list, null );
     }
 
     /**
@@ -93,8 +95,6 @@ public abstract class ItemListFragment<E>
     @Override
     public void onViewCreated( View view, Bundle savedInstanceState )
     {
-        super.onViewCreated( view, savedInstanceState );
-
         mListView = (ListView) view.findViewById( android.R.id.list );
         mListView.setOnItemClickListener( new AdapterView.OnItemClickListener()
         {
@@ -105,6 +105,14 @@ public abstract class ItemListFragment<E>
             }
         } );
         mListView.setAdapter( createAdapter( mItems ) );
+    }
+
+    /**
+     * Refresh the fragment's list
+     */
+    public void refresh()
+    {
+        refresh( null );
     }
 
     /**
@@ -128,5 +136,10 @@ public abstract class ItemListFragment<E>
             mListView.setAdapter( adapter );
         }
         return this;
+    }
+
+    private void refresh( final Bundle args )
+    {
+        getLoaderManager().restartLoader( 0, args, this );
     }
 }
