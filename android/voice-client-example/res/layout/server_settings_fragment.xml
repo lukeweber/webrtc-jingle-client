@@ -84,7 +84,8 @@
         <EditText
             android:id="@+id/turn_password"
             style="@style/LoginEditText"
-            android:imeOptions="actionNext" />
+            android:imeOptions="actionNext"
+            android:inputType="textPassword" />
 
         <TextView
             style="@style/HeaderTitleText"
@@ -93,7 +94,7 @@
         <EditText
             android:id="@+id/relay_host"
             style="@style/LoginEditText"
-            android:imeOptions="actionNext" />
+            android:imeOptions="actionDone" />
 
         <Button
             android:id="@+id/submit"
