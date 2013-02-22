@@ -108,6 +108,14 @@ void VoiceClient::Login(const std::string &username,
   }
 }
 
+void VoiceClient::ReplaceTurn(const std::string &turn) {
+  LOGI("VoiceClient::ReplaceTurn");
+  LOG(INFO) << "NewTurn " << turn;
+  if (client_signaling_thread_) {
+    client_signaling_thread_->ReplaceTurn(turn);
+  }
+}
+
 void VoiceClient::SendMessage(const std::string &remote_jid, const int &state,
                               const std::string &msg){
   if (client_signaling_thread_){

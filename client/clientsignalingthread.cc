@@ -98,7 +98,9 @@ struct ClientSignalingData: public talk_base::MessageData {
   ClientSignalingData(uint32 call_id, bool b) :
       call_id_(call_id),
       b_(b) {}
-    ClientSignalingData(std::string s, std::string s2) :
+  ClientSignalingData(std::string s) :
+      s_(s){}
+  ClientSignalingData(std::string s, std::string s2) :
       s_(s),
       s2_(s2){}
   ClientSignalingData(uint32 call_id) :
@@ -425,6 +427,7 @@ void ClientSignalingThread::Disconnect() {
   signal_thread_->Post(this, MSG_DISCONNECT);
 }
 
+
 void ClientSignalingThread::Call(std::string remoteJid, std::string call_tracker_id) {
   LOGI("ClientSignalingThread::Call");
   signal_thread_->Post(this, MSG_CALL, new ClientSignalingData(remoteJid, call_tracker_id));
@@ -458,6 +461,11 @@ void ClientSignalingThread::SendXmppMessage(const tuenti::XmppMessage m) {
 void ClientSignalingThread::EndCall(uint32 call_id) {
   LOGI("ClientSignalingThread::EndCall %d", call_id);
   signal_thread_->Post(this, MSG_END_CALL, new ClientSignalingData(call_id));
+}
+
+void ClientSignalingThread::ReplaceTurn(const std::string &turn) {
+  LOGI("ClientSignalingThread::ReplaceTurn");
+  signal_thread_->Post(this, MSG_REPLACE_TURN, new ClientSignalingData(turn));
 }
 
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -518,7 +526,11 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
       signal_thread_->PostDelayed(1000, this, MSG_PRINT_STATS);
     }
     break;
-
+  case MSG_REPLACE_TURN:
+    LOGI("ClientSignalingThread::OnMessage - MSG_REPLACE_TURN");
+    data = static_cast<ClientSignalingData*>(message->pdata);
+    ReplaceTurnS(data->s_);
+    break;
 
   // ------> Events on Main Thread <------
   case MSG_XMPP_STATE:
@@ -826,6 +838,26 @@ void ClientSignalingThread::PrintStatsS() {
   if(fireSignal) {
     LOGI("TSTATS: %s", statsStream.str().c_str());
     SignalStatsUpdate(const_cast<const char *>(statsStream.str().c_str()));
+  }
+}
+
+void ClientSignalingThread::ReplaceTurnS(const std::string turn) {
+  talk_base::SocketAddress turn_socket = talk_base::SocketAddress();
+  if (!turn.empty() && !stun_config_->turn_username.empty() &&
+       !stun_config_->turn_password.empty() && turn_socket.FromString(turn)) {
+    LOG(INFO) << "ReplaceTurn From: " << stun_config_->ToString();
+    stun_config_->turn = std::string(turn);
+    LOG(INFO) << "ReplaceTurn To: " << stun_config_->ToString();
+    cricket::RelayCredentials credentials(stun_config_->turn_username,
+                                          stun_config_->turn_password);
+    cricket::RelayServerConfig relay_server(cricket::RELAY_TURN);
+    relay_server.ports.push_back(cricket::ProtocolAddress(
+        turn_socket, cricket::PROTO_UDP));
+    relay_server.credentials = credentials;
+    sp_port_allocator_->ClearAllRelays();
+    sp_port_allocator_->AddRelay(relay_server);
+  } else {
+    turn_socket.Clear();
   }
 }
 
