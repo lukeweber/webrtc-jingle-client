@@ -116,6 +116,23 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeInit(
     client_ = new tuenti::VoiceClient(instance);
   }
 }
+JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeReplaceTurn(
+    JNIEnv *env, jobject object, jstring turn) {
+
+  //We enforce that we have a client_ and VoiceClient returns before we allow a login.
+  talk_base::CritScope lock(&init_cs_);
+  if (!client_) {
+    LOGE("client not initialized");
+    return;
+  }
+  //Only use turn if we have a TurnServer, User and Pass
+  if (turn != NULL){
+    const char* nativeTurn = env->GetStringUTFChars(turn, NULL);
+    // replace
+    client_->ReplaceTurn(nativeTurn);
+    env->ReleaseStringUTFChars(turn, nativeTurn);
+  }
+}
 
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin(
     JNIEnv *env, jobject object, jstring username, jstring password,

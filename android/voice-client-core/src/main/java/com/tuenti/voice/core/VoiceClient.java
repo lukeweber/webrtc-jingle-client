@@ -110,6 +110,11 @@ public class VoiceClient
                      portAllocatorFilter );
     }
 
+    public void replaceTurn( String turnServer )
+    {
+        nativeReplaceTurn( turnServer );
+    }
+
     public void logout()
     {
         nativeLogout();
@@ -311,6 +316,8 @@ public class VoiceClient
     private native void nativeLogin( String user_name, String password, String stunServer, String turnServer,
                                      String turnUsername, String turnPassword, String xmppServer, int xmppPort,
                                      boolean UseSSL, int portAllocatorFilter );
+
+    private native void nativeReplaceTurn(String turn);
 
     private native void nativeLogout();
 

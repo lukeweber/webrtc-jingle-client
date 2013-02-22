@@ -83,6 +83,14 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin
 
 /*
  * Class:     com_tuenti_voice_core_VoiceClient
+ * Method:    nativeReplaceTurn
+ * Signature: (Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeReplaceTurn
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     com_tuenti_voice_core_VoiceClient
  * Method:    nativeLogout
  * Signature: ()V
  */
