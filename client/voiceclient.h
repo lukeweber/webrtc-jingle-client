@@ -68,7 +68,7 @@ typedef struct {
   std::string ToString() {
     std::stringstream stream;
     stream << "[stun=(" << stun << "),";
-    stream << "turn=(" << turn << "),";
+    stream << "turn=(" << turn << ")]";
     return stream.str();
   }
 } StunConfig;
