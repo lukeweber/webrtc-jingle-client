@@ -902,15 +902,19 @@ void ClientSignalingThread::InitPresence() {
 
 void ClientSignalingThread::PresenceInPrivacy(const std::string& action){
   if (sp_pump_.get()){
+    //<iq type='set' id='presin4'>
     buzz::XmlElement* xmlblockpresence = new buzz::XmlElement(buzz::QN_IQ);
     xmlblockpresence->AddAttr(buzz::QN_TYPE, buzz::STR_SET);
-    xmlblockpresence->AddElement(new buzz::XmlElement(buzz::QN_PRIVACY_QUERY, true));
-    buzz::XmlElement* xmlprivacylist = new buzz::XmlElement(buzz::QN_PRIVACY_LIST, true);
-    buzz::XmlElement* xmlprivacyitem = new buzz::XmlElement(buzz::QN_PRIVACY_ITEM, true);
-    xmlprivacyitem->AddAttr(buzz::QN_ACTION, action);
-    xmlprivacyitem->AddElement(new buzz::XmlElement(buzz::QN_PRIVACY_PRESENCE_IN, true));
-    xmlprivacylist->AddElement(xmlprivacyitem);
-    xmlblockpresence->AddElement(xmlprivacylist);
+    xmlblockpresence->AddAttr(buzz::QN_ID, buzz::STR_PRESIN4);
+    //<query xmlns='jabber:iq:privacy'>
+    buzz::XmlElement* xmlblockquery = new buzz::XmlElement(buzz::QN_PRIVACY_QUERY);
+    xmlblockquery->AddAttr(buzz::QN_XMLNS, buzz::NS_PRIVACY);
+    //<active name='deny-all-presin-and-message'/>
+    buzz::XmlElement* xmlblockactive = new buzz::XmlElement(buzz::QN_PRIVACY_ACTIVE);
+    xmlblockactive->AddAttr(buzz::QN_NAME, buzz::STR_DENY_ALL_PRESIN_AND_MESSAGE);
+    //Adding the elements
+    xmlblockquery->AddElement(xmlblockactive);
+    xmlblockpresence->AddElement(xmlblockquery);
     sp_pump_->client()->SendStanza(xmlblockpresence);
   }
 }
