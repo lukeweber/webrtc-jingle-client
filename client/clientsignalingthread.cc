@@ -902,8 +902,10 @@ void ClientSignalingThread::InitPresence() {
 
 void ClientSignalingThread::PresenceInPrivacy(const std::string& action){
   if (sp_pump_.get()){
+    buzz::XmlElement* xmlblockpresence = NULL;
+#ifdef TUENTI_CUSTOM_BUILD
     //<iq type='set' id='presin4'>
-    buzz::XmlElement* xmlblockpresence = new buzz::XmlElement(buzz::QN_IQ);
+    xmlblockpresence = new buzz::XmlElement(buzz::QN_IQ);
     xmlblockpresence->AddAttr(buzz::QN_TYPE, buzz::STR_SET);
     xmlblockpresence->AddAttr(buzz::QN_ID, buzz::STR_PRESIN4);
     //<query xmlns='jabber:iq:privacy'>
@@ -915,6 +917,17 @@ void ClientSignalingThread::PresenceInPrivacy(const std::string& action){
     //Adding the elements
     xmlblockquery->AddElement(xmlblockactive);
     xmlblockpresence->AddElement(xmlblockquery);
+#else
+     xmlblockpresence = new buzz::XmlElement(buzz::QN_IQ);
+     xmlblockpresence->AddAttr(buzz::QN_TYPE, buzz::STR_SET);
+     xmlblockpresence->AddElement(new buzz::XmlElement(buzz::QN_PRIVACY_QUERY, true));
+     buzz::XmlElement* xmlprivacylist = new buzz::XmlElement(buzz::QN_PRIVACY_LIST, true);
+     buzz::XmlElement* xmlprivacyitem = new buzz::XmlElement(buzz::QN_PRIVACY_ITEM, true);
+     xmlprivacyitem->AddAttr(buzz::QN_ACTION, action);
+     xmlprivacyitem->AddElement(new buzz::XmlElement(buzz::QN_PRIVACY_PRESENCE_IN, true));
+     xmlprivacylist->AddElement(xmlprivacyitem);
+     xmlblockpresence->AddElement(xmlprivacylist);
+#endif
     sp_pump_->client()->SendStanza(xmlblockpresence);
   }
 }
