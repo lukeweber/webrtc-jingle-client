@@ -12,17 +12,18 @@ import os
 import subprocess
 # import getpass
 import logging
-# import pprint
+import pprint
 
 build_bit =     (1 << 0)
 uninstall_bit = (1 << 1)
 install_bit =   (1 << 2)
-start_bit =     (1 << 3)
+run_bit =     (1 << 3)
 debug_bit =     (1 << 4)
 
 #global vars
-taskMask = build_bit | install_bit | start_bit | debug_bit
+taskMask = build_bit | install_bit | run_bit | debug_bit
 profile = "default_debug"
+serial = None
 supportedProfiles = ["video_debug", "video_final", "video_release",
                      "default_debug", "default_release", "default_final",
                      "tuenti_debug", "tuenti_release", "tuenti_final"]
@@ -37,8 +38,10 @@ supportedNDKs = ["r8", "r8d"]
 ##  --build [-b] build. Build the apk
 ##  --uninstall [-u] uninstall. Uninstall the apk
 ##  --install [-i] install. Install the apk
-##  --start [-s] start. Start the apk
+##  --run [-r] run. Run the apk
 ##  --debug [-d] debug. Debug the apk
+##  --serial [-s] serial. Use the device with the matching serial
+##                you can get a list of serials with adb devices
 
 logger = logging.getLogger(__name__)
 
@@ -93,9 +96,12 @@ def mavenBuild():
 
 
 def uninstallApk():
+    global serial
     if taskMask & uninstall_bit:
+        if serial == None:
+            serial = getFirstDeviceSerial()
         # we don't want to fail during the uninstall
-        runCmd("Uninstall", ["adb", "uninstall", "com.tuenti.voice.example"])
+        runCmd("Uninstall", ["adb", "-s", serial, "uninstall", "com.tuenti.voice.example"])
     else:
         logger.info("skipping uninstall")
 
@@ -119,18 +125,35 @@ def installApk():
         logger.info("skipping install")
 
 
-def startApk():
-    if taskMask & start_bit:
-        if runCmd("Start", ["mvn", "-pl", "voice-client-example", "android:run"]) != 0:
+def runApk():
+    if taskMask & run_bit:
+        if runCmd("Run", ["mvn", "-pl", "voice-client-example", "android:run"]) != 0:
             sys.exit(1)
     else:
-        logger.info("skipping start")
+        logger.info("skipping run")
 
+#we should probably run it for every connected device rather than just the first
+def getFirstDeviceSerial():
+    adbDevicesCmd = ["adb", "devices"]
+    p = subprocess.Popen(adbDevicesCmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = p.communicate()
+    if len(err) != 0:
+        logger.error(" ".join(adbDevicesCmd) + " exited with errors:\n" + err)
+        sys.exit(1)
+    for line in out.splitlines():
+        if line.endswith("device"):
+            return line.split("\t")[0]
+    logger.error("no device found exiting.\n")
+    sys.exit(1)
+    return None
 
 def debugApk():
+    global serial
     if taskMask & debug_bit:
         os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        cpuInfoCmd = ["adb", "shell", "cat", "/system/build.prop"]
+        if serial == None:
+            serial = getFirstDeviceSerial()
+        cpuInfoCmd = ["adb", "-s", serial, "shell", "cat", "/system/build.prop"]
         p = subprocess.Popen(cpuInfoCmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
         if len(err) != 0:
@@ -145,7 +168,7 @@ def debugApk():
         abiSymbolDir = os.path.join("android", "voice-client-core", "obj", profile, "local", cpuAbi)
         debugCmd = ["bash", "-c", "'source " + envSetup + " && " + gdbApk + " -p com.tuenti.voice.example -s VoiceClientService -l " + abiSymbolDir + "'"]
         logger.info("Debugging requires a shell.  Copy paste the below to begin debugging:\n" + " ".join(debugCmd))
-        runCmd("Debug", debugCmd)
+        #runCmd("Debug", debugCmd) this command must be run from a shell so keeping it commented out
     else:
         logger.info("skipping debug")
 
@@ -184,15 +207,15 @@ def checkNDK():
             logger.error("Please install a supported NDK version:\n\t" + " ".join(supportedNDKs))
             sys.exit(1)
 
-
 def main(argv=None):
     global taskMask
     global profile
+    global serial
     logLevel = "INFO"
     logging.basicConfig(level=logging.INFO)
     newTaskMask = 0
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hbuisdl:p:m:", ["help", "build", "uninstall", "install", "start", "debug", "log-level=", "profile=", "task-mask="])
+        opts, args = getopt.getopt(sys.argv[1:], "hbuirdl:p:m:s:", ["help", "build", "uninstall", "install", "run", "debug", "log-level=", "profile=", "task-mask=", "serial="])
     except getopt.GetoptError, err:
         # print help information and exit:
         logger.error(err)  # will print something like "option -a not recognized"
@@ -209,8 +232,8 @@ def main(argv=None):
             newTaskMask |= uninstall_bit
         elif o in ("-i", "--install"):
             newTaskMask |= install_bit
-        elif o in ("-s", "--start"):
-            newTaskMask |= start_bit
+        elif o in ("-r", "--run"):
+            newTaskMask |= run_bit
         elif o in ("-d", "--debug"):
             newTaskMask |= debug_bit
         elif o in ("-l", "--log-level"):
@@ -219,13 +242,19 @@ def main(argv=None):
             profile = a
         elif o in ("-m", "--task-mask"):
             newTaskMask |= int(a)
+        elif o in ("-s", "--serial"):
+            serial = a
         else:
             usage()
     if newTaskMask > 0:
         taskMask = newTaskMask
     if logLevel == "DEBUG":
         logging.basicConfig(level=logging.DEBUG)
-    logger.info("Running with:\n\tprofile: " + profile + "\n\tlog-level: " + logLevel + "\n\ttask-mask: " + str(taskMask))
+    logger.info("Running with:")
+    logger.info("\tprofile: " + profile)
+    logger.info("\tlog-level: " + logLevel)
+    logger.info("\ttask-mask: " + str(taskMask))
+    logger.info("\tserial: " + str(serial))
     checkSDK()
     checkNDK()
     savedPath = os.getcwd()
@@ -233,7 +262,7 @@ def main(argv=None):
     mavenBuild()
     uninstallApk()
     installApk()
-    startApk()
+    runApk()
     debugApk()
     os.chdir(savedPath)
     logger.info("Done!")
