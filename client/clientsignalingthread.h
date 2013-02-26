@@ -90,6 +90,7 @@ enum ClientSignals {
   MSG_MUTE_CALL,
   MSG_END_CALL,
   MSG_PRINT_STATS,
+  MSG_REPLACE_TURN,
 
   // From Worker to Main
   MSG_XMPP_STATE,
@@ -287,6 +288,7 @@ class ClientSignalingThread
   void MuteCall(uint32 call_id, bool mute);
   void HoldCall(uint32 call_id, bool hold);
   void SendXmppMessage(const tuenti::XmppMessage m);
+  void ReplaceTurn(const std::string &turn);
 
 
   // signals
@@ -322,6 +324,7 @@ class ClientSignalingThread
   cricket::Call* GetCall(uint32 call_id);
   bool EndAllCalls();
   void PrintStatsS();
+  void ReplaceTurnS(const std::string turn);
   void SendXmppMessageS(const tuenti::XmppMessage m);
   void OnConnected();
   void PresenceInPrivacy(const std::string &action);

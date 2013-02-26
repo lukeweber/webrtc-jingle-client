@@ -68,7 +68,7 @@ typedef struct {
   std::string ToString() {
     std::stringstream stream;
     stream << "[stun=(" << stun << "),";
-    stream << "turn=(" << turn << "),";
+    stream << "turn=(" << turn << ")]";
     return stream.str();
   }
 } StunConfig;
@@ -100,6 +100,7 @@ class VoiceClient: public sigslot::has_slots<> {
   void EndCall(uint32 call_id);
   void AcceptCall(uint32 call_id);
   void DeclineCall(uint32 call_id, bool busy);
+  void ReplaceTurn(const std::string &turn);
 
   // signals
   void OnSignalCallStateChange(int state, const char *remote_jid, int call_id);
