@@ -35,7 +35,7 @@
         <android.api.version>14</android.api.version>
         <android.version>4.0.1.2</android.version>
 
-        <android-maven-plugin.version>3.5.1-SNAPSHOT</android-maven-plugin.version>
+        <android-maven-plugin.version>3.5.1</android-maven-plugin.version>
         <maven-enforcer-plugin.version>1.2</maven-enforcer-plugin.version>
         <maven-clean-plugin.version>2.5</maven-clean-plugin.version>
         <maven-compiler-plugin.version>2.3.2</maven-compiler-plugin.version>
