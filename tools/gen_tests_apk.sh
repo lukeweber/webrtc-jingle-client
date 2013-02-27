@@ -2,7 +2,10 @@
 
 LIB_LIST="libjingle_unittest \
     libjingle_media_unittest \
-    libjingle_p2p_unittest"
+    libjingle_p2p_unittest \
+    libwebrtcjingle_unittest"
+
+export ANDROID_SDK_VERSION=14
 
 TOOLSDIR="$( cd "$( dirname "$0" )" && pwd )"
 TRUNKDIR="$( dirname $TOOLSDIR )"

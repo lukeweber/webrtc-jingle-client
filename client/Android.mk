@@ -54,6 +54,7 @@ LOCAL_CPP_EXTENSION:= .cc
 
 LOCAL_SRC_FILES := \
 	unit/webrtcjingletest.cc \
+	unit/sendmessagetask_unittest.cc \
 	unit/receivemessagetask_unittest.cc \
 	unit/clientsignalingthread_unittest.cc
 
