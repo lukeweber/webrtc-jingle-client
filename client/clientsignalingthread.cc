@@ -520,14 +520,12 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
     delete message->pdata;
     break;
   case MSG_PRINT_STATS:
-    LOGI("ClientSignalingThread::OnMessage - MSG_PRINT_STATS");
     if (call_){//If there's no call, skip
       PrintStatsS();
       signal_thread_->PostDelayed(1000, this, MSG_PRINT_STATS);
     }
     break;
   case MSG_REPLACE_TURN:
-    LOGI("ClientSignalingThread::OnMessage - MSG_REPLACE_TURN");
     data = static_cast<ClientSignalingData*>(message->pdata);
     ReplaceTurnS(data->s_);
     break;
