@@ -272,6 +272,10 @@ void ClientSignalingThread::OnXmppError(buzz::XmppEngine::Error error) {
 }
 
 void ClientSignalingThread::OnXmppSocketClose(int state) {
+#if LOGGING
+  LOG(LS_INFO) << "ClientSignalingThread::OnXmppSocketClose: "
+               << "with state=" << state;
+#endif
   main_thread_->Post(this, MSG_XMPP_SOCKET_CLOSE, new XmppSocketCloseState(state));
 }
 
@@ -290,6 +294,9 @@ void ClientSignalingThread::OnConnected(){
   assert(talk_base::Thread::Current() == signal_thread_);
   std::string client_unique = sp_pump_->client()->jid().Str();
   talk_base::InitRandom(client_unique.c_str(), client_unique.size());
+#if LOGGING
+  LOG(LS_INFO) << "ClientSignalingThread::OnConnected with VoiceJid = " << client_unique;
+#endif
 
   // TODO(alex) We need to modify the last params of this to add TURN servers
   sp_session_manager_->SignalRequestSignaling.connect(this,
