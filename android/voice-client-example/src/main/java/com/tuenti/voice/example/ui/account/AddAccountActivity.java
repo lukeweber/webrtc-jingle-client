@@ -19,6 +19,8 @@ public class AddAccountActivity
      */
     public static final String PARAM_USERNAME = "username";
 
+    public static final String PARAM_PASSWORD = "password";
+
     @Override
     protected void onCreate( Bundle savedInstanceState )
     {

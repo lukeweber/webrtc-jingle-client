@@ -97,7 +97,7 @@
             android:imeOptions="actionDone" />
 
         <Button
-            android:id="@+id/submit"
+            android:id="@+id/login_button"
             android:text="@string/login"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
