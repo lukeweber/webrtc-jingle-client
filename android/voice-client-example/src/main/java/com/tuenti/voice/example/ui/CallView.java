@@ -5,6 +5,7 @@ import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.media.AudioManager;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -244,6 +245,7 @@ public class CallView
     protected void onResume()
     {
         super.onResume();
+        setVolumeControlStream(AudioManager.STREAM_VOICE_CALL);
         updateCallDisplay();
     }
 

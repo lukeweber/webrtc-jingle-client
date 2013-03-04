@@ -355,10 +355,8 @@ public class CallManagerImpl
 
     private void setAudioForCall()
     {
-        mAudioManager.setMode( ( Build.VERSION.SDK_INT < 11 )
-                                   ? AudioManager.MODE_NORMAL
-                                   : AudioManager.MODE_IN_COMMUNICATION );
-        mAudioManager.requestAudioFocus( null, AudioManager.STREAM_VOICE_CALL, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT );
+        mAudioManager.setMode(AudioManager.MODE_NORMAL);
+        mAudioManager.requestAudioFocus( null, AudioManager.STREAM_VOICE_CALL, AudioManager.AUDIOFOCUS_GAIN );
     }
 
     private Call stopCall( long callId )
