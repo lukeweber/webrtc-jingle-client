@@ -42,53 +42,82 @@ public class VoiceClient
     private final static String TAG = "j-VoiceClient";
     private static final Object mLock = new Object();
     private boolean initialized;
+    private boolean voiceClientLoaded;
     private BuddyManager mBuddyManager;
     private CallManager mCallManager;
     private ConnectionManager mConnectionManager;
     private StatManager mStatManager;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
     public VoiceClient()
     {
         synchronized ( mLock )
         {
             Log.i( TAG, "loading native library voiceclient" );
-            System.loadLibrary( "voiceclient" );
+            try {
+                System.loadLibrary( "voiceclient" );
+                voiceClientLoaded = true;
+            } catch (UnsatisfiedLinkError e) {
+                // We need to do this, because Android will generate OOM error
+                // loading an so file on older phones when they don't have
+                // enough available memory at load time.
+                voiceClientLoaded = false;
+            }
         }
     }
 
 // -------------------------- OTHER METHODS --------------------------
 
+    public boolean loaded() {
+        return voiceClientLoaded;
+    }
+
     public void acceptCall( long call_id )
     {
         Log.i( TAG, "native accept call " + call_id );
-        nativeAcceptCall( call_id );
+        if (loaded()) {
+            nativeAcceptCall( call_id );
+        }
     }
 
     public void call( String remoteUsername )
     {
-        nativeCall( remoteUsername );
+        if (loaded()) {
+            nativeCall( remoteUsername );
+        }
+    }
+
+    public void callWithTrackerId( String remoteUsername, String callTrackerId )
+    {
+        if (loaded()) {
+            nativeCallWithTrackerId( remoteUsername, callTrackerId );
+        }
     }
 
     public void declineCall( long call_id, boolean busy )
     {
-        nativeDeclineCall( call_id, busy );
+        if (loaded()) {
+            nativeDeclineCall( call_id, busy );
+        }
     }
 
     public void endCall( long call_id )
     {
-        nativeEndCall( call_id );
+        if (loaded()) {
+            nativeEndCall( call_id );
+        }
     }
 
     public void holdCall( long call_id, boolean hold )
     {
-        nativeHoldCall( call_id, hold );
+        if (loaded()) {
+            nativeHoldCall( call_id, hold );
+        }
     }
 
     public void init( Context context )
     {
-        if ( !initialized )
+        if ( loaded() && !initialized )
         {
             nativeInit( context );
             initialized = true;
@@ -98,36 +127,44 @@ public class VoiceClient
     public void login( String username, String password, String stunServer, String turnServer, String turnUsername,
                        String turnPassword, String xmppServer, int xmppPort, boolean useSsl, int portAllocatorFilter )
     {
-        nativeLogin( username,
-                     password,
-                     stunServer,
-                     turnServer,
-                     turnUsername,
-                     turnPassword,
-                     xmppServer,
-                     xmppPort,
-                     useSsl,
-                     portAllocatorFilter );
+        if (loaded()) {
+            nativeLogin( username,
+                         password,
+                         stunServer,
+                         turnServer,
+                         turnUsername,
+                         turnPassword,
+                         xmppServer,
+                         xmppPort,
+                         useSsl,
+                         portAllocatorFilter );
+        }
     }
 
     public void replaceTurn( String turnServer )
     {
-        nativeReplaceTurn( turnServer );
+        if (loaded()) {
+            nativeReplaceTurn( turnServer );
+        }
     }
 
     public void logout()
     {
-        nativeLogout();
+        if (loaded()) {
+            nativeLogout();
+        }
     }
 
     public void muteCall( long call_id, boolean mute )
     {
-        nativeMuteCall( call_id, mute );
+        if (loaded()) {
+            nativeMuteCall( call_id, mute );
+        }
     }
 
     public void release()
     {
-        if ( initialized )
+        if ( loaded() && initialized )
         {
             initialized = false;
             nativeRelease();
@@ -304,6 +341,8 @@ public class VoiceClient
     private native void nativeAcceptCall( long call_id );
 
     private native void nativeCall( String remoteJid );
+
+    private native void nativeCallWithTrackerId( String remoteJid, String callTrackerId );
 
     private native void nativeDeclineCall( long call_id, boolean busy );
 

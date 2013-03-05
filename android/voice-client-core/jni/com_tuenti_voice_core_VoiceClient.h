@@ -43,6 +43,14 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeCall
 
 /*
  * Class:     com_tuenti_voice_core_VoiceClient
+ * Method:    nativeCallWithTrackerId
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeCallWithTrackerId
+  (JNIEnv *, jobject, jstring, jstring);
+
+/*
+ * Class:     com_tuenti_voice_core_VoiceClient
  * Method:    nativeDeclineCall
  * Signature: (JZ)V
  */
