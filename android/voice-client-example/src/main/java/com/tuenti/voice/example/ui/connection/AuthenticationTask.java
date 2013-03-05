@@ -1,14 +1,17 @@
-package com.tuenti.voice.example.ui.account;
+package com.tuenti.voice.example.ui.connection;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
-import android.content.Context;
+import android.app.Activity;
 import android.os.AsyncTask;
 import android.util.Log;
+import com.github.kevinsawicki.wishlist.Toaster;
 import com.tuenti.voice.core.VoiceClient;
+import com.tuenti.voice.core.XmppError;
 import com.tuenti.voice.core.XmppState;
 import com.tuenti.voice.core.data.Connection;
 import com.tuenti.voice.core.manager.ConnectionManager;
+import com.tuenti.voice.example.R;
 
 public abstract class AuthenticationTask
     extends AsyncTask<Connection, Void, String>
@@ -17,17 +20,17 @@ public abstract class AuthenticationTask
 
     private static final String TAG = "AuthenticationTask";
 
-    private boolean finishing;
+    protected Account mAccount;
+
+    private Activity mActivity;
 
     private VoiceClient mClient;
 
-    private Context mContext;
-
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public AuthenticationTask( final Context context )
+    public AuthenticationTask( final Activity activity )
     {
-        mContext = context;
+        mActivity = activity;
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -48,6 +51,12 @@ public abstract class AuthenticationTask
             public void handleXmppError( int error )
             {
                 Log.d( TAG, "handleXmppError " + error );
+                switch ( XmppError.fromInteger( error ) )
+                {
+                    case UNAUTHORIZED:
+                        Toaster.showLong( mActivity, R.string.invalid_login_or_password );
+                        break;
+                }
             }
 
             @Override
@@ -63,9 +72,18 @@ public abstract class AuthenticationTask
                 switch ( XmppState.fromInteger( state ) )
                 {
                     case OPEN:
-                        Account account = new Account( connection.getUsername(), AccountConstants.ACCOUNT_TYPE );
-                        AccountManager.get( mContext ).addAccountExplicitly( account, connection.getPassword(), null );
-                        onSuccess( account );
+                        mAccount = new Account( connection.getUsername(), AccountConstants.ACCOUNT_TYPE );
+                        AccountManager manager = AccountManager.get( mActivity );
+                        manager.addAccountExplicitly( mAccount, connection.getPassword(), null );
+                        manager.setUserData( mAccount, "stunHost", connection.getStunHost() );
+                        manager.setUserData( mAccount, "stunPort", "19302" );
+                        manager.setUserData( mAccount, "turnHost", connection.getTurnHost() );
+                        manager.setUserData( mAccount, "turnUsername", connection.getTurnUsername() );
+                        manager.setUserData( mAccount, "turnPassword", connection.getTurnPassword() );
+                        manager.setUserData( mAccount, "xmppHost", connection.getXmppHost() );
+                        manager.setUserData( mAccount, "xmppPort", String.valueOf( connection.getXmppPort() ) );
+                        manager.setUserData( mAccount, "xmppUseSsl", String.valueOf( connection.getXmppUseSsl() ) );
+                        onSuccess( mAccount );
 
                         mClient.logout();
                         break;
@@ -79,7 +97,7 @@ public abstract class AuthenticationTask
                 }
             }
         } );
-        mClient.init( mContext );
+        mClient.init( mActivity );
         mClient.login( connection.getUsername(),
                        connection.getPassword(),
                        connection.getStunHost() + ":19302",
@@ -91,14 +109,5 @@ public abstract class AuthenticationTask
                        connection.getXmppUseSsl(),
                        0 );
         return null;
-    }
-
-    private void finishLogin()
-    {
-        if ( !finishing )
-        {
-            finishing = true;
-            mClient.logout();
-        }
     }
 }

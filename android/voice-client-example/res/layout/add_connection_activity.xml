@@ -16,6 +16,26 @@
 
         <TextView
             style="@style/HeaderTitleText"
+            android:text="@string/username_or_email" />
+
+        <EditText
+            android:id="@+id/username"
+            style="@style/LoginEditText"
+            android:imeOptions="actionNext"
+            android:inputType="textEmailAddress" />
+
+        <TextView
+            style="@style/HeaderTitleText"
+            android:text="@string/password" />
+
+        <EditText
+            android:id="@+id/password"
+            style="@style/LoginEditText"
+            android:imeOptions="actionNext"
+            android:inputType="textPassword" />
+
+        <TextView
+            style="@style/HeaderTitleText"
             android:text="@string/xmpp_host" />
 
         <EditText
@@ -104,4 +124,5 @@
             android:layout_gravity="right|center_vertical" />
 
     </LinearLayout>
+
 </ScrollView>

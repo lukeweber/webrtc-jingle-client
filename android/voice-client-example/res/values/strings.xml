@@ -70,6 +70,8 @@
     <string name="username_or_email">Username or email</string>
     <string name="password">Password</string>
     <string name="next">Next</string>
+
     <string name="required_username_and_password">Username and password are required</string>
+    <string name="invalid_login_or_password">Please enter a valid login &amp; password</string>
 
 </resources>

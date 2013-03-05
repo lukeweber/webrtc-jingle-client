@@ -1,4 +1,4 @@
-package com.tuenti.voice.example.ui.account;
+package com.tuenti.voice.example.ui.connection;
 
 public interface AccountConstants
 {
