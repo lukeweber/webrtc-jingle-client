@@ -141,9 +141,9 @@ void VoiceClient::Call(std::string remoteJid) {
 
 void VoiceClient::CallWithTracker(std::string remoteJid, std::string call_tracker_id){
   LOGI("VoiceClient::Call");
-    if (client_signaling_thread_) {
-      client_signaling_thread_->Call(remoteJid, call_tracker_id);
-    }
+  if (client_signaling_thread_) {
+    client_signaling_thread_->Call(remoteJid, call_tracker_id);
+  }
 }
 
 void VoiceClient::MuteCall(uint32 call_id, bool mute) {

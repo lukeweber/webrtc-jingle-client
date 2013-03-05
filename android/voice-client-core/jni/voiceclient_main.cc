@@ -73,6 +73,15 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeCall(
   }
 }
 
+JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeCallWithTrackerId(
+    JNIEnv *env, jobject object, jstring remoteJid, jstring callTrackerId) {
+  if (client_) {
+    std::string nativeRemoteJid = env->GetStringUTFChars(remoteJid, NULL);
+    std::string nativeCallTrackerId = env->GetStringUTFChars(callTrackerId, NULL);
+    client_->CallWithTracker(nativeRemoteJid, nativeCallTrackerId);
+  }
+}
+
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeMuteCall(
     JNIEnv *env, jobject object, jlong call_id, jboolean mute) {
   if (client_) {
