@@ -359,7 +359,17 @@ void ClientSignalingThread::OnSessionCreate(cricket::Session* session,
     bool initiate) {
   LOGI("ClientSignalingThread::OnSessionCreate");
   assert(talk_base::Thread::Current() == signal_thread_);
+#ifdef XMPP_COMPATIBILITY
+  session->set_current_protocol(cricket::PROTOCOL_JINGLE);
+#else
+  //This duplicates the jingle to also include a gingle version
+  //in session. The downside is that there are two stanzas in a
+  //iq type=set, which violates xmpp standards and will fail on
+  //modern chat servers that enforce these standards. I assume
+  //google might require gingle, or at least need it for older
+  //clients, but haven't tested.
   session->set_current_protocol(cricket::PROTOCOL_HYBRID);
+#endif
 }
 
 void ClientSignalingThread::OnCallCreate(cricket::Call* call) {
