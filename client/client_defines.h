@@ -35,8 +35,8 @@ namespace tuenti{
 
 enum XmppTimings {
   PingTimeout = 10000, // 10 Seconds
-  PingInterval = 100000, // 100 seconds
-  XmppKeepAliveInterval = 100000, // 100 seconds
+  PingInterval = 360000, // 6 minutes
+  XmppKeepAliveInterval = 360000, // 6 minutes
 };
 
 const std::string STR_DENY = "deny";
