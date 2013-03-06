@@ -272,6 +272,10 @@ void ClientSignalingThread::OnXmppError(buzz::XmppEngine::Error error) {
 }
 
 void ClientSignalingThread::OnXmppSocketClose(int state) {
+#if LOGGING
+  LOG(LS_INFO) << "ClientSignalingThread::OnXmppSocketClose: "
+               << "with state=" << state;
+#endif
   main_thread_->Post(this, MSG_XMPP_SOCKET_CLOSE, new XmppSocketCloseState(state));
 }
 
@@ -290,6 +294,9 @@ void ClientSignalingThread::OnConnected(){
   assert(talk_base::Thread::Current() == signal_thread_);
   std::string client_unique = sp_pump_->client()->jid().Str();
   talk_base::InitRandom(client_unique.c_str(), client_unique.size());
+#if LOGGING
+  LOG(LS_INFO) << "ClientSignalingThread::OnConnected with VoiceJid = " << client_unique;
+#endif
 
   // TODO(alex) We need to modify the last params of this to add TURN servers
   sp_session_manager_->SignalRequestSignaling.connect(this,
@@ -352,7 +359,17 @@ void ClientSignalingThread::OnSessionCreate(cricket::Session* session,
     bool initiate) {
   LOGI("ClientSignalingThread::OnSessionCreate");
   assert(talk_base::Thread::Current() == signal_thread_);
+#ifdef XMPP_COMPATIBILITY
+  session->set_current_protocol(cricket::PROTOCOL_JINGLE);
+#else
+  //This duplicates the jingle to also include a gingle version
+  //in session. The downside is that there are two stanzas in a
+  //iq type=set, which violates xmpp standards and will fail on
+  //modern chat servers that enforce these standards. I assume
+  //google might require gingle, or at least need it for older
+  //clients, but haven't tested.
   session->set_current_protocol(cricket::PROTOCOL_HYBRID);
+#endif
 }
 
 void ClientSignalingThread::OnCallCreate(cricket::Call* call) {
@@ -520,14 +537,12 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
     delete message->pdata;
     break;
   case MSG_PRINT_STATS:
-    LOGI("ClientSignalingThread::OnMessage - MSG_PRINT_STATS");
     if (call_){//If there's no call, skip
       PrintStatsS();
       signal_thread_->PostDelayed(1000, this, MSG_PRINT_STATS);
     }
     break;
   case MSG_REPLACE_TURN:
-    LOGI("ClientSignalingThread::OnMessage - MSG_REPLACE_TURN");
     data = static_cast<ClientSignalingData*>(message->pdata);
     ReplaceTurnS(data->s_);
     break;

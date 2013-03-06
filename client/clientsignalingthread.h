@@ -120,6 +120,7 @@ struct ClientSignalingMap : std::map<unsigned int, std::string>
   this->operator[]( MSG_MUTE_CALL ) = "MSG_MUTE_CALL";
   this->operator[]( MSG_END_CALL ) = "MSG_END_CALL";
   this->operator[]( MSG_PRINT_STATS ) = "MSG_PRINT_STATS";
+  this->operator[]( MSG_REPLACE_TURN ) = "MSG_REPLACE_TURN";
   this->operator[]( MSG_XMPP_STATE ) = "MSG_XMPP_STATE";
   this->operator[]( MSG_XMPP_ERROR ) = "MSG_XMPP_ERROR";
   this->operator[]( MSG_XMPP_SOCKET_CLOSE ) = "MSG_XMPP_SOCKET_CLOSE";
