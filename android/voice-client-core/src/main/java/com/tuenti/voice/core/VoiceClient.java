@@ -328,9 +328,11 @@ public class VoiceClient
                 break;
             case XMPP_SOCKET_CLOSE_EVENT:
                 handleXmppSocketClose( code );
+                break;
             case STATS_UPDATE_EVENT:
                 // data constains stats
                 handleStatsUpdate( data );
+                break;
             case CALL_TRACKER_ID_EVENT:
                 // data contains call_tracking_id
                 handleCallTrackerId( callId, data );
