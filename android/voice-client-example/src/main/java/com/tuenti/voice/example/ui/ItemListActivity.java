@@ -5,14 +5,17 @@ import android.support.v4.content.Loader;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.github.kevinsawicki.wishlist.SingleTypeAdapter;
+import com.github.kevinsawicki.wishlist.ViewUtils;
 import com.tuenti.voice.example.R;
 
 import java.util.Collections;
 import java.util.List;
 
 import static android.support.v4.app.LoaderManager.LoaderCallbacks;
+import static android.widget.AdapterView.OnItemClickListener;
 
 public abstract class ItemListActivity<E>
     extends SherlockFragmentActivity
@@ -26,6 +29,11 @@ public abstract class ItemListActivity<E>
     protected List<E> mItems = Collections.emptyList();
 
     /**
+     * Progress bar
+     */
+    protected ProgressBar mProgressBar;
+
+    /**
      * List view
      */
     protected ListView mListView;
@@ -37,7 +45,6 @@ public abstract class ItemListActivity<E>
 
 // ------------------------ INTERFACE METHODS ------------------------
 
-
 // --------------------- Interface LoaderCallbacks ---------------------
 
     @Override
@@ -48,6 +55,7 @@ public abstract class ItemListActivity<E>
     {
         mItems = items;
         mListView.setAdapter( createAdapter( mItems ) );
+        displayProgressBar( false );
     }
 
     @Override
@@ -65,12 +73,34 @@ public abstract class ItemListActivity<E>
     }
 
     /**
+     * Refresh the fragment's list
+     */
+    public void refresh()
+    {
+        refresh( null );
+    }
+
+    /**
      * Create adapter to display items
      *
      * @param items
      * @return adapter
      */
     protected abstract SingleTypeAdapter<E> createAdapter( final List<E> items );
+
+    /**
+     * Display/hide the ProgressBar.
+     *
+     * @param display
+     */
+    protected void displayProgressBar( boolean display )
+    {
+        if ( mProgressBar != null )
+        {
+            setSupportProgressBarIndeterminateVisibility( display );
+            ViewUtils.setGone( mProgressBar, !display );
+        }
+    }
 
     @Override
     protected void onCreate( Bundle savedInstanceState )
@@ -79,7 +109,7 @@ public abstract class ItemListActivity<E>
         setContentView( R.layout.item_list_activity );
 
         mListView = (ListView) findViewById( R.id.list );
-        mListView.setOnItemClickListener( new AdapterView.OnItemClickListener()
+        mListView.setOnItemClickListener( new OnItemClickListener()
         {
             @Override
             public void onItemClick( AdapterView<?> parent, View view, int position, long id )
@@ -89,11 +119,23 @@ public abstract class ItemListActivity<E>
         } );
         mListView.setAdapter( createAdapter( mItems ) );
 
+        mProgressBar = (ProgressBar) findViewById( R.id.loading );
+
         getSupportLoaderManager().initLoader( 0, null, this );
     }
 
-    protected void refresh( final Bundle args )
+    @Override
+    protected void onDestroy()
     {
+        mListShown = false;
+        mProgressBar = null;
+        mListView = null;
+        super.onDestroy();
+    }
+
+    private void refresh( final Bundle args )
+    {
+        displayProgressBar( true );
         getSupportLoaderManager().restartLoader( 0, args, this );
     }
 }

@@ -25,6 +25,7 @@ public class ConnectionActivity
 
 // ------------------------ INTERFACE METHODS ------------------------
 
+
 // --------------------- Interface LoaderCallbacks ---------------------
 
     @Override
@@ -38,7 +39,7 @@ public class ConnectionActivity
     @Override
     public void onActivityResult( int requestCode, int resultCode, Intent data )
     {
-        reloadAccounts();
+        refresh();
     }
 
     @Override
@@ -73,7 +74,7 @@ public class ConnectionActivity
     {
         super.onResume();
         mConnectionCallback.bind();
-        reloadAccounts();
+        refresh();
     }
 
     @Override
@@ -104,10 +105,5 @@ public class ConnectionActivity
     {
         mConnectionCallback.unbind();
         super.onPause();
-    }
-
-    private void reloadAccounts()
-    {
-        refresh( null );
     }
 }
