@@ -13,7 +13,7 @@ import com.tuenti.voice.core.data.Connection;
 import com.tuenti.voice.example.R;
 import com.tuenti.voice.example.service.AuthenticatedVoiceClientService;
 import com.tuenti.voice.example.ui.ItemListActivity;
-import com.tuenti.voice.example.ui.RosterView;
+import com.tuenti.voice.example.ui.buddy.BuddyActivity;
 
 import java.util.List;
 
@@ -87,8 +87,6 @@ public class ConnectionActivity
     @Override
     protected void onCreate( Bundle savedInstanceState )
     {
-        super.onCreate( savedInstanceState );
-
         mConnectionCallback = new ConnectionCallback( this )
         {
             @Override
@@ -97,6 +95,8 @@ public class ConnectionActivity
                 displayRosterView();
             }
         };
+
+        super.onCreate( savedInstanceState );
     }
 
     @Override
@@ -113,7 +113,7 @@ public class ConnectionActivity
         startService( intent );
 
         // now start the roster view
-        intent = new Intent( this, RosterView.class );
+        intent = new Intent( this, BuddyActivity.class );
         startActivity( intent );
     }
 }

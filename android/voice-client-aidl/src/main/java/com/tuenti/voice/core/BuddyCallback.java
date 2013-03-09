@@ -8,20 +8,20 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
-import com.tuenti.voice.core.data.Connection;
-import com.tuenti.voice.core.service.IConnectionService;
-import com.tuenti.voice.core.service.IConnectionServiceCallback;
+import com.tuenti.voice.core.data.Buddy;
+import com.tuenti.voice.core.service.IBuddyService;
+import com.tuenti.voice.core.service.IBuddyServiceCallback;
 
-public abstract class ConnectionCallback
-    extends IConnectionServiceCallback.Stub
+public abstract class BuddyCallback
+    extends IBuddyServiceCallback.Stub
 {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final String TAG = "ConnectionCallback";
+    private static final String TAG = "BuddyCallback";
 
     private Activity mActivity;
 
-    private IConnectionService mService;
+    private IBuddyService mService;
 
     private boolean mServiceConnected;
 
@@ -32,8 +32,9 @@ public abstract class ConnectionCallback
         {
             try
             {
-                mService = IConnectionService.Stub.asInterface( service );
-                mService.registerCallback( ConnectionCallback.this );
+                mService = IBuddyService.Stub.asInterface( service );
+                mService.registerCallback( BuddyCallback.this );
+                BuddyCallback.this.onServiceConnected();
             }
             catch ( RemoteException e )
             {
@@ -46,7 +47,7 @@ public abstract class ConnectionCallback
         {
             try
             {
-                mService.unregisterCallback( ConnectionCallback.this );
+                mService.unregisterCallback( BuddyCallback.this );
                 mService = null;
             }
             catch ( RemoteException e )
@@ -58,27 +59,17 @@ public abstract class ConnectionCallback
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public ConnectionCallback( final Activity activity )
+    public BuddyCallback( final Activity activity )
     {
         mActivity = activity;
     }
 
 // ------------------------ INTERFACE METHODS ------------------------
 
-// --------------------- Interface IConnectionServiceCallback ---------------------
+// --------------------- Interface IBuddyServiceCallback ---------------------
 
     @Override
-    public void handleLoggedIn()
-    {
-    }
-
-    @Override
-    public void handleLoggedOut()
-    {
-    }
-
-    @Override
-    public void handleLoggingIn()
+    public void handleBuddyUpdated( Buddy[] buddies )
     {
     }
 
@@ -89,20 +80,27 @@ public abstract class ConnectionCallback
         if ( !mServiceConnected )
         {
             mServiceConnected = true;
-            Intent connectionIntent = new Intent( IConnectionService.class.getName() );
+            Intent connectionIntent = new Intent( IBuddyService.class.getName() );
             mActivity.bindService( connectionIntent, mServiceConnection, Context.BIND_AUTO_CREATE );
         }
     }
 
-    public void login( Connection connection )
+    public void onServiceConnected()
+    {
+    }
+
+    public void requestBuddyUpdate()
     {
         try
         {
-            mService.login( connection );
+            if ( mService != null )
+            {
+                mService.requestBuddyUpdate();
+            }
         }
         catch ( RemoteException e )
         {
-            Log.d( TAG, e.getMessage(), e );
+            Log.e( TAG, e.getMessage(), e );
         }
     }
 

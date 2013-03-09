@@ -8,20 +8,19 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
-import com.tuenti.voice.core.data.Connection;
-import com.tuenti.voice.core.service.IConnectionService;
-import com.tuenti.voice.core.service.IConnectionServiceCallback;
+import com.tuenti.voice.core.service.IStatService;
+import com.tuenti.voice.core.service.IStatServiceCallback;
 
-public abstract class ConnectionCallback
-    extends IConnectionServiceCallback.Stub
+public abstract class StatCallback
+    extends IStatServiceCallback.Stub
 {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final String TAG = "ConnectionCallback";
+    private static final String TAG = "BuddyCallback";
 
     private Activity mActivity;
 
-    private IConnectionService mService;
+    private IStatService mService;
 
     private boolean mServiceConnected;
 
@@ -32,8 +31,8 @@ public abstract class ConnectionCallback
         {
             try
             {
-                mService = IConnectionService.Stub.asInterface( service );
-                mService.registerCallback( ConnectionCallback.this );
+                mService = IStatService.Stub.asInterface( service );
+                mService.registerCallback( StatCallback.this );
             }
             catch ( RemoteException e )
             {
@@ -46,7 +45,7 @@ public abstract class ConnectionCallback
         {
             try
             {
-                mService.unregisterCallback( ConnectionCallback.this );
+                mService.unregisterCallback( StatCallback.this );
                 mService = null;
             }
             catch ( RemoteException e )
@@ -58,27 +57,17 @@ public abstract class ConnectionCallback
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public ConnectionCallback( final Activity activity )
+    public StatCallback( final Activity activity )
     {
         mActivity = activity;
     }
 
 // ------------------------ INTERFACE METHODS ------------------------
 
-// --------------------- Interface IConnectionServiceCallback ---------------------
+// --------------------- Interface IStatServiceCallback ---------------------
 
     @Override
-    public void handleLoggedIn()
-    {
-    }
-
-    @Override
-    public void handleLoggedOut()
-    {
-    }
-
-    @Override
-    public void handleLoggingIn()
+    public void handleStatsUpdate( String stats )
     {
     }
 
@@ -89,20 +78,8 @@ public abstract class ConnectionCallback
         if ( !mServiceConnected )
         {
             mServiceConnected = true;
-            Intent connectionIntent = new Intent( IConnectionService.class.getName() );
+            Intent connectionIntent = new Intent( IStatService.class.getName() );
             mActivity.bindService( connectionIntent, mServiceConnection, Context.BIND_AUTO_CREATE );
-        }
-    }
-
-    public void login( Connection connection )
-    {
-        try
-        {
-            mService.login( connection );
-        }
-        catch ( RemoteException e )
-        {
-            Log.d( TAG, e.getMessage(), e );
         }
     }
 
