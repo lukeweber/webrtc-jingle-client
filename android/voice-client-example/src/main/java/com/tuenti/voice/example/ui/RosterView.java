@@ -122,14 +122,4 @@ public class RosterView
         super.onCreate( savedInstanceState );
         getListView().setOnItemClickListener( this );
     }
-
-    @Override
-    protected void onDestroy()
-    {
-        super.onDestroy();
-
-        // stop the service
-        Intent intent = new Intent( this, VoiceClientService.class );
-        stopService( intent );
-    }
 }

@@ -11,6 +11,7 @@ import com.github.kevinsawicki.wishlist.SingleTypeAdapter;
 import com.tuenti.voice.core.ConnectionCallback;
 import com.tuenti.voice.core.data.Connection;
 import com.tuenti.voice.example.R;
+import com.tuenti.voice.example.service.AuthenticatedVoiceClientService;
 import com.tuenti.voice.example.ui.ItemListActivity;
 import com.tuenti.voice.example.ui.RosterView;
 
@@ -24,7 +25,6 @@ public class ConnectionActivity
     private ConnectionCallback mConnectionCallback;
 
 // ------------------------ INTERFACE METHODS ------------------------
-
 
 // --------------------- Interface LoaderCallbacks ---------------------
 
@@ -94,8 +94,7 @@ public class ConnectionActivity
             @Override
             public void handleLoggedIn()
             {
-                Intent intent = new Intent( ConnectionActivity.this, RosterView.class );
-                startActivity( intent );
+                displayRosterView();
             }
         };
     }
@@ -105,5 +104,16 @@ public class ConnectionActivity
     {
         mConnectionCallback.unbind();
         super.onPause();
+    }
+
+    private void displayRosterView()
+    {
+        // start the service
+        Intent intent = new Intent( this, AuthenticatedVoiceClientService.class );
+        startService( intent );
+
+        // now start the roster view
+        intent = new Intent( this, RosterView.class );
+        startActivity( intent );
     }
 }
