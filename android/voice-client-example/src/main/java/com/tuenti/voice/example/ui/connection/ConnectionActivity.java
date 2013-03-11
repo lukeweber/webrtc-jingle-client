@@ -144,32 +144,16 @@ public class ConnectionActivity
 
     private void displayRosterView()
     {
-        if ( !isVoiceClientServiceRunning() )
-        {
-            // start the service
-            Intent intent = new Intent( this, AuthenticatedVoiceClientService.class );
-            startService( intent );
-        }
+        // start the service
+        Intent intent = new Intent( this, AuthenticatedVoiceClientService.class );
+        startService( intent );
 
         // now start the roster view
-        Intent intent = new Intent( this, BuddyActivity.class );
+        intent = new Intent( this, BuddyActivity.class );
         intent.putExtra( EXTRA_CONNECTION, mConnection );
         startActivity( intent );
 
         // end this activity
         finish();
-    }
-
-    private boolean isVoiceClientServiceRunning()
-    {
-        ActivityManager manager = (ActivityManager) getSystemService( Context.ACTIVITY_SERVICE );
-        for ( ActivityManager.RunningServiceInfo service : manager.getRunningServices( Integer.MAX_VALUE ) )
-        {
-            if ( AuthenticatedVoiceClientService.class.getName().equals( service.service.getClassName() ) )
-            {
-                return true;
-            }
-        }
-        return false;
     }
 }
