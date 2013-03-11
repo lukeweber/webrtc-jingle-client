@@ -23,7 +23,7 @@ public class BuddyManagerImpl
 
     private static final Object mLock = new Object();
 
-    private static final String TAG = "RosterManager";
+    private static final String TAG = "BuddyManager";
 
     private BuddyComparator comparator = new BuddyComparator();
 
