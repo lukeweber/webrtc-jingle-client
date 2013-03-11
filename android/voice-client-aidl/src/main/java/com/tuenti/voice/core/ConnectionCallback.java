@@ -106,6 +106,18 @@ public abstract class ConnectionCallback
         }
     }
 
+    public void logout()
+    {
+        try
+        {
+            mService.logout();
+        }
+        catch ( RemoteException e )
+        {
+            Log.d( TAG, e.getMessage(), e );
+        }
+    }
+
     public void unbind()
     {
         if ( mServiceConnected )

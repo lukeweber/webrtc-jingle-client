@@ -69,11 +69,11 @@ public class VoiceClientService
     @Override
     public void onDestroy()
     {
-        super.onDestroy();
-
         // destroy the client
         mClient.release();
         mClient = null;
+
+        super.onDestroy();
     }
 
     @Override

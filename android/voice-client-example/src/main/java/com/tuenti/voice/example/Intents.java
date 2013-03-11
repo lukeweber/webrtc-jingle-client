@@ -17,4 +17,9 @@ public class Intents
      * Call extra
      */
     public static final String EXTRA_CALL = INTENT_EXTRA_PREFIX + "CALL";
+
+    /**
+     * Connection extra
+     */
+    public static final String EXTRA_CONNECTION = INTENT_EXTRA_PREFIX + "CONNECTION";
 }

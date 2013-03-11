@@ -1,10 +1,13 @@
 package com.tuenti.voice.example.ui.connection;
 
+import android.app.ActivityManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.Loader;
 import android.view.View;
 import android.widget.ListView;
+import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.github.kevinsawicki.wishlist.SingleTypeAdapter;
@@ -17,10 +20,14 @@ import com.tuenti.voice.example.ui.buddy.BuddyActivity;
 
 import java.util.List;
 
+import static com.tuenti.voice.example.Intents.EXTRA_CONNECTION;
+
 public class ConnectionActivity
     extends ItemListActivity<Connection>
 {
 // ------------------------------ FIELDS ------------------------------
+
+    private Connection mConnection;
 
     private ConnectionCallback mConnectionCallback;
 
@@ -46,27 +53,35 @@ public class ConnectionActivity
     public boolean onCreateOptionsMenu( Menu menu )
     {
         getSupportMenuInflater().inflate( R.menu.accounts, menu );
-        //loginItem = optionMenu.findItem(id.m_login);
-        return true;
+        return super.onCreateOptionsMenu( menu );
     }
 
     @Override
     public void onListItemClick( ListView l, View v, int position, long id )
     {
-        Connection connection = (Connection) l.getItemAtPosition( position );
-        mConnectionCallback.login( connection );
+        mConnection = (Connection) l.getItemAtPosition( position );
+        if ( mConnection.getPresenceId() == R.string.presence_available )
+        {
+            displayRosterView();
+        }
+        else
+        {
+            mConnectionCallback.login( mConnection );
+        }
     }
 
     @Override
     public boolean onOptionsItemSelected( MenuItem item )
     {
-        if ( item.getItemId() == R.id.add_account )
+        switch ( item.getItemId() )
         {
-            Intent intent = new Intent( this, AddConnectionActivity.class );
-            startActivityForResult( intent, 0 );
-            return true;
+            case R.id.menu_item_add_account:
+                Intent intent = new Intent( this, AddConnectionActivity.class );
+                startActivityForResult( intent, 0 );
+                return true;
+            default:
+                return super.onOptionsItemSelected( item );
         }
-        return super.onOptionsItemSelected( item );
     }
 
     @Override
@@ -80,6 +95,20 @@ public class ConnectionActivity
     @Override
     protected SingleTypeAdapter<Connection> createAdapter( List<Connection> items )
     {
+        // set the presence
+        for ( Connection connection : items )
+        {
+            if ( mConnection != null && connection.getUsername().equals( mConnection.getUsername() ) )
+            {
+                connection.setPresenceId( R.string.presence_available );
+            }
+            else
+            {
+                connection.setPresenceId( R.string.presence_offline );
+            }
+        }
+
+        // now create the adapter
         Connection[] connections = items.toArray( new Connection[items.size()] );
         return new ConnectionListAdapter( getLayoutInflater(), connections );
     }
@@ -97,6 +126,12 @@ public class ConnectionActivity
         };
 
         super.onCreate( savedInstanceState );
+
+        mConnection = getParcelableExtra( EXTRA_CONNECTION );
+
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setTitle( R.string.accounts );
+        actionBar.setDisplayHomeAsUpEnabled( false );
     }
 
     @Override
@@ -109,11 +144,28 @@ public class ConnectionActivity
     private void displayRosterView()
     {
         // start the service
-        Intent intent = new Intent( this, AuthenticatedVoiceClientService.class );
-        startService( intent );
+        if ( !isVoiceClientServiceRunning() )
+        {
+            Intent intent = new Intent( this, AuthenticatedVoiceClientService.class );
+            startService( intent );
+        }
 
         // now start the roster view
-        intent = new Intent( this, BuddyActivity.class );
+        Intent intent = new Intent( this, BuddyActivity.class );
+        intent.putExtra( EXTRA_CONNECTION, mConnection );
         startActivity( intent );
+    }
+
+    private boolean isVoiceClientServiceRunning()
+    {
+        ActivityManager manager = (ActivityManager) getSystemService( Context.ACTIVITY_SERVICE );
+        for ( ActivityManager.RunningServiceInfo service : manager.getRunningServices( Integer.MAX_VALUE ) )
+        {
+            if ( AuthenticatedVoiceClientService.class.getName().equals( service.service.getClassName() ) )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

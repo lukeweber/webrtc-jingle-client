@@ -66,12 +66,21 @@
     <string name="audio_mode_bluetooth">"Bluetooth"</string>
 
     <string name="accounts">Accounts</string>
-    <string name="add_account">Add Account</string>
     <string name="username_or_email">Username or email</string>
     <string name="password">Password</string>
     <string name="next">Next</string>
 
     <string name="required_username_and_password">Username and password are required</string>
     <string name="invalid_login_or_password">Please enter a valid login &amp; password</string>
+
+    <string name="menu_add_account">Add Account</string>
+    <string name="menu_sign_out">Sign out</string>
+
+    <string name="presence">Online presence</string>
+    <string name="presence_available">Available</string>
+    <string name="presence_busy">Busy</string>
+    <string name="presence_away">Away</string>
+    <string name="presence_offline">Offline</string>
+    <string name="presence_invisible">Invisible</string>
 
 </resources>

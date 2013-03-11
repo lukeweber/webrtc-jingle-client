@@ -1,6 +1,7 @@
 package com.tuenti.voice.example.ui;
 
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.content.Loader;
 import android.view.View;
 import android.widget.AdapterView;
@@ -102,7 +103,19 @@ public abstract class ItemListActivity<E>
         }
     }
 
-    @Override
+    /**
+     * Get serializable extra from activity's intent
+     *
+     * @param name
+     * @return extra
+     */
+    @SuppressWarnings("unchecked")
+    protected <V extends Parcelable> V getParcelableExtra( final String name )
+    {
+        return (V) getIntent().getParcelableExtra( name );
+    }
+
+@Override
     protected void onCreate( Bundle savedInstanceState )
     {
         super.onCreate( savedInstanceState );

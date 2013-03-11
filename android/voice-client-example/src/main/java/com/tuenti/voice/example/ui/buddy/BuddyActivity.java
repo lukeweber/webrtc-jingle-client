@@ -5,18 +5,30 @@ import android.os.Bundle;
 import android.support.v4.content.Loader;
 import android.view.View;
 import android.widget.ListView;
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 import com.github.kevinsawicki.wishlist.SingleTypeAdapter;
 import com.tuenti.voice.core.BuddyCallback;
 import com.tuenti.voice.core.CallCallback;
+import com.tuenti.voice.core.ConnectionCallback;
 import com.tuenti.voice.core.data.Buddy;
 import com.tuenti.voice.core.data.Call;
+import com.tuenti.voice.core.data.Connection;
+import com.tuenti.voice.example.Intents;
+import com.tuenti.voice.example.R;
+import com.tuenti.voice.example.service.AuthenticatedVoiceClientService;
 import com.tuenti.voice.example.ui.call.CallActivity;
 import com.tuenti.voice.example.ui.ItemListActivity;
+import com.tuenti.voice.example.ui.connection.ConnectionActivity;
 
 import java.util.Arrays;
 import java.util.List;
 
+import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP;
+import static android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP;
 import static com.tuenti.voice.example.Intents.EXTRA_CALL;
+import static com.tuenti.voice.example.Intents.EXTRA_CONNECTION;
 
 public class BuddyActivity
     extends ItemListActivity<Buddy>
@@ -27,7 +39,11 @@ public class BuddyActivity
 
     private CallCallback mCallCallback;
 
+    private ConnectionCallback mConnectionCallback;
+
     private Call mCurrentCall;
+
+    private Connection mCurrentConnection;
 
 // ------------------------ INTERFACE METHODS ------------------------
 
@@ -42,6 +58,13 @@ public class BuddyActivity
 // -------------------------- OTHER METHODS --------------------------
 
     @Override
+    public boolean onCreateOptionsMenu( Menu menu )
+    {
+        getSupportMenuInflater().inflate( R.menu.buddies, menu );
+        return super.onCreateOptionsMenu( menu );
+    }
+
+    @Override
     public void onListItemClick( ListView l, View v, int position, long id )
     {
         Buddy buddy = (Buddy) l.getItemAtPosition( position );
@@ -49,9 +72,26 @@ public class BuddyActivity
     }
 
     @Override
+    public boolean onOptionsItemSelected( MenuItem item )
+    {
+        switch ( item.getItemId() )
+        {
+            case android.R.id.home:
+                displayHome( mCurrentConnection );
+                return true;
+            case R.id.menu_item_sign_out:
+                mConnectionCallback.logout();
+                return true;
+            default:
+                return super.onOptionsItemSelected( item );
+        }
+    }
+
+    @Override
     public void onResume()
     {
         super.onResume();
+        mConnectionCallback.bind();
         mBuddyCallback.bind();
         mCallCallback.bind();
     }
@@ -66,6 +106,14 @@ public class BuddyActivity
     @Override
     protected void onCreate( Bundle savedInstanceState )
     {
+        mConnectionCallback = new ConnectionCallback( this )
+        {
+            @Override
+            public void handleLoggedOut()
+            {
+                displayHome( null );
+            }
+        };
         mBuddyCallback = new BuddyCallback( this )
         {
             @Override
@@ -137,6 +185,12 @@ public class BuddyActivity
         };
 
         super.onCreate( savedInstanceState );
+
+        mCurrentConnection = getParcelableExtra( Intents.EXTRA_CONNECTION );
+
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setTitle( mCurrentConnection.getUsername() );
+        actionBar.setDisplayHomeAsUpEnabled( true );
     }
 
     @Override
@@ -144,6 +198,25 @@ public class BuddyActivity
     {
         mCallCallback.unbind();
         mBuddyCallback.unbind();
+        mConnectionCallback.unbind();
         super.onPause();
+    }
+
+    private void displayHome( Connection connection )
+    {
+        if ( connection == null )
+        {
+            // stop the service
+            Intent intent = new Intent( this, AuthenticatedVoiceClientService.class );
+            stopService( intent );
+        }
+
+        // go back to the homepage
+        Intent intent = new Intent( this, ConnectionActivity.class );
+        intent.putExtra( EXTRA_CONNECTION, connection );
+        intent.addFlags( FLAG_ACTIVITY_CLEAR_TOP | FLAG_ACTIVITY_SINGLE_TOP );
+        startActivity( intent );
+
+        finish();
     }
 }

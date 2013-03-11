@@ -23,6 +23,8 @@ public class Connection
 
     private String password;
 
+    private int presenceId;
+
     private String relayHost;
 
     private String stunHost;
@@ -50,6 +52,7 @@ public class Connection
     public Connection( Parcel in )
     {
         password = in.readString();
+        presenceId = in.readInt();
         relayHost = in.readString();
         stunHost = in.readString();
         turnHost = in.readString();
@@ -71,6 +74,16 @@ public class Connection
     public void setPassword( String password )
     {
         this.password = password;
+    }
+
+    public int getPresenceId()
+    {
+        return presenceId;
+    }
+
+    public void setPresenceId( int presenceId )
+    {
+        this.presenceId = presenceId;
     }
 
     public String getRelayHost()
@@ -177,6 +190,7 @@ public class Connection
     public void writeToParcel( Parcel out, int flags )
     {
         out.writeString( password );
+        out.writeInt( presenceId );
         out.writeString( relayHost );
         out.writeString( stunHost );
         out.writeString( turnHost );
