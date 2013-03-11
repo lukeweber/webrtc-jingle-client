@@ -138,14 +138,15 @@ public class ConnectionActivity
     protected void onPause()
     {
         mConnectionCallback.unbind();
+        mConnection = null;
         super.onPause();
     }
 
     private void displayRosterView()
     {
-        // start the service
         if ( !isVoiceClientServiceRunning() )
         {
+            // start the service
             Intent intent = new Intent( this, AuthenticatedVoiceClientService.class );
             startService( intent );
         }
@@ -154,6 +155,9 @@ public class ConnectionActivity
         Intent intent = new Intent( this, BuddyActivity.class );
         intent.putExtra( EXTRA_CONNECTION, mConnection );
         startActivity( intent );
+
+        // end this activity
+        finish();
     }
 
     private boolean isVoiceClientServiceRunning()

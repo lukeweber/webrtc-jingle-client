@@ -41,7 +41,6 @@
             android:name=".ui.connection.AddConnectionActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|uiMode"
             android:excludeFromRecents="true" />
-
         <activity
             android:name=".ui.buddy.BuddyActivity"
             android:excludeFromRecents="true"

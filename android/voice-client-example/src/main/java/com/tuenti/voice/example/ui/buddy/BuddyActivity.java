@@ -15,7 +15,6 @@ import com.tuenti.voice.core.ConnectionCallback;
 import com.tuenti.voice.core.data.Buddy;
 import com.tuenti.voice.core.data.Call;
 import com.tuenti.voice.core.data.Connection;
-import com.tuenti.voice.example.Intents;
 import com.tuenti.voice.example.R;
 import com.tuenti.voice.example.service.AuthenticatedVoiceClientService;
 import com.tuenti.voice.example.ui.call.CallActivity;
@@ -25,7 +24,7 @@ import com.tuenti.voice.example.ui.connection.ConnectionActivity;
 import java.util.Arrays;
 import java.util.List;
 
-import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP;
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP;
 import static com.tuenti.voice.example.Intents.EXTRA_CALL;
 import static com.tuenti.voice.example.Intents.EXTRA_CONNECTION;
@@ -186,7 +185,7 @@ public class BuddyActivity
 
         super.onCreate( savedInstanceState );
 
-        mCurrentConnection = getParcelableExtra( Intents.EXTRA_CONNECTION );
+        mCurrentConnection = getParcelableExtra( EXTRA_CONNECTION );
 
         ActionBar actionBar = getSupportActionBar();
         actionBar.setTitle( mCurrentConnection.getUsername() );
@@ -214,7 +213,7 @@ public class BuddyActivity
         // go back to the homepage
         Intent intent = new Intent( this, ConnectionActivity.class );
         intent.putExtra( EXTRA_CONNECTION, connection );
-        intent.addFlags( FLAG_ACTIVITY_CLEAR_TOP | FLAG_ACTIVITY_SINGLE_TOP );
+        intent.addFlags( FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_SINGLE_TOP );
         startActivity( intent );
 
         finish();
