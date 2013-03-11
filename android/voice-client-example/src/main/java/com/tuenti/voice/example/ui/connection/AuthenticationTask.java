@@ -76,7 +76,7 @@ public abstract class AuthenticationTask
                         AccountManager manager = AccountManager.get( mActivity );
                         manager.addAccountExplicitly( mAccount, connection.getPassword(), null );
                         manager.setUserData( mAccount, "stunHost", connection.getStunHost() );
-                        manager.setUserData( mAccount, "stunPort", "19302" );
+                        manager.setUserData( mAccount, "stunPort", String.valueOf( connection.getStunPort() ) );
                         manager.setUserData( mAccount, "turnHost", connection.getTurnHost() );
                         manager.setUserData( mAccount, "turnUsername", connection.getTurnUsername() );
                         manager.setUserData( mAccount, "turnPassword", connection.getTurnPassword() );
@@ -100,7 +100,7 @@ public abstract class AuthenticationTask
         mClient.init( mActivity );
         mClient.login( connection.getUsername(),
                        connection.getPassword(),
-                       connection.getStunHost() + ":19302",
+                       connection.getStunHost() + ":" + connection.getStunPort(),
                        connection.getTurnHost(),
                        connection.getTurnUsername(),
                        connection.getTurnPassword(),

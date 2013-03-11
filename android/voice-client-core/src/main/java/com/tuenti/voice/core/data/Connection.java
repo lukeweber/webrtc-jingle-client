@@ -29,6 +29,8 @@ public class Connection
 
     private String stunHost;
 
+    private int stunPort;
+
     private String turnHost;
 
     private String turnPassword;
@@ -55,6 +57,7 @@ public class Connection
         presenceId = in.readInt();
         relayHost = in.readString();
         stunHost = in.readString();
+        stunPort = in.readInt();
         turnHost = in.readString();
         turnUsername = in.readString();
         turnPassword = in.readString();
@@ -104,6 +107,16 @@ public class Connection
     public void setStunHost( String stunHost )
     {
         this.stunHost = stunHost;
+    }
+
+    public int getStunPort()
+    {
+        return stunPort;
+    }
+
+    public void setStunPort( int stunPort )
+    {
+        this.stunPort = stunPort;
     }
 
     public String getTurnHost()
@@ -193,6 +206,7 @@ public class Connection
         out.writeInt( presenceId );
         out.writeString( relayHost );
         out.writeString( stunHost );
+        out.writeInt( stunPort );
         out.writeString( turnHost );
         out.writeString( turnUsername );
         out.writeString( turnPassword );

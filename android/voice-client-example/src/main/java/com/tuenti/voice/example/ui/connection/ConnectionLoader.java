@@ -50,6 +50,7 @@ public class ConnectionLoader
                 connection.setXmppPort( Integer.valueOf( manager.getUserData( account, "xmppPort" ) ) );
                 connection.setXmppUseSsl( Boolean.valueOf( manager.getUserData( account, "xmppUseSsl" ) ) );
                 connection.setStunHost( manager.getUserData( account, "stunHost" ) );
+                connection.setStunPort( Integer.valueOf( manager.getUserData( account, "stunPort" ) ) );
                 connection.setTurnHost( manager.getUserData( account, "turnHost" ) );
                 connection.setTurnUsername( manager.getUserData( account, "turnUsername" ) );
                 connection.setTurnPassword( manager.getUserData( account, "turnPassword" ) );

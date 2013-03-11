@@ -72,7 +72,8 @@ public class AddConnectionActivity
         connection.setXmppHost( mXmppHost.getText().toString() );
         connection.setXmppPort( Integer.valueOf( mXmppPort.getText().toString() ) );
         connection.setXmppUseSsl( Boolean.valueOf( mXmppUseSsl.getText().toString() ) );
-        connection.setStunHost( mStunHost.getText().toString() + ":" + mStunPort.getText().toString() );
+        connection.setStunHost( mStunHost.getText().toString() );
+        connection.setStunPort( Integer.valueOf( mStunPort.getText().toString() ) );
 
         AuthenticationTask mAuthenticationTask = new AuthenticationTask( this )
         {
