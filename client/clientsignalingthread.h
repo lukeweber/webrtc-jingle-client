@@ -41,11 +41,13 @@
 #include "talk/base/scoped_ptr.h"
 #include "talk/base/physicalsocketserver.h"
 #include "talk/xmpp/pingtask.h"
+#include "talk/xmpp/rostermodule.h"
 #include "talk/xmpp/xmppengine.h"
 
 #include "client/xmppmessage.h"
 #include "client/sendmessagetask.h"
 #include "client/receivemessagetask.h"
+#include "client/rosterhandler.h"
 #include "client/keepalivetask.h"
 #include "client/status.h"
 #include "client/txmpppump.h"  // Needed for TXmppPumpNotify
@@ -68,7 +70,6 @@ namespace buzz {
 class Status;
 class Jid;
 class XmppClient;
-class PresencePushTask;
 class PresenceOutTask;
 }
 
@@ -350,13 +351,14 @@ class ClientSignalingThread
   talk_base::scoped_ptr<talk_base::BasicPacketSocketFactory> sp_socket_factory_;
   talk_base::scoped_ptr<cricket::SessionManager> sp_session_manager_;
   talk_base::scoped_ptr<tuenti::TXmppPump> sp_pump_;
+  talk_base::scoped_ptr<buzz::XmppRosterModule> sp_roster_module_;
+  talk_base::scoped_ptr<tuenti::RosterHandler> sp_roster_handler_;
   talk_base::scoped_ptr<talk_base::BasicNetworkManager> sp_network_manager_;
 
   talk_base::Thread *signal_thread_;
   talk_base::scoped_ptr<talk_base::Thread> main_thread_;
   RosterMap *roster_;
   BuddyListMap *buddy_list_;
-  buzz::PresencePushTask* presence_push_;
   buzz::PresenceOutTask* presence_out_;
   buzz::PingTask* ping_task_;
   KeepAliveTask * keepalive_task_;
