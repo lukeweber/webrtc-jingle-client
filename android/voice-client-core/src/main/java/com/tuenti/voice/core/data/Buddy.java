@@ -2,6 +2,7 @@ package com.tuenti.voice.core.data;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import com.tuenti.voice.core.XmppPresenceAvailable;
 
 public class Buddy
     implements Parcelable
@@ -21,9 +22,9 @@ public class Buddy
         }
     };
 
-    private String nick;
+    private XmppPresenceAvailable available;
 
-    private boolean online;
+    private String nick;
 
     private String remoteJid;
 
@@ -36,11 +37,21 @@ public class Buddy
     public Buddy( Parcel in )
     {
         nick = in.readString();
-        online = in.readByte() == 1;
         remoteJid = in.readString();
+        available = XmppPresenceAvailable.fromInteger( in.readInt() );
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
+
+    public XmppPresenceAvailable getAvailable()
+    {
+        return available;
+    }
+
+    public void setAvailable( XmppPresenceAvailable available )
+    {
+        this.available = available;
+    }
 
     public String getNick()
     {
@@ -62,16 +73,6 @@ public class Buddy
         this.remoteJid = remoteJid;
     }
 
-    public boolean isOnline()
-    {
-        return online;
-    }
-
-    public void setOnline( boolean online )
-    {
-        this.online = online;
-    }
-
 // ------------------------ INTERFACE METHODS ------------------------
 
 // --------------------- Interface Parcelable ---------------------
@@ -86,7 +87,7 @@ public class Buddy
     public void writeToParcel( Parcel out, int flags )
     {
         out.writeString( nick );
-        out.writeByte( (byte) ( online ? 1 : 0 ) );
         out.writeString( remoteJid );
+        out.writeInt( available.ordinal() );
     }
 }

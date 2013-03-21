@@ -6,6 +6,7 @@ import android.os.RemoteException;
 import android.util.Log;
 import com.tuenti.voice.core.BuddyListState;
 import com.tuenti.voice.core.VoiceClient;
+import com.tuenti.voice.core.XmppPresenceAvailable;
 import com.tuenti.voice.core.data.Buddy;
 import com.tuenti.voice.core.data.BuddyComparator;
 import com.tuenti.voice.core.service.IBuddyService;
@@ -71,17 +72,35 @@ public class BuddyManagerImpl
 
 // ------------------------ INTERFACE METHODS ------------------------
 
-
 // --------------------- Interface BuddyManager ---------------------
+
+
+    @Override
+    public void handleBuddyAdded( String remoteJid, String nick, int available )
+    {
+        if ( mBuddies.containsKey( remoteJid ) )
+        {
+            return;
+        }
+
+        Log.d( TAG, "buddy added " + remoteJid );
+        synchronized ( mLock )
+        {
+            Buddy buddy = new Buddy();
+            buddy.setRemoteJid( remoteJid );
+            buddy.setNick( nick );
+            buddy.setAvailable( XmppPresenceAvailable.fromInteger( available ));
+            mBuddies.put( remoteJid, buddy );
+        }
+
+        dispatchCallback();
+    }
 
     @Override
     public void handleBuddyListChanged( int state, String remoteJid )
     {
         switch ( BuddyListState.fromInteger( state ) )
         {
-            case ADD:
-                handleBuddyAdded( remoteJid );
-                break;
             case REMOVE:
                 handleBuddyRemoved( remoteJid );
                 break;
@@ -117,25 +136,6 @@ public class BuddyManagerImpl
             }
         }
         mCallbacks.finishBroadcast();
-    }
-
-    private void handleBuddyAdded( String remoteJid )
-    {
-        if ( mBuddies.containsKey( remoteJid ) )
-        {
-            return;
-        }
-
-        Log.d( TAG, "buddy added " + remoteJid );
-        synchronized ( mLock )
-        {
-            Buddy buddy = new Buddy();
-            buddy.setRemoteJid( remoteJid );
-            buddy.setOnline(true);
-            mBuddies.put( remoteJid, buddy );
-        }
-
-        dispatchCallback();
     }
 
     private void handleBuddyRemoved( String remoteJid )

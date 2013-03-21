@@ -29,11 +29,11 @@
 #include <vector>
 #include <memory>
 
-#ifdef ANDROID
+//#ifdef ANDROID
 #include "com_tuenti_voice_core_VoiceClient.h"
-#elif IOS
-#include "VoiceClientExample/VoiceClientDelegate.h"
-#endif
+//#elif IOS
+//#include "VoiceClientExample/VoiceClientDelegate.h"
+//#endif
 
 #include "client/voiceclient.h"
 #include "client/logging.h"
@@ -45,16 +45,18 @@
 
 namespace tuenti {
 
-#ifdef ANDROID
+//#ifdef ANDROID
 VoiceClient::VoiceClient(JavaObjectReference *reference) {
     reference_ = reference;
     Init();
 }
+/*
 #elif IOS
 VoiceClient::VoiceClient() {
     Init();
 }
 #endif
+*/
 
 VoiceClient::~VoiceClient() {
   LOGI("VoiceClient::~VoiceClient");
@@ -181,7 +183,9 @@ void VoiceClient::DeclineCall(uint32 call_id, bool busy) {
   }
 }
 
+/*
 #ifdef ANDROID
+*/
 void VoiceClient::OnSignalCallStateChange(int state, const char *remote_jid, int call_id) {
   CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_CALL_STATE_EVENT, state, remote_jid, call_id);
 }
@@ -211,12 +215,19 @@ void VoiceClient::OnSignalBuddyListReset() {
   CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT, RESET, "", 0);
 }
 
-void VoiceClient::OnSignalBuddyListRemove(const RosterItem item) {
-  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT, REMOVE, item.jid.BareJid().Str().c_str(), 0);
+void VoiceClient::OnSignalBuddyListRemove(const std::string& jid) {
+  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT, REMOVE, jid.c_str(), 0);
 }
 
-void VoiceClient::OnSignalBuddyListAdd(const RosterItem item) {
-  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT, ADD, item.jid.BareJid().Str().c_str(), 0);
+void VoiceClient::OnSignalBuddyListAdd(const std::string& jid, const std::string& nick, int available) {
+  CALLBACK_START("handleBuddyAdded", "(Ljava/lang/String;Ljava/lang/String;I)V", reference_);
+  if (mid != NULL) {
+    jstring jid_jni = env->NewStringUTF(jid.c_str());
+    jstring nick_jni = env->NewStringUTF(nick.c_str());
+    jint available_jni = available;
+    env->CallVoidMethod(reference_->handler_object, mid, jid_jni, nick_jni, available_jni);
+  }
+  DETACH_FROM_VM(reference_);
 }
 
 void VoiceClient::OnSignalStatsUpdate(const char *stats) {
@@ -231,6 +242,7 @@ void VoiceClient::OnSignalCallTrackerId(int call_id, const char* call_tracker_id
 void VoiceClient::OnSignalXmppMessage(const XmppMessage m){
   //Implement me.
 }
+/*
 #elif IOS
 
 void VoiceClient::OnSignalCallStateChange(int state, const char *remote_jid, int call_id) {
@@ -261,12 +273,12 @@ void VoiceClient::OnSignalBuddyListReset() {
     VoiceClientDelegate::getInstance()->OnSignalBuddyListReset();
 }
 
-void VoiceClient::OnSignalBuddyListRemove(const RosterItem item) {
-    VoiceClientDelegate::getInstance()->OnSignalBuddyListRemove(item.jid.BareJid().Str().c_str());
+void VoiceClient::OnSignalBuddyListRemove(const char *jid) {
+    VoiceClientDelegate::getInstance()->OnSignalBuddyListRemove(jid);
 }
 
-void VoiceClient::OnSignalBuddyListAdd(const RosterItem item) {
-    VoiceClientDelegate::getInstance()->OnSignalBuddyListAdd(item.jid.BareJid().Str().c_str(), item.nick.c_str());
+void VoiceClient::OnSignalBuddyListAdd(const char *jid) {
+    VoiceClientDelegate::getInstance()->OnSignalBuddyListAdd(jid, jid);
 }
 
 void VoiceClient::OnSignalStatsUpdate(const char *stats) {
@@ -282,5 +294,6 @@ void VoiceClient::OnSignalXmppMessage(const XmppMessage m){
   printf("Message body: %s\n", m.body.c_str());
 }
 #endif  //IOS
+*/
 
 }  // namespace tuenti

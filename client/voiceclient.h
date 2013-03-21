@@ -27,10 +27,10 @@
 #ifndef CLIENT_VOICECLIENT_H_
 #define CLIENT_VOICECLIENT_H_
 
-#ifdef ANDROID
+//#ifdef ANDROID
 #include <jni.h>
 #include "client/helpers.h"
-#endif
+//#endif
 
 #include <string>
 
@@ -54,13 +54,6 @@ typedef enum {
 } BuddyList;
 
 typedef struct {
-  buzz::Jid jid;
-  buzz::Status::Show show;
-  std::string status;
-  std::string nick;
-} RosterItem;
-
-typedef struct {
   std::string stun;
   std::string turn;
   std::string turn_username;
@@ -78,11 +71,11 @@ class ClientSignalingThread;
 class VoiceClient: public sigslot::has_slots<> {
  public:
   // initialization
-#ifdef ANDROID
+//#ifdef ANDROID
   explicit VoiceClient(JavaObjectReference *reference);
-#elif IOS
-  explicit VoiceClient();
-#endif
+//#elif IOS
+//  explicit VoiceClient();
+//#endif
   ~VoiceClient();
   void Init();
   void Destroy();
@@ -112,16 +105,16 @@ class VoiceClient: public sigslot::has_slots<> {
   void OnSignalXmppSocketClose(int state);
   void OnSignalXmppStateChange(int state);
   void OnSignalBuddyListReset();
-  void OnSignalBuddyListRemove(const RosterItem item);
-  void OnSignalBuddyListAdd(const RosterItem item);
+  void OnSignalBuddyListRemove(const std::string& jid);
+  void OnSignalBuddyListAdd(const std::string& jid, const std::string& nick, int available);
   void OnSignalStatsUpdate(const char *stats);
   void OnSignalCallTrackerId(int call_id, const char *call_tracker_id);
 
   std::string stunserver_;
   std::string relayserver_;
-#ifdef ANDROID
+//#ifdef ANDROID
   JavaObjectReference *reference_;
-#endif
+//#endif
   tuenti::ClientSignalingThread *client_signaling_thread_;
   StunConfig *stun_config_;
   talk_base::CriticalSection destroy_cs_;

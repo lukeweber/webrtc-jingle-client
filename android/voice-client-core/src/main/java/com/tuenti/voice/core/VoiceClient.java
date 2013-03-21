@@ -26,38 +26,57 @@ public class VoiceClient
 {
 // ------------------------------ FIELDS ------------------------------
 
+    public static final int AUDIO_PLAYOUT_EVENT = 6;
+
+    public static final int BUDDY_LIST_EVENT = 3;
+
+    public static final int CALL_ERROR_EVENT = 5;
+
     //Event constants
     /* Event Types */
     public static final int CALL_STATE_EVENT = 0;
-    public static final int XMPP_STATE_EVENT = 1;
-    public static final int XMPP_ERROR_EVENT = 2;
-    public static final int BUDDY_LIST_EVENT = 3;
-    public static final int XMPP_SOCKET_CLOSE_EVENT = 4;
-    public static final int CALL_ERROR_EVENT = 5;
-    public static final int AUDIO_PLAYOUT_EVENT = 6;
-    public static final int STATS_UPDATE_EVENT = 7;
+
     public static final int CALL_TRACKER_ID_EVENT = 8;
+
+    public static final int STATS_UPDATE_EVENT = 7;
+
+    public static final int XMPP_ERROR_EVENT = 2;
+
+    public static final int XMPP_SOCKET_CLOSE_EVENT = 4;
+
+    public static final int XMPP_STATE_EVENT = 1;
     //End Event constants
 
     private final static String TAG = "j-VoiceClient";
+
     private static final Object mLock = new Object();
+
     private boolean initialized;
-    private boolean voiceClientLoaded;
+
     private BuddyManager mBuddyManager;
+
     private CallManager mCallManager;
+
     private ConnectionManager mConnectionManager;
+
     private StatManager mStatManager;
 
+    private boolean voiceClientLoaded;
+
 // --------------------------- CONSTRUCTORS ---------------------------
+
     public VoiceClient()
     {
         synchronized ( mLock )
         {
             Log.i( TAG, "loading native library voiceclient" );
-            try {
+            try
+            {
                 System.loadLibrary( "voiceclient" );
                 voiceClientLoaded = true;
-            } catch (UnsatisfiedLinkError e) {
+            }
+            catch ( UnsatisfiedLinkError e )
+            {
                 // We need to do this, because Android will generate OOM error
                 // loading an so file on older phones when they don't have
                 // enough available memory at load time.
@@ -68,49 +87,51 @@ public class VoiceClient
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public boolean loaded() {
-        return voiceClientLoaded;
-    }
-
     public void acceptCall( long call_id )
     {
         Log.i( TAG, "native accept call " + call_id );
-        if (loaded()) {
+        if ( loaded() )
+        {
             nativeAcceptCall( call_id );
         }
     }
 
     public void call( String remoteUsername )
     {
-        if (loaded()) {
+        if ( loaded() )
+        {
             nativeCall( remoteUsername );
         }
     }
 
     public void callWithTrackerId( String remoteUsername, String callTrackerId )
     {
-        if (loaded()) {
+        if ( loaded() )
+        {
             nativeCallWithTrackerId( remoteUsername, callTrackerId );
         }
     }
 
     public void declineCall( long call_id, boolean busy )
     {
-        if (loaded()) {
+        if ( loaded() )
+        {
             nativeDeclineCall( call_id, busy );
         }
     }
 
     public void endCall( long call_id )
     {
-        if (loaded()) {
+        if ( loaded() )
+        {
             nativeEndCall( call_id );
         }
     }
 
     public void holdCall( long call_id, boolean hold )
     {
-        if (loaded()) {
+        if ( loaded() )
+        {
             nativeHoldCall( call_id, hold );
         }
     }
@@ -124,10 +145,16 @@ public class VoiceClient
         }
     }
 
+    public boolean loaded()
+    {
+        return voiceClientLoaded;
+    }
+
     public void login( String username, String password, String stunServer, String turnServer, String turnUsername,
                        String turnPassword, String xmppServer, int xmppPort, boolean useSsl, int portAllocatorFilter )
     {
-        if (loaded()) {
+        if ( loaded() )
+        {
             nativeLogin( username,
                          password,
                          stunServer,
@@ -141,23 +168,18 @@ public class VoiceClient
         }
     }
 
-    public void replaceTurn( String turnServer )
-    {
-        if (loaded()) {
-            nativeReplaceTurn( turnServer );
-        }
-    }
-
     public void logout()
     {
-        if (loaded()) {
+        if ( loaded() )
+        {
             nativeLogout();
         }
     }
 
     public void muteCall( long call_id, boolean mute )
     {
-        if (loaded()) {
+        if ( loaded() )
+        {
             nativeMuteCall( call_id, mute );
         }
     }
@@ -168,6 +190,14 @@ public class VoiceClient
         {
             initialized = false;
             nativeRelease();
+        }
+    }
+
+    public void replaceTurn( String turnServer )
+    {
+        if ( loaded() )
+        {
+            nativeReplaceTurn( turnServer );
         }
     }
 
@@ -189,6 +219,20 @@ public class VoiceClient
     public void setStatManager( StatManager statManager )
     {
         mStatManager = statManager;
+    }
+
+    /**
+     * @see BuddyManager#handleBuddyAdded(String, String, int)
+     */
+    protected void handleBuddyAdded( String remoteJid, String nick, int available )
+    {
+        if ( mBuddyManager != null )
+        {
+            synchronized ( mLock )
+            {
+                mBuddyManager.handleBuddyAdded( remoteJid, nick, available );
+            }
+        }
     }
 
     /**
@@ -229,6 +273,34 @@ public class VoiceClient
             synchronized ( mLock )
             {
                 mCallManager.handleCallStateChanged( state, remoteJid, callId );
+            }
+        }
+    }
+
+    /**
+     * @see CallManager#handleCallTrackerId(long, String)
+     */
+    protected void handleCallTrackerId( long callId, String callTrackerId )
+    {
+        if ( mCallManager != null )
+        {
+            synchronized ( mLock )
+            {
+                mCallManager.handleCallTrackerId( callId, callTrackerId );
+            }
+        }
+    }
+
+    /**
+     * @see StatManager#handleStatsUpdate(String)
+     */
+    protected void handleStatsUpdate( String stats )
+    {
+        if ( mStatManager != null )
+        {
+            synchronized ( mLock )
+            {
+                mStatManager.handleStatsUpdate( stats );
             }
         }
     }
@@ -275,33 +347,6 @@ public class VoiceClient
         }
     }
 
-    /**
-     * @see StatManager#handleStatsUpdate(String)
-     */
-    protected void handleStatsUpdate( String stats )
-    {
-        if ( mStatManager != null )
-        {
-            synchronized ( mLock )
-            {
-                mStatManager.handleStatsUpdate( stats );
-            }
-        }
-    }
-
-    /**
-     * @see CallManager#handleCallTrackerId(int, String)
-     */
-    protected void handleCallTrackerId( long callId, String callTrackerId )
-    {
-        if ( mCallManager != null )
-        {
-            synchronized ( mLock )
-            {
-                mCallManager.handleCallTrackerId( callId, callTrackerId );
-            }
-        }
-    }
     @SuppressWarnings("UnusedDeclaration")
     //TODO: change the signature to be:
     //dispatchNativeEvent( int what, int code, String data )
@@ -358,11 +403,11 @@ public class VoiceClient
                                      String turnUsername, String turnPassword, String xmppServer, int xmppPort,
                                      boolean UseSSL, int portAllocatorFilter );
 
-    private native void nativeReplaceTurn(String turn);
-
     private native void nativeLogout();
 
     private native void nativeMuteCall( long call_id, boolean mute );
 
     private native void nativeRelease();
+
+    private native void nativeReplaceTurn( String turn );
 }
