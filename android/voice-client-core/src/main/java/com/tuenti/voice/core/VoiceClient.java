@@ -302,6 +302,21 @@ public class VoiceClient
             }
         }
     }
+
+    /**
+     * @see CallManager#handleAudioPlayout()
+     */
+    protected void handleAudioPlayout()
+    {
+        if ( mCallManager != null )
+        {
+            synchronized ( mLock )
+            {
+                mCallManager.handleAudioPlayout();
+            }
+        }
+    }
+
     @SuppressWarnings("UnusedDeclaration")
     //TODO: change the signature to be:
     //dispatchNativeEvent( int what, int code, String data )
@@ -336,6 +351,9 @@ public class VoiceClient
             case CALL_TRACKER_ID_EVENT:
                 // data contains call_tracking_id
                 handleCallTrackerId( callId, data );
+                break;
+            case AUDIO_PLAYOUT_EVENT:
+                handleAudioPlayout();
                 break;
         }
     }

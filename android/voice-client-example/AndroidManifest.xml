@@ -4,7 +4,9 @@
     android:versionName="1.0"
     package="com.tuenti.voice.example">
 
-    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
     <uses-permission android:name="android.permission.BROADCAST_STICKY" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -15,6 +17,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
 
     <uses-sdk
         android:minSdkVersion="9"
@@ -22,25 +25,31 @@
 
     <application
         android:label="@string/app_name"
-        android:debuggable="true">
+        android:theme="@style/Theme.Sherlock.Light">
+
         <activity
-            android:name=".ui.LoginView"
-            android:label="@string/app_name"
-            android:screenOrientation="portrait">
+            android:name=".ui.connection.ConnectionActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode"
+            android:excludeFromRecents="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
-            android:name=".ui.RosterView"
+            android:name=".ui.connection.AddConnectionActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode"
+            android:excludeFromRecents="true" />
+        <activity
+            android:name=".ui.buddy.BuddyActivity"
             android:excludeFromRecents="true"
             android:launchMode="singleInstance"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|keyboardHidden|uiMode"
             android:exported="false" />
         <activity
-            android:name=".ui.CallView"
+            android:name=".ui.call.CallActivity"
             android:label="@string/app_name"
             android:excludeFromRecents="true"
             android:launchMode="singleInstance"
@@ -53,13 +62,17 @@
             android:exported="false"
             android:label="TuentiVoiceService"
             android:process=":VoiceClientService"
-            android:name="com.tuenti.voice.core.service.VoiceClientService">
+            android:name=".service.AuthenticatedVoiceClientService">
             <intent-filter>
                 <action android:name="com.tuenti.voice.core.service.IConnectionService" />
                 <action android:name="com.tuenti.voice.core.service.IBuddyService" />
                 <action android:name="com.tuenti.voice.core.service.ICallService" />
                 <action android:name="com.tuenti.voice.core.service.IStatService" />
+                <action android:name="android.accounts.AccountAuthenticator" />
             </intent-filter>
+            <meta-data
+                android:name="android.accounts.AccountAuthenticator"
+                android:resource="@xml/authenticator" />
         </service>
     </application>
 </manifest>

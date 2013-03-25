@@ -31,9 +31,9 @@
 #include "client/logging.h"
 #include "client/receivemessagetask.h"
 #include "client/keepalivetask.h"
+#include "client/rosterhandler.h"
 #include "client/sendmessagetask.h"
 #include "client/presenceouttask.h"
-#include "client/presencepushtask.h"
 #include "talk/base/logging.h"
 #include "client/voiceclient.h"//TODO: Remove
 #include "talk/base/signalthread.h"
@@ -118,7 +118,6 @@ struct ClientSignalingData: public talk_base::MessageData {
 ClientSignalingThread::ClientSignalingThread()
     : roster_(NULL),
     buddy_list_(NULL),
-    presence_push_(NULL),
     presence_out_(NULL),
     ping_task_(NULL),
     keepalive_task_(NULL),
@@ -899,10 +898,18 @@ void ClientSignalingThread::InitPresence() {
 #endif
 
 #if XMPP_ENABLE_ROSTER
-  presence_push_ = new buzz::PresencePushTask(sp_pump_->client());
-  presence_push_->SignalStatusUpdate.connect(this,
-      &ClientSignalingThread::OnStatusUpdate);
-  presence_push_->Start();
+  sp_roster_handler_.reset(new tuenti::RosterHandler());
+  //TODO: This is hooked up as a fake roster based on presences for voip.
+  //Kill this callback, and hook the handler here directly to the
+  //native app. Instead of filtering presences to decide which users
+  //are online use roster handler methods to know the entire roster.
+  sp_roster_handler_->SignalStatusUpdate.connect(this,
+      &ClientSignalingThread::OnStatusUpdate);//Killme
+  sp_roster_module_.reset(buzz::XmppRosterModule::Create());
+  sp_roster_module_->RegisterEngine(sp_pump_->client()->engine());
+  sp_roster_module_->set_roster_handler(sp_roster_handler_.get());
+  sp_roster_module_->BroadcastPresence();//Empty presence to get things going.
+  sp_roster_module_->RequestRosterUpdate();
 #endif
 
   int capabilities = sp_media_client_->GetCapabilities();

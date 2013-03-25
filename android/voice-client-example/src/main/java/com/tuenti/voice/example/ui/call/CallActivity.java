@@ -1,8 +1,7 @@
-package com.tuenti.voice.example.ui;
+package com.tuenti.voice.example.ui.call;
 
 import android.os.Bundle;
 import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.media.AudioManager;
@@ -10,9 +9,9 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.ToggleButton;
-import com.tuenti.voice.core.OnCallListener;
-import com.tuenti.voice.core.OnStatListener;
-import com.tuenti.voice.core.VoiceActivity;
+import com.actionbarsherlock.app.SherlockActivity;
+import com.tuenti.voice.core.CallCallback;
+import com.tuenti.voice.core.StatCallback;
 import com.tuenti.voice.core.data.Call;
 import com.tuenti.voice.core.util.AudioUtil;
 import com.tuenti.voice.core.util.WakeLockUtil;
@@ -26,13 +25,11 @@ import static android.view.WindowManager.LayoutParams;
 import static com.tuenti.voice.core.util.AudioUtil.OnAudioChangeListener;
 import static com.tuenti.voice.core.util.CallTimer.OnTickListener;
 
-public class CallView
-    extends VoiceActivity
-    implements OnClickListener, OnTickListener, OnCallListener, OnAudioChangeListener, OnStatListener
+public class CallActivity
+    extends SherlockActivity
+    implements OnClickListener, OnTickListener, OnAudioChangeListener
 {
 // ------------------------------ FIELDS ------------------------------
-
-    private static final String TAG = "CallView";
 
     private ImageButton mAcceptButton;
 
@@ -44,6 +41,8 @@ public class CallView
 
     private Call mCall;
 
+    private CallCallback mCallCallback;
+
     private boolean mCallOnHold;
 
     private TextView mCallStateLabel;
@@ -54,12 +53,13 @@ public class CallView
 
     private TextView mName;
 
+    private StatCallback mStatCallback;
+
     private TextView mStatsTextView;
 
     private WakeLockUtil mWakeLockUtil;
 
 // ------------------------ INTERFACE METHODS ------------------------
-
 
 // --------------------- Interface OnAudioChangeListener ---------------------
 
@@ -83,73 +83,6 @@ public class CallView
         mAudioButton.setChecked( mAudioUtil.isSpeakerOn() );
     }
 
-// --------------------- Interface OnCallListener ---------------------
-
-    @Override
-    public void onCallInProgress()
-    {
-        if ( mBottomBar.getVisibility() != View.VISIBLE )
-        {
-            runOnUiThread( new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    mBottomBar.setVisibility( View.VISIBLE );
-                }
-            } );
-        }
-    }
-
-    @Override
-    public void onIncomingCallAccepted()
-    {
-        Log.d( TAG, "onIncomingCallAccepted" );
-        runOnUiThread( new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                startCall();
-            }
-        } );
-    }
-
-    @Override
-    public void onIncomingCallTerminated( Call call )
-    {
-        endCall();
-    }
-
-    @Override
-    public void onOutgoingCallAccepted()
-    {
-        Log.d( TAG, "onOutgoingCallAccepted" );
-        runOnUiThread( new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                startCall();
-            }
-        } );
-    }
-
-    @Override
-    public void onOutgoingCallTerminated( Call call )
-    {
-        endCall();
-    }
-
-    @Override
-    public void toggleHold( long callId )
-    {
-        mCallOnHold = !mCallOnHold;
-        mCallStateLabel.setText( "ON HOLD" );
-        mCallStateLabel.setVisibility( mCallOnHold ? View.VISIBLE : View.GONE );
-        super.toggleHold( callId );
-    }
-
 // --------------------- Interface OnClickListener ---------------------
 
     @Override
@@ -158,37 +91,25 @@ public class CallView
         switch ( view.getId() )
         {
             case R.id.accept_btn:
-                acceptCall( mCall.getCallId() );
+                mCallCallback.acceptCall( mCall.getCallId() );
                 break;
             case R.id.hang_up_btn:
-                endCall( mCall.getCallId() );
+                mCallCallback.endCall( mCall.getCallId() );
                 finish();
                 break;
             case R.id.audio_btn:
                 toggleAudio();
                 break;
             case R.id.mute_btn:
-                toggleMute( mCall.getCallId() );
+                mCallCallback.toggleMute( mCall.getCallId() );
                 break;
             case R.id.hold_btn:
-                toggleHold( mCall.getCallId() );
+                mCallOnHold = !mCallOnHold;
+                mCallStateLabel.setText( "ON HOLD" );
+                mCallStateLabel.setVisibility( mCallOnHold ? View.VISIBLE : View.GONE );
+                mCallCallback.toggleHold( mCall.getCallId() );
                 break;
         }
-    }
-
-// --------------------- Interface OnStatListener ---------------------
-
-    @Override
-    public void onStatsUpdated( final String stats )
-    {
-        runOnUiThread( new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                mStatsTextView.setText( stats );
-            }
-        } );
     }
 
 // --------------------- Interface OnTickListener ---------------------
@@ -202,6 +123,54 @@ public class CallView
     @Override
     protected void onCreate( Bundle savedInstanceState )
     {
+        mCallCallback = new CallCallback( this )
+        {
+            @Override
+            public void handleCallInProgress()
+            {
+                onCallInProgress();
+            }
+
+            @Override
+            public void handleIncomingCallAccepted()
+            {
+                onStartCall();
+            }
+
+            @Override
+            public void handleIncomingCallTerminated( Call call )
+            {
+                onEndCall();
+            }
+
+            @Override
+            public void handleOutgoingCallAccepted()
+            {
+                onStartCall();
+            }
+
+            @Override
+            public void handleOutgoingCallTerminated( Call call )
+            {
+                onEndCall();
+            }
+        };
+        mStatCallback = new StatCallback( this )
+        {
+            @Override
+            public void handleStatsUpdate( final String stats )
+            {
+                runOnUiThread( new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        mStatsTextView.setText( stats );
+                    }
+                } );
+            }
+        };
+
         super.onCreate( savedInstanceState );
 
         mCall = getIntent().getParcelableExtra( Intents.EXTRA_CALL );
@@ -236,6 +205,8 @@ public class CallView
     @Override
     protected void onDestroy()
     {
+        mCallCallback.unbind();
+        mStatCallback.unbind();
         mWakeLockUtil.stopProximityLock();
         mAudioUtil.destroy();
         super.onDestroy();
@@ -245,14 +216,31 @@ public class CallView
     protected void onResume()
     {
         super.onResume();
-        setVolumeControlStream(AudioManager.STREAM_VOICE_CALL);
+        mStatCallback.bind();
+        mCallCallback.bind();
+        setVolumeControlStream( AudioManager.STREAM_VOICE_CALL );
         updateCallDisplay();
+    }
+
+    private void onCallInProgress()
+    {
+        if ( mBottomBar.getVisibility() != View.VISIBLE )
+        {
+            runOnUiThread( new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    mBottomBar.setVisibility( View.VISIBLE );
+                }
+            } );
+        }
     }
 
     /**
      * End a call
      */
-    private void endCall()
+    private void onEndCall()
     {
         mWakeLockUtil.stopProximityLock();
         mCallTimer.cancelTimer();
@@ -262,7 +250,7 @@ public class CallView
     /**
      * Start a call
      */
-    private void startCall()
+    private void onStartCall()
     {
         mCallTimer.startTimer( mCall );
         mCallStateLabel.setVisibility( View.GONE );

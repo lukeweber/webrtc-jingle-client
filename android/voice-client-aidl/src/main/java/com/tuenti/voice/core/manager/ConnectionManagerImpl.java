@@ -3,6 +3,7 @@ package com.tuenti.voice.core.manager;
 import android.os.IBinder;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
+import android.text.TextUtils;
 import android.util.Log;
 import com.tuenti.voice.core.VoiceClient;
 import com.tuenti.voice.core.XmppError;
@@ -211,17 +212,22 @@ public class ConnectionManagerImpl
         Log.d( TAG, "handleLogin" );
         if ( connection != null )
         {
+            String stunServer = "";
+            if ( !TextUtils.isEmpty( connection.getStunHost() ) )
+            {
+                stunServer = connection.getStunHost() + ":" + connection.getStunPort();
+            }
+
             mClient.login( connection.getUsername(),
                            connection.getPassword(),
-                           connection.getStunHost(),
+                           stunServer,
                            connection.getTurnHost(),
                            connection.getTurnUsername(),
                            connection.getTurnPassword(),
                            connection.getXmppHost(),
                            connection.getXmppPort(),
                            connection.getXmppUseSsl(),
-                           PortAllocatorFilter.NO_FILTER.ordinal()
-                    );
+                           PortAllocatorFilter.NO_FILTER.ordinal() );
         }
     }
 

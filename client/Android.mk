@@ -12,7 +12,7 @@ LOCAL_SRC_FILES := \
 	sendmessagetask.cc \
 	keepalivetask.cc \
 	presenceouttask.cc \
-	presencepushtask.cc \
+	rosterhandler.cc \
 	clientsignalingthread.cc \
 	voiceclient.cc \
 	txmppauth.cc \

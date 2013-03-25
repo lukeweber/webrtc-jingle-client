@@ -23,9 +23,13 @@ public class Connection
 
     private String password;
 
+    private int presenceId;
+
     private String relayHost;
 
     private String stunHost;
+
+    private int stunPort;
 
     private String turnHost;
 
@@ -50,8 +54,10 @@ public class Connection
     public Connection( Parcel in )
     {
         password = in.readString();
+        presenceId = in.readInt();
         relayHost = in.readString();
         stunHost = in.readString();
+        stunPort = in.readInt();
         turnHost = in.readString();
         turnUsername = in.readString();
         turnPassword = in.readString();
@@ -73,6 +79,16 @@ public class Connection
         this.password = password;
     }
 
+    public int getPresenceId()
+    {
+        return presenceId;
+    }
+
+    public void setPresenceId( int presenceId )
+    {
+        this.presenceId = presenceId;
+    }
+
     public String getRelayHost()
     {
         return relayHost;
@@ -91,6 +107,16 @@ public class Connection
     public void setStunHost( String stunHost )
     {
         this.stunHost = stunHost;
+    }
+
+    public int getStunPort()
+    {
+        return stunPort;
+    }
+
+    public void setStunPort( int stunPort )
+    {
+        this.stunPort = stunPort;
     }
 
     public String getTurnHost()
@@ -177,8 +203,10 @@ public class Connection
     public void writeToParcel( Parcel out, int flags )
     {
         out.writeString( password );
+        out.writeInt( presenceId );
         out.writeString( relayHost );
         out.writeString( stunHost );
+        out.writeInt( stunPort );
         out.writeString( turnHost );
         out.writeString( turnUsername );
         out.writeString( turnPassword );
