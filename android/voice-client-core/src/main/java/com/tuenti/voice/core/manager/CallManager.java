@@ -11,4 +11,6 @@ public interface CallManager
     void handleCallStateChanged( int state, String remoteJid, long callId );
 
     void handleCallTrackerId( long callId, String callTrackerId );
+
+    void handleAudioPlayout();
 }
