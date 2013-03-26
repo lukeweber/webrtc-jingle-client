@@ -3,6 +3,7 @@ package com.tuenti.voice.example.ui.buddy;
 import android.view.LayoutInflater;
 import com.github.kevinsawicki.wishlist.SingleTypeAdapter;
 import com.tuenti.voice.core.XmppPresenceAvailable;
+import com.tuenti.voice.core.XmppPresenceShow;
 import com.tuenti.voice.core.data.Buddy;
 import com.tuenti.voice.example.R;
 
@@ -33,8 +34,16 @@ public class BuddyListAdapter
 
     private int getAvailable( final Buddy buddy )
     {
-        if ( buddy.getAvailable().equals( XmppPresenceAvailable.XMPP_PRESENCE_AVAILABLE ) )
+        if ( XmppPresenceAvailable.XMPP_PRESENCE_AVAILABLE.equals( buddy.getAvailable() ) )
         {
+            if ( XmppPresenceShow.XMPP_PRESENCE_DND.equals( buddy.getShow() ) )
+            {
+                return R.string.presence_busy;
+            }
+            if ( XmppPresenceShow.XMPP_PRESENCE_AWAY.equals( buddy.getShow() ) )
+            {
+                return R.string.presence_away;
+            }
             return R.string.presence_available;
         }
         return R.string.presence_offline;
@@ -42,8 +51,16 @@ public class BuddyListAdapter
 
     private int getImageResource( final Buddy buddy )
     {
-        if ( buddy.getAvailable().equals( XmppPresenceAvailable.XMPP_PRESENCE_AVAILABLE ) )
+        if ( XmppPresenceAvailable.XMPP_PRESENCE_AVAILABLE.equals( buddy.getAvailable() ) )
         {
+            if ( XmppPresenceShow.XMPP_PRESENCE_DND.equals( buddy.getShow() ) )
+            {
+                return R.drawable.presence_busy;
+            }
+            if ( XmppPresenceShow.XMPP_PRESENCE_AWAY.equals( buddy.getShow() ) )
+            {
+                return R.drawable.presence_away;
+            }
             return R.drawable.presence_online;
         }
         return R.drawable.presence_offline;
