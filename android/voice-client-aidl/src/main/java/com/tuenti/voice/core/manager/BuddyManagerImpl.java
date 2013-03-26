@@ -7,6 +7,7 @@ import android.util.Log;
 import com.tuenti.voice.core.BuddyListState;
 import com.tuenti.voice.core.VoiceClient;
 import com.tuenti.voice.core.XmppPresenceAvailable;
+import com.tuenti.voice.core.XmppPresenceShow;
 import com.tuenti.voice.core.data.Buddy;
 import com.tuenti.voice.core.data.BuddyComparator;
 import com.tuenti.voice.core.service.IBuddyService;
@@ -76,7 +77,7 @@ public class BuddyManagerImpl
 
 
     @Override
-    public void handleBuddyAdded( String remoteJid, String nick, int available )
+    public void handleBuddyAdded( String remoteJid, String nick, int available, int show )
     {
         if ( mBuddies.containsKey( remoteJid ) )
         {
@@ -90,6 +91,7 @@ public class BuddyManagerImpl
             buddy.setRemoteJid( remoteJid );
             buddy.setNick( nick );
             buddy.setAvailable( XmppPresenceAvailable.fromInteger( available ));
+            buddy.setShow( XmppPresenceShow.fromInteger( show ) );
             mBuddies.put( remoteJid, buddy );
         }
 
@@ -108,6 +110,26 @@ public class BuddyManagerImpl
                 handleBuddyReset();
                 break;
         }
+    }
+
+    @Override
+    public void handlePresenceChanged( String remoteJid, int available, int show )
+    {
+        Log.d( TAG, "presence changed " + remoteJid );
+        if ( !mBuddies.containsKey( remoteJid ) )
+        {
+            return;
+        }
+
+        Log.d( TAG, "updating presence" );
+        synchronized ( mLock )
+        {
+            Buddy buddy = mBuddies.get( remoteJid );
+            buddy.setAvailable( XmppPresenceAvailable.fromInteger( available ) );
+            buddy.setShow( XmppPresenceShow.fromInteger( show ) );
+        }
+
+        dispatchCallback();
     }
 
 // -------------------------- OTHER METHODS --------------------------

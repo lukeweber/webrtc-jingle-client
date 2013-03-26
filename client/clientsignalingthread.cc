@@ -51,20 +51,21 @@
 
 namespace tuenti {
 
+struct RosterData : talk_base::MessageData {
+  RosterData(std::string jid, std::string nick, int available, int show)
+    : jid_(jid),
+    nick_(nick),
+    available_(available),
+    show_(show) {}
+  std::string jid_;
+  std::string nick_;
+  int available_;
+  int show_;
+};
+
 struct XmppMessageData : talk_base::MessageData {
   XmppMessageData(const tuenti::XmppMessage m) : m_(m) {}
   tuenti::XmppMessage m_;
-};
-
-struct RosterData : talk_base::MessageData {
-  RosterData(const std::string jid, const std::string nick, int available)
-    : jid_(jid),
-    nick_(nick),
-    available_(available) {}
-  std::string jid_;
-  std::string status_;
-  std::string nick_;
-  int available_;
 };
 
 struct CallErrorData : talk_base::MessageData {
@@ -154,9 +155,14 @@ ClientSignalingThread::~ClientSignalingThread() {
   delete signal_thread_;
 }
 
-void ClientSignalingThread::OnContactAdded(const std::string& jid,
-	const std::string& nick, int available) {
-  main_thread_->Post(this, MSG_ROSTER_ADD, new RosterData(jid, nick, available));
+void ClientSignalingThread::OnContactAdded(const std::string& jid, const std::string& nick,
+		int available, int show) {
+  main_thread_->Post(this, MSG_ROSTER_ADD, new RosterData(jid, nick, available, show));
+}
+
+void ClientSignalingThread::OnPresenceChanged(const std::string& jid,
+		int available, int show) {
+  main_thread_->Post(this, MSG_PRESENCE_CHANGED, new RosterData(jid, "", available, show));
 }
 
 void ClientSignalingThread::OnSessionState(cricket::Call* call,
@@ -529,15 +535,23 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
   case MSG_ROSTER_REMOVE:
     {
     assert(talk_base::Thread::Current() == main_thread_.get());
-    SignalBuddyListRemove(static_cast<RosterData*>(message->pdata)->jid_.c_str());
+    //SignalBuddyListRemove(static_cast<RosterData*>(message->pdata)->jid_.c_str());
     delete message->pdata;
     break;
+    }
+  case MSG_PRESENCE_CHANGED:
+    {
+        assert(talk_base::Thread::Current() == main_thread_.get());
+        RosterData *rd = static_cast<RosterData*>(message->pdata);
+        SignalPresenceChanged(rd->jid_, rd->available_, rd->show_);
+        delete message->pdata;
+        break;
     }
   case MSG_ROSTER_ADD:
     {
     assert(talk_base::Thread::Current() == main_thread_.get());
-    RosterData* rd = static_cast<RosterData*>(message->pdata);
-    SignalBuddyListAdd(rd->jid_, rd->nick_, rd->available_);
+    RosterData *rd = static_cast<RosterData*>(message->pdata);
+    SignalBuddyListAdd(rd->jid_, rd->nick_, rd->available_, rd->show_);
     delete message->pdata;
     break;
     }
@@ -839,6 +853,8 @@ void ClientSignalingThread::InitPresence() {
   sp_roster_handler_.reset(new tuenti::RosterHandler());
   sp_roster_handler_->SignalContactAdded.connect(this,
 	  &ClientSignalingThread::OnContactAdded);
+  sp_roster_handler_->SignalPresenceChanged.connect(this,
+  	  &ClientSignalingThread::OnPresenceChanged);
 
   sp_roster_module_.reset(buzz::XmppRosterModule::Create());
   sp_roster_module_->set_roster_handler(sp_roster_handler_.get());

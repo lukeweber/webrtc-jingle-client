@@ -58,7 +58,8 @@ public:
                       const buzz::XmppRosterContact* removed_contact,
                       size_t index);
 
-  sigslot::signal3<const std::string&, const std::string&, int> SignalContactAdded;
+  sigslot::signal3<const std::string&, int, int> SignalPresenceChanged;
+  sigslot::signal4<const std::string&, const std::string&, int, int> SignalContactAdded;
 
 private:
   void FillStatus(const buzz::Jid& from, const buzz::XmlElement* stanza,

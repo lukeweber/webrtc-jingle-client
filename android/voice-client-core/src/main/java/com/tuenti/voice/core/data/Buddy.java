@@ -2,7 +2,9 @@ package com.tuenti.voice.core.data;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.TextUtils;
 import com.tuenti.voice.core.XmppPresenceAvailable;
+import com.tuenti.voice.core.XmppPresenceShow;
 
 public class Buddy
     implements Parcelable
@@ -28,6 +30,8 @@ public class Buddy
 
     private String remoteJid;
 
+    private XmppPresenceShow show;
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
     public Buddy()
@@ -39,6 +43,7 @@ public class Buddy
         nick = in.readString();
         remoteJid = in.readString();
         available = XmppPresenceAvailable.fromInteger( in.readInt() );
+        show = XmppPresenceShow.fromInteger( in.readInt() );
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -73,6 +78,16 @@ public class Buddy
         this.remoteJid = remoteJid;
     }
 
+    public XmppPresenceShow getShow()
+    {
+        return show;
+    }
+
+    public void setShow( XmppPresenceShow show )
+    {
+        this.show = show;
+    }
+
 // ------------------------ INTERFACE METHODS ------------------------
 
 // --------------------- Interface Parcelable ---------------------
@@ -89,5 +104,17 @@ public class Buddy
         out.writeString( nick );
         out.writeString( remoteJid );
         out.writeInt( available.ordinal() );
+        out.writeInt( show.ordinal() );
+    }
+
+// -------------------------- OTHER METHODS --------------------------
+
+    public String getName()
+    {
+        if ( !TextUtils.isEmpty( nick ) )
+        {
+            return nick;
+        }
+        return remoteJid;
     }
 }

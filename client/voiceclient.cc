@@ -39,7 +39,6 @@
 #include "client/logging.h"
 #include "client/xmppmessage.h"
 #include "client/threadpriorityhandler.h"
-#include "client/clientsignalingthread.h"
 #include "talk/base/thread.h"
 #include "talk/base/logging.h"
 
@@ -91,6 +90,8 @@ void VoiceClient::Init() {
       this, &VoiceClient::OnSignalBuddyListRemove);
   client_signaling_thread_->SignalBuddyListAdd.connect(
       this, &VoiceClient::OnSignalBuddyListAdd);
+  client_signaling_thread_->SignalPresenceChanged.connect(
+	  this, &VoiceClient::OnPresenceChanged);
   client_signaling_thread_->SignalXmppMessage.connect(
       this, &VoiceClient::OnSignalXmppMessage);
   #ifdef LOGGING
@@ -219,13 +220,26 @@ void VoiceClient::OnSignalBuddyListRemove(const std::string& jid) {
   CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT, REMOVE, jid.c_str(), 0);
 }
 
-void VoiceClient::OnSignalBuddyListAdd(const std::string& jid, const std::string& nick, int available) {
-  CALLBACK_START("handleBuddyAdded", "(Ljava/lang/String;Ljava/lang/String;I)V", reference_);
+void VoiceClient::OnSignalBuddyListAdd(const std::string& jid, const std::string& nick,
+		int available, int show) {
+  CALLBACK_START("handleBuddyAdded", "(Ljava/lang/String;Ljava/lang/String;II)V", reference_);
   if (mid != NULL) {
     jstring jid_jni = env->NewStringUTF(jid.c_str());
     jstring nick_jni = env->NewStringUTF(nick.c_str());
     jint available_jni = available;
-    env->CallVoidMethod(reference_->handler_object, mid, jid_jni, nick_jni, available_jni);
+    jint show_jni = show;
+    env->CallVoidMethod(reference_->handler_object, mid, jid_jni, nick_jni, available_jni, show_jni);
+  }
+  DETACH_FROM_VM(reference_);
+}
+
+void VoiceClient::OnPresenceChanged(const std::string& jid, int available, int show) {
+  CALLBACK_START("handlePresenceChanged", "(Ljava/lang/String;II)V", reference_);
+  if (mid != NULL) {
+    jstring jid_jni = env->NewStringUTF(jid.c_str());
+	jint available_jni = available;
+	jint show_jni = show;
+	env->CallVoidMethod(reference_->handler_object, mid, jid_jni, available_jni, show_jni);
   }
   DETACH_FROM_VM(reference_);
 }

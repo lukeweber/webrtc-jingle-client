@@ -66,10 +66,13 @@ void RosterHandler::RosterError(XmppRosterModule* roster,
 void RosterHandler::IncomingPresenceChanged(XmppRosterModule* roster,
                                const XmppPresence* presence){
   LOG(LS_INFO) << "RosterHandler::IncomingPresenceChanged()";
+
   const XmlElement* elem = presence->raw_xml();
   Status s;
   FillStatus(presence->jid(), elem, &s);
-  //SignalStatusUpdate(s);
+
+  SignalPresenceChanged(presence->jid().BareJid().Str(), presence->available(),
+		  presence->presence_show());
 }
 
   //! A contact has changed
@@ -89,8 +92,15 @@ void RosterHandler::ContactsAdded(XmppRosterModule* roster,
   LOG(LS_INFO) << "RosterHandler::ContactsAdded()";
   for (size_t i = 0; i < number; ++i) {
 	  const XmppRosterContact *contact = roster->GetRosterContact(index+i);
-	  //int available = roster->GetIncomingPresence(index+i)->available();
-	  SignalContactAdded(contact->jid().Str(), contact->name(), 0);
+	  const XmppPresence *presence = roster->GetIncomingPresenceForJid(contact->jid(), i);
+
+	  int available = 0;
+	  int show = 0;
+	  if (presence != NULL) {
+		  available = presence->available();
+		  show = presence->presence_show();
+	  }
+	  SignalContactAdded(contact->jid().Str(), contact->name(), available, show);
   }
 }
 

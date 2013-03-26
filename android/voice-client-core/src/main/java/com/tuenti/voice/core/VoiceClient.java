@@ -222,15 +222,15 @@ public class VoiceClient
     }
 
     /**
-     * @see BuddyManager#handleBuddyAdded(String, String, int)
+     * @see BuddyManager#handleBuddyAdded(String, String, int, int)
      */
-    protected void handleBuddyAdded( String remoteJid, String nick, int available )
+    protected void handleBuddyAdded( String remoteJid, String nick, int available, int show )
     {
         if ( mBuddyManager != null )
         {
             synchronized ( mLock )
             {
-                mBuddyManager.handleBuddyAdded( remoteJid, nick, available );
+                mBuddyManager.handleBuddyAdded( remoteJid, nick, available, show );
             }
         }
     }
@@ -287,6 +287,20 @@ public class VoiceClient
             synchronized ( mLock )
             {
                 mCallManager.handleCallTrackerId( callId, callTrackerId );
+            }
+        }
+    }
+
+    /**
+     * @see BuddyManager#handlePresenceChanged(String, int, int)
+     */
+    protected void handlePresenceChanged( String remoteJid, int available, int show )
+    {
+        if ( mBuddyManager != null )
+        {
+            synchronized ( mLock )
+            {
+                mBuddyManager.handlePresenceChanged( remoteJid, available, show );
             }
         }
     }
