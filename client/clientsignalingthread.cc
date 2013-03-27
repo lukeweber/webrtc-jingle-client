@@ -48,6 +48,7 @@
 
 #include "talk/xmllite/xmlelement.h"
 #include "talk/xmpp/constants.h"
+#include "talk/xmpp/rostermodule.h"
 
 namespace tuenti {
 
@@ -679,28 +680,13 @@ void ClientSignalingThread::CallS(const std::string &remoteJid, const std::strin
   cricket::CallOptions options;
   options.is_muc = false;
 
-  bool found = false;
-  buzz::Jid callto_jid(remoteJid);
-  buzz::Jid found_jid;
+  const buzz::Jid remote_jid(remoteJid);
+  const buzz::XmppRosterContact *contact = sp_roster_module_->FindRosterContact(remote_jid);
 
-  // otherwise, it's a friend
-  /*
-  for (RosterMap::iterator iter = roster_->begin(); iter != roster_->end();
-      ++iter) {
-    if (iter->second.jid.BareEquals(callto_jid)) {
-      found = true;
-      found_jid = iter->second.jid;
-      break;
-    }
-  }
-  */
-
-  if (found) {
-    LOGI("Found online friend '%s'", found_jid.Str().c_str());
+  // Just call whichever JID we get.
+  if (contact) {
     call = sp_media_client_->CreateCall();
-    call->InitiateSession(found_jid, sp_media_client_->jid(), options, call_tracker_id);
-  } else {
-    LOGI("Could not find online friend '%s'", remoteJid.c_str());
+    call->InitiateSession(contact->jid(), sp_media_client_->jid(), options, call_tracker_id);
   }
 }
 
