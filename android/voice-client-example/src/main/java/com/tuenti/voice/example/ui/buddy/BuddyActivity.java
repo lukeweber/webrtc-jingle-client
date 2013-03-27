@@ -70,7 +70,10 @@ public class BuddyActivity
     public void onListItemClick( ListView l, View v, int position, long id )
     {
         Buddy buddy = (Buddy) l.getItemAtPosition( position );
-        mCallCallback.call( buddy.getRemoteJid() );
+        if ( XmppPresenceAvailable.XMPP_PRESENCE_AVAILABLE.equals( buddy.getAvailable() ) )
+        {
+            mCallCallback.call( buddy.getRemoteJid() );
+        }
     }
 
     @Override
