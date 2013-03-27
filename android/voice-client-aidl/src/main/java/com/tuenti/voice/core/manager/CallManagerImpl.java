@@ -2,7 +2,6 @@ package com.tuenti.voice.core.manager;
 
 import android.content.Context;
 import android.media.AudioManager;
-import android.os.Build;
 import android.os.IBinder;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
@@ -176,12 +175,6 @@ public class CallManagerImpl
     public void handleCallTrackerId( long callId, String callTrackerId )
     {
         Log.d( TAG, "Call Tracker ID " + callTrackerId + " for call_id " + callId );
-    }
-
-    @Override
-    public void handleAudioPlayout()
-    {
-        //TODO: Should be fired when audio begins to play. Currently this is just synonymous with PROGRESS event.
     }
 
 // -------------------------- OTHER METHODS --------------------------

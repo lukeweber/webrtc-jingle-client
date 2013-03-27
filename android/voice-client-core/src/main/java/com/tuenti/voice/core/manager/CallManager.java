@@ -4,8 +4,6 @@ public interface CallManager
 {
 // -------------------------- OTHER METHODS --------------------------
 
-    void handleAudioPlayout();
-
     void handleCallError( int error, long callId );
 
     void handleCallStateChanged( int state, String remoteJid, long callId );
