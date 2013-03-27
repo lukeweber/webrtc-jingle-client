@@ -105,6 +105,12 @@ public class CallManagerImpl
 // --------------------- Interface CallManager ---------------------
 
     @Override
+    public void handleAudioPlayout()
+    {
+        //TODO: Should be fired when audio begins to play. Currently this is just synonymous with PROGRESS event.
+    }
+
+    @Override
     public void handleCallError( int error, long callId )
     {
         switch ( CallError.fromInteger( error ) )
@@ -169,7 +175,7 @@ public class CallManagerImpl
     @Override
     public void handleCallTrackerId( long callId, String callTrackerId )
     {
-        Log.d(TAG, "Call Tracker ID " + callTrackerId + " for call_id " + callId);
+        Log.d( TAG, "Call Tracker ID " + callTrackerId + " for call_id " + callId );
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -355,7 +361,7 @@ public class CallManagerImpl
 
     private void setAudioForCall()
     {
-        mAudioManager.setMode(AudioManager.MODE_NORMAL);
+        mAudioManager.setMode( AudioManager.MODE_NORMAL );
         mAudioManager.requestAudioFocus( null, AudioManager.STREAM_VOICE_CALL, AudioManager.AUDIOFOCUS_GAIN );
     }
 

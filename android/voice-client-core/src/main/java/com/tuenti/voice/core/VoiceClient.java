@@ -26,14 +26,14 @@ public class VoiceClient
 {
 // ------------------------------ FIELDS ------------------------------
 
+    //Event constants
+    /* Event Types */
     public static final int AUDIO_PLAYOUT_EVENT = 6;
 
     public static final int BUDDY_LIST_EVENT = 3;
 
     public static final int CALL_ERROR_EVENT = 5;
 
-    //Event constants
-    /* Event Types */
     public static final int CALL_STATE_EVENT = 0;
 
     public static final int CALL_TRACKER_ID_EVENT = 8;
@@ -222,6 +222,20 @@ public class VoiceClient
     }
 
     /**
+     * @see CallManager#handleAudioPlayout()
+     */
+    protected void handleAudioPlayout()
+    {
+        if ( mCallManager != null )
+        {
+            synchronized ( mLock )
+            {
+                mCallManager.handleAudioPlayout();
+            }
+        }
+    }
+
+    /**
      * @see BuddyManager#handleBuddyAdded(String, String, int, int)
      */
     protected void handleBuddyAdded( String remoteJid, String nick, int available, int show )
@@ -395,6 +409,9 @@ public class VoiceClient
             case CALL_TRACKER_ID_EVENT:
                 // data contains call_tracking_id
                 handleCallTrackerId( callId, data );
+                break;
+            case AUDIO_PLAYOUT_EVENT:
+                handleAudioPlayout();
                 break;
         }
     }
