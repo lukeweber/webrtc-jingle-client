@@ -27,7 +27,7 @@ serial = None
 supportedProfiles = ["video_debug", "video_final", "video_release",
                      "default_debug", "default_release", "default_final",
                      "tuenti_debug", "tuenti_release", "tuenti_final"]
-supportedNDKs = ["r8", "r8d"]
+supportedNDKs = ["r8e", "r8d"]
 
 ##
 ##  The following options are provided.
@@ -198,7 +198,7 @@ def checkNDK():
             ndkRoot = os.environ['ANDROID_NDK_ROOT']
             releaseTxt = os.path.join(ndkRoot, "RELEASE.TXT")
             releaseHandle = open(releaseTxt, 'r')
-            releaseContents = releaseHandle.read().strip()
+            releaseContents = releaseHandle.read(3)
             releaseHandle.close()
         except (KeyError, IOError):
             logger.error("Please set ANDROID_NDK_ROOT")
