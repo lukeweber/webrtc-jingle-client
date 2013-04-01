@@ -2,8 +2,6 @@ webrtc-jingle for android
 =============
 (libjingle signaling + webrtc voice engine) 
 
-Add XmppFramework for iOS. At this moment, I don't know how to manipulate gyp file. So you need to use my webrtcjingle.xcodeproj, but only after you apply all Luke's directions.
-
 Discussion: [webrtc-jingle](https://groups.google.com/forum/?fromgroups#!forum/webrtc-jingle)
 
 ## About
@@ -87,6 +85,9 @@ export ANDROID_NDK_HOME=$ANDROID_NDK_ROOT
 ```
 
 ## IOS
+
+Add XmppFramework for iOS. At this moment, I don't know how to manipulate gyp file. So you need to use my webrtcjingle.xcodeproj, but only after you apply all Luke's directions.
+
 ### Prereqs
 * OSX machine
 * Download the latest xcode and command line tools.
