@@ -37,7 +37,7 @@
 
 #include "client/voiceclient.h"
 #include "client/logging.h"
-#include "client/xmppmessage2.h"
+#include "client/xmppmessage.h"
 #include "client/threadpriorityhandler.h"
 #include "client/clientsignalingthread.h"
 #include "talk/base/thread.h"
