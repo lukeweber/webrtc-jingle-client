@@ -42,7 +42,7 @@
 #include "talk/base/criticalsection.h"
 
 #include "client/status.h"
-#include "client/xmppmessage.h"
+#include "client/xmppmessage2.h"
 #include "client/txmpppump.h"
 
 namespace tuenti {
@@ -117,6 +117,9 @@ class VoiceClient: public sigslot::has_slots<> {
   void OnSignalStatsUpdate(const char *stats);
   void OnSignalCallTrackerId(int call_id, const char *call_tracker_id);
 
+#ifdef XMPP_FRAMEWORK
+  talk_base::Thread* GetSignalThread();
+#endif
   std::string stunserver_;
   std::string relayserver_;
 #ifdef ANDROID

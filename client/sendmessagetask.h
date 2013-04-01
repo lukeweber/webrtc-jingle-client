@@ -29,7 +29,7 @@
 #define CLIENT_SENDMESSAGETASK_H_
 
 #include "talk/xmpp/xmpptask.h"
-#include "client/xmppmessage.h"
+#include "client/xmppmessage2.h"
 
 namespace tuenti {
 

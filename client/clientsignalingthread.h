@@ -44,7 +44,7 @@
 #include "talk/xmpp/rostermodule.h"
 #include "talk/xmpp/xmppengine.h"
 
-#include "client/xmppmessage.h"
+#include "client/xmppmessage2.h"
 #include "client/sendmessagetask.h"
 #include "client/receivemessagetask.h"
 #include "client/rosterhandler.h"
@@ -291,8 +291,11 @@ class ClientSignalingThread
   void HoldCall(uint32 call_id, bool hold);
   void SendXmppMessage(const tuenti::XmppMessage m);
   void ReplaceTurn(const std::string &turn);
-
-
+#ifdef XMPP_FRAMEWORK
+  talk_base::Thread* GetSignalThread() {
+    return signal_thread_;
+  }
+#endif
   // signals
   sigslot::signal3<int, const char *, int> SignalCallStateChange;
   sigslot::signal2<int, const char *> SignalCallTrackerId;

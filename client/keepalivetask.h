@@ -33,12 +33,21 @@
 #include "talk/xmpp/xmppclient.h"
 #include "talk/xmpp/xmpptask.h"
 
+#ifdef XMPP_FRAMEWORK
+#include "IOSXmppClient.h"
+#endif
 namespace tuenti {
 
 class KeepAliveTask : public buzz::XmppTask, private talk_base::MessageHandler {
  public:
+#ifdef XMPP_FRAMEWORK
+  KeepAliveTask(tictok::IOSXmppClient* parent,
+                  talk_base::MessageQueue* message_queue, uint32 keepalive_period_millis);
+#else
   KeepAliveTask(buzz::XmppClient* parent,
-      talk_base::MessageQueue* message_queue, uint32 keepalive_period_millis);
+                  talk_base::MessageQueue* message_queue, uint32 keepalive_period_millis);
+#endif
+  
 
   virtual bool HandleStanza(const buzz::XmlElement* stanza);
   virtual int ProcessStart();
@@ -50,7 +59,11 @@ class KeepAliveTask : public buzz::XmppTask, private talk_base::MessageHandler {
   talk_base::MessageQueue* message_queue_;
   uint32 keepalive_period_millis_;
   uint32 next_keepalive_time_;
+#ifdef XMPP_FRAMEWORK
+  tictok::IOSXmppClient* client_;
+#else
   buzz::XmppClient* client_;
+#endif
 };
 
 } // namespace tuenti
