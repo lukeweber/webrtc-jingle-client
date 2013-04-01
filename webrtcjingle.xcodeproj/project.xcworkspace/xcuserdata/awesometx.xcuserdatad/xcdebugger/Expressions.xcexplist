@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VariablesViewState
+   version = "1.0">
+   <ContextStates>
+      <ContextState
+         contextName = "-[XmppClientDelegate xmppStreamDidAuthenticate:]:XmppClientDelegate.mm">
+      </ContextState>
+      <ContextState
+         contextName = "buzz::XmppStanzaParser::IncomingEndElement(buzz::XmlParseContext*, char const*):xmppstanzaparser.cc">
+      </ContextState>
+      <ContextState
+         contextName = "-[XmppClientDelegate xmppStream:didReceiveIQ:]:XmppClientDelegate.mm">
+         <PersistentStrings>
+            <PersistentString
+               value = "[iq XMLString]">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "-[DDXMLNode XMLStringWithOptions:]:DDXMLNode.m">
+      </ContextState>
+      <ContextState
+         contextName = "talk_base::MessageQueue::Dispatch(talk_base::Message*):messagequeue.cc">
+      </ContextState>
+      <ContextState
+         contextName = "talk_base::Thread::ProcessMessages(int):thread.cc">
+      </ContextState>
+      <ContextState
+         contextName = "-[GCDAsyncSocket doWriteData]:GCDAsyncSocket.m">
+      </ContextState>
+      <ContextState
+         contextName = "buzz::XmlParser::Parse(char const*, unsigned long, bool):xmlparser.cc">
+      </ContextState>
+      <ContextState
+         contextName = "tictok::IOSXmppClient::Private::OnMessage(talk_base::Message*):IOSXmppClient.mm">
+      </ContextState>
+      <ContextState
+         contextName = "tuenti::ClientSignalingThread::InitPresence():clientsignalingthread.mm">
+      </ContextState>
+   </ContextStates>
+</VariablesViewState>
