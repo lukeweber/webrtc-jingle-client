@@ -42,11 +42,6 @@
 
 #pragma mark GCDAsyncSocketDelegate
 
-//-(void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag
-//{
-//    _xmppClient->HandleInput(data, [data length]);
-//}
-
 -(void)socketDidDisconnect:(GCDAsyncSocket *)sock withError:(NSError *)err
 {
     _xmppClient->ConnectionClosed(err.code);
@@ -57,7 +52,6 @@
 #pragma mark XMPPStreamDelegate
 - (void)xmppStreamDidAuthenticate:(XMPPStream *)sender
 {
-    AppDelegate* appDelegate = [UIApplication sharedApplication].delegate;
     XMPPJID* myJid = sender.myJID;
     _xmppClient->ConnectionConnected([[myJid full] cStringUsingEncoding:NSUTF8StringEncoding]);
 }
@@ -67,8 +61,7 @@
     if ([iq elementForName:@"jingle"] || [iq elementForName:@"gingle"])
     {
         NSData* data = [[iq XMLString] dataUsingEncoding:NSUTF8StringEncoding];
-        NSLog(@"RECV IQ: %@", [iq XMLString]);
-        _xmppClient->HandleInput(data, [data length]);
+        _xmppClient->HandleInput((char*) [data bytes], [data length]);
         return YES;
     }
     return NO;

@@ -17,39 +17,37 @@
 #include "talk/xmpp/xmpptask.h"
 #include "talk/xmpp/xmppclient.h"
 
-#import "XmppClientDelegate.h"
 #import "talk/base/messagehandler.h"
-using namespace buzz;
 
 namespace tictok {
-    class IOSXmppClient : public talk_base::MessageHandler, public XmppTaskParentInterface, public XmppClientInterface, public sigslot::has_slots<>
+    class IOSXmppClient : public talk_base::MessageHandler, public buzz::XmppTaskParentInterface, public buzz::XmppClientInterface, public sigslot::has_slots<>
     {
     private:
         void OnMessage(talk_base::Message* msg);
     public:
-        explicit IOSXmppClient(talk_base::TaskParent * parent, XmppClientDelegate* delegate);
+        explicit IOSXmppClient(talk_base::TaskParent * parent);
         virtual ~IOSXmppClient();
         
-        void Connect(const XmppClientSettings & settings, const std::string & lang);
+        void Connect(const buzz::XmppClientSettings & settings, const std::string & lang);
         
-        void HandleInput(NSData* data, size_t len);
+        void HandleInput(char* bytes, size_t len);
         
         virtual int ProcessStart();
         virtual int ProcessResponse();
-        XmppReturnStatus Disconnect();
+        buzz::XmppReturnStatus Disconnect();
         
-        sigslot::signal1<XmppEngine::State> SignalStateChange;
+        sigslot::signal1<buzz::XmppEngine::State> SignalStateChange;
         sigslot::signal1<int> SignalCloseEvent;
         
-        XmppEngine::Error GetError(int *subcode);
+        buzz::XmppEngine::Error GetError(int *subcode);
         
         // When there is a <stream:error> stanza, return the stanza
         // so that they can be handled.
-        const XmlElement *GetStreamError();
+        const buzz::XmlElement *GetStreamError();
                 
-        XmppReturnStatus SendRaw(const std::string & text);
+        buzz::XmppReturnStatus SendRaw(const std::string & text);
         
-        XmppEngine* engine();
+        buzz::XmppEngine* engine();
         
         void EnsureClosed();
         
@@ -60,27 +58,23 @@ namespace tictok {
         virtual XmppClientInterface* GetClient() { return this; }
         
         // As XmppClientInterface
-        virtual XmppEngine::State GetState() const;
-        virtual const Jid& jid() const;
+        virtual buzz::XmppEngine::State GetState() const;
+        virtual const buzz::Jid& jid() const;
         virtual std::string NextId();
-        virtual XmppReturnStatus SendStanza(const XmlElement *stanza);
-        virtual XmppReturnStatus SendStanzaError(const XmlElement * pelOriginal,
-                                                 XmppStanzaError code,
+        virtual buzz::XmppReturnStatus SendStanza(const buzz::XmlElement *stanza);
+        virtual buzz::XmppReturnStatus SendStanzaError(const buzz::XmlElement * pelOriginal,
+                                                 buzz::XmppStanzaError code,
                                                  const std::string & text);
-        virtual void AddXmppTask(XmppTask *, XmppEngine::HandlerLevel);
-        virtual void RemoveXmppTask(XmppTask *);
+        virtual void AddXmppTask(buzz::XmppTask *, buzz::XmppEngine::HandlerLevel);
+        virtual void RemoveXmppTask(buzz::XmppTask *);
         
         void ConnectionConnected(const char* fullJid);
         void ConnectionClosed(int code);
     private:
         friend class XmppTask;
-        
         class Private;
         friend class Private;
         talk_base::scoped_ptr<Private> d_;
-        
-        
-        XmppClientDelegate* delegate_;
         bool started;
         bool delivering_signal_;
         bool valid_;

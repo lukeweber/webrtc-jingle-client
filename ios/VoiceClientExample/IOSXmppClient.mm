@@ -13,6 +13,8 @@
 #include "talk/base/messagehandler.h"
 #include "VoiceClientDelegate.h"
 
+using namespace buzz;
+
 namespace tictok
 {
     struct StateData: talk_base::MessageData {
@@ -21,11 +23,15 @@ namespace tictok
     };
     
     struct InputStateData : talk_base::MessageData {
-        InputStateData(NSData* data, size_t len)
-        : len_(len), data_(data) {
-            
+        InputStateData(char* data, size_t len)
+        : len_(len) {
+            data_ = new char[len];
+            memcpy(data_, data, len);
         }
-        NSData* data_;
+        ~InputStateData() {
+            delete[] data_;
+        }
+        char* data_;
         size_t len_;
     };
     
@@ -55,7 +61,7 @@ namespace tictok
         void OnMessage(talk_base::Message* msg);
     };
     
-    IOSXmppClient::IOSXmppClient(TaskParent* parent, XmppClientDelegate* delegate) : XmppTaskParentInterface(parent), delegate_(delegate), delivering_signal_(false),valid_(false)
+    IOSXmppClient::IOSXmppClient(TaskParent* parent) : XmppTaskParentInterface(parent), delivering_signal_(false),valid_(false)
     {
         d_.reset(new Private(this));
         d_->engine_.reset(XmppEngine::Create());
@@ -119,20 +125,19 @@ namespace tictok
     void IOSXmppClient::OnMessage(talk_base::Message *message)
     {
         InputStateData* data = static_cast<InputStateData*>(message->pdata);
-        NSData* data_ = data->data_;
-        char* bytes = (char*) [data_ bytes];
+        char* bytes = data->data_;
         size_t len = data->len_;
-#ifdef _DEBUG
+#ifdef _DEBUGs
         SignalLogInput(bytes, len);
 #endif
         d_->engine_->HandleInput(bytes, len);
         delete message->pdata;
     }
     
-    void IOSXmppClient::HandleInput(NSData* data, size_t len)
+    void IOSXmppClient::HandleInput(char* bytes, size_t len)
     {
-        talk_base::Thread* signalThread = VoiceClientDelegate::getInstance()->getSignalThread();
-        signalThread->Post(this, 0, new InputStateData(data, len));
+        talk_base::Thread* signalThread = VoiceClientDelegate::getInstance()->GetSignalThread();
+        signalThread->Post(this, 0, new InputStateData(bytes, len));
     }
     
     int IOSXmppClient::ProcessStart()
@@ -234,7 +239,7 @@ namespace tictok
     }
     
     void IOSXmppClient::Private::OnStateChange(int state) {
-        VoiceClientDelegate::getInstance()->getSignalThread()->Post(this, 0, new StateData((XmppEngine::State)state));
+        VoiceClientDelegate::getInstance()->GetSignalThread()->Post(this, 0, new StateData((XmppEngine::State)state));
     }
     
     void IOSXmppClient::Private::OnMessage(talk_base::Message *msg)
@@ -255,17 +260,15 @@ namespace tictok
 #ifdef _DEBUG
         client_->SignalLogOutput(bytes, len);
 #endif
-        [client_->delegate_ writeOutput:bytes withLenght:len];
+        VoiceClientDelegate::getInstance()->WriteOutput(bytes, len);
         // TODO: deal with error information
     }
     
     void IOSXmppClient::Private::StartTls(const std::string& domain) {
-#if defined(FEATURE_ENABLE_SSL)
-        [client_->delegate_ startTLS:domain];
-#endif
+        VoiceClientDelegate::getInstance()->StartTls(domain);
     }
     
     void IOSXmppClient::Private::CloseConnection() {
-        [client_->delegate_ closeConnection];
+        VoiceClientDelegate::getInstance()->CloseConnection();
     }
 }

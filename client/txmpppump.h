@@ -40,7 +40,6 @@
 
 #ifdef XMPP_FRAMEWORK
 #include "IOSXmppClient.h"
-#include "XmppClientDelegate.h"
 #endif
 
 // Simple xmpp pump
@@ -90,7 +89,6 @@ class TXmppPump: public talk_base::MessageHandler,
  private:
 #ifdef XMPP_FRAMEWORK
   tictok::IOSXmppClient *client_;
-  XmppClientDelegate    *clientDelegate_;
 #else
   buzz::XmppClient *client_;
 #endif
