@@ -567,6 +567,13 @@
 			remoteGlobalIDString = 7FE828FDC4766075645F7183;
 			remoteInfo = media_file;
 		};
+		AD909C2D1709CA2400676C4B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7F27F3E5BB8C26DC676A8738 /* modules.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 47E7A1E345BD069D45BBFE04;
+			remoteInfo = NetEq4;
+		};
 		B3616D9B1CF93297FBC6F45D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 55DBAAC64CC1E9E7FB6FF88D /* libsrtp.xcodeproj */;
@@ -1074,6 +1081,7 @@
 				389640D73D3984827C08EFFD /* libPCM16B.a */,
 				49EA86E601DEFF61A313584D /* libaudio_coding_module.a */,
 				9B69AB9D824DC5C9EBC7C07A /* libNetEq.a */,
+				AD909C2E1709CA2400676C4B /* libNetEq4.a */,
 				041D7AF7958B650C3339694F /* libaudio_conference_mixer.a */,
 				782491195FD8BD854590C0C8 /* libaudio_device.a */,
 				23DA0D28A6AF74A2183E9D25 /* libaudio_processing.a */,
@@ -2201,6 +2209,13 @@
 			fileType = archive.ar;
 			path = libNetEq.a;
 			remoteRef = E98DF86D843AFF3EFCA21858 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		AD909C2E1709CA2400676C4B /* libNetEq4.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libNetEq4.a;
+			remoteRef = AD909C2D1709CA2400676C4B /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		B000AF1EE45EF7F2F7067F96 /* libsrtp.a */ = {
