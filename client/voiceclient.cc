@@ -37,7 +37,7 @@
 
 #include "client/voiceclient.h"
 #include "client/logging.h"
-#include "client/xmppmessage.h"
+#include "client/xmppmessage2.h"
 #include "client/threadpriorityhandler.h"
 #include "client/clientsignalingthread.h"
 #include "talk/base/thread.h"
@@ -276,6 +276,13 @@ void VoiceClient::OnSignalStatsUpdate(const char *stats) {
 void VoiceClient::OnSignalCallTrackerId(int call_id, const char *call_tracker_id) {
     VoiceClientDelegate::getInstance()->OnSignalCallTrackingId(call_id, call_tracker_id);
 }
+
+#if IOS_XMPP_FRAMEWORK
+talk_base::Thread* VoiceClient::GetSignalThread()
+{
+    return client_signaling_thread_->GetSignalThread();
+}
+#endif
 
 void VoiceClient::OnSignalXmppMessage(const XmppMessage m){
   printf("Message from: %s\n", m.jid.BareJid().Str().c_str());

@@ -38,6 +38,11 @@
 #include "client/logging.h"
 #include "client/xmpplog.h"
 
+#if IOS_XMPP_FRAMEWORK
+#include "VoiceClientExample/IOSXmppClient.h"
+#include "VoiceClientExample/XmppClientDelegate.h"
+#endif
+
 // Simple xmpp pump
 namespace tuenti {
 class TXmppSocket;
@@ -57,9 +62,15 @@ class TXmppPump: public talk_base::MessageHandler,
   TXmppPump(TXmppPumpNotify * notify = NULL);
   virtual ~TXmppPump();
 
+#if IOS_XMPP_FRAMEWORK
+  tictok::IOSXmppClient *client() {
+    return client_;
+  }
+#else
   buzz::XmppClient *client() {
     return client_;
   }
+#endif
 
   void DoLogin(const buzz::XmppClientSettings & xcs);
 
@@ -77,12 +88,19 @@ class TXmppPump: public talk_base::MessageHandler,
 
   buzz::XmppReturnStatus SendStanza(const buzz::XmlElement *stanza);
  private:
+#if IOS_XMPP_FRAMEWORK
+  tictok::IOSXmppClient *client_;
+  XmppClientDelegate    *clientDelegate_;
+#else
   buzz::XmppClient *client_;
+#endif
   buzz::XmppEngine::State state_;
   buzz::XmppClientSettings xcs_;
   TXmppPumpNotify *notify_;
+#if !IOS_XMPP_FRAMEWORK
   TXmppSocket *socket_;
   TXmppAuth *auth_;
+#endif
   XmppLog *xmpp_log_;
 };
 

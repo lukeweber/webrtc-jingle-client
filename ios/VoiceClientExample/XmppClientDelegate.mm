@@ -1,0 +1,78 @@
+//
+//  XmppClientDelegate.m
+//  Viny
+//
+//  Created by Hai Le Gia on 3/1/13.
+//  Copyright (c) 2013 Hai Le Gia. All rights reserved.
+//
+
+#import "XmppClientDelegate.h"
+#import "IOSXmppClient.h"
+#import "AppDelegate.h"
+#import "XMPPJID.h"
+
+#define TAG_XMPP_WRITE_STREAM       201
+
+@implementation XmppClientDelegate
+
+-(void)writeOutput:(const char *) bytes withLenght:(size_t) len
+{
+#if DEBUG
+    NSString* s = [NSString stringWithCString:bytes encoding:NSUTF8StringEncoding];
+    NSLog(@"SEND: %@", s);
+#endif
+    NSData* data = [NSData dataWithBytes:(void *)bytes length:len];
+    [_asyncSocket writeData:data withTimeout:-1 tag:TAG_XMPP_WRITE_STREAM];
+}
+
+-(void)startTLS:(const std::string &) domainname
+{
+    [_asyncSocket startTLS:nil];
+}
+
+-(void)closeConnection
+{
+    [_asyncSocket disconnectAfterReadingAndWriting];
+}
+
+-(tictok::IOSXmppClient*) getClient
+{
+    return _xmppClient;
+}
+
+#pragma mark GCDAsyncSocketDelegate
+
+//-(void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag
+//{
+//    _xmppClient->HandleInput(data, [data length]);
+//}
+
+-(void)socketDidDisconnect:(GCDAsyncSocket *)sock withError:(NSError *)err
+{
+    _xmppClient->ConnectionClosed(err.code);
+}
+
+#pragma mark -
+
+#pragma mark XMPPStreamDelegate
+- (void)xmppStreamDidAuthenticate:(XMPPStream *)sender
+{
+    AppDelegate* appDelegate = [UIApplication sharedApplication].delegate;
+    XMPPJID* myJid = sender.myJID;
+    _xmppClient->ConnectionConnected([[myJid full] cStringUsingEncoding:NSUTF8StringEncoding]);
+}
+
+-(BOOL)xmppStream:(XMPPStream *)sender didReceiveIQ:(XMPPIQ *)iq
+{
+    if ([iq elementForName:@"jingle"] || [iq elementForName:@"gingle"])
+    {
+        NSData* data = [[iq XMLString] dataUsingEncoding:NSUTF8StringEncoding];
+        NSLog(@"RECV IQ: %@", [iq XMLString]);
+        _xmppClient->HandleInput(data, [data length]);
+        return YES;
+    }
+    return NO;
+}
+
+#pragma mark -
+@end

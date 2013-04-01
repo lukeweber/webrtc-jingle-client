@@ -105,6 +105,13 @@ deps = {
     "http://git.chromium.org/webm/libvpx.git@7a09f6b8",
 }
 
+deps_os = {
+    "ios" : {
+          "trunk/third_party/xmppframework":
+            "https://github.com/lukeweber/XMPPFramework.git",
+    }
+}
+
 hooks = [
   {
     # Create a supplement.gypi file under trunk/src.  This file will be picked

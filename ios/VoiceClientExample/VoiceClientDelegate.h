@@ -10,6 +10,7 @@
 #define webrtcjingle_VoiceClientDelegate_h
 
 #include "client/voiceclient.h"
+#include "client/client_defines.h"
 
 class VoiceClientDelegate {
     
@@ -31,8 +32,12 @@ public:
     
     void OnSignalBuddyListAdd(const char *remote_jid, const char *nick);
     void OnSignalStatsUpdate(const char *stats);
-
-
+#if XMPP_FRAMEWORK
+    talk_base::Thread* getSignalThread()
+    {
+        return voiceClient_->GetSignalThread();
+    }
+#endif
 private:
     static VoiceClientDelegate * voiceClientDelegateInstance_;
     tuenti::VoiceClient *voiceClient_;

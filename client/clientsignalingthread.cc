@@ -435,6 +435,9 @@ void ClientSignalingThread::Login(const std::string &username,
   xcs_.set_pass(talk_base::CryptString(pass));
   xcs_.set_server(talk_base::SocketAddress(xmpp_host, xmpp_port));
   SetPortAllocatorFilter(port_allocator_filter);
+#if IOS_XMPP_FRAMEWORK
+  sp_pump_.reset(new TXmppPump(this));
+#endif
   signal_thread_->Post(this, MSG_LOGIN);
 }
 
@@ -680,7 +683,9 @@ void ClientSignalingThread::LoginS() {
     talk_base::InitializeSSL();
   }
 
+#if !IOS_XMPP_FRAMEWORK
   sp_pump_.reset(new TXmppPump(this));
+#endif
   sp_pump_->DoLogin(xcs_);
 }
 
@@ -878,7 +883,6 @@ void ClientSignalingThread::ReplaceTurnS(const std::string turn) {
 void ClientSignalingThread::InitPresence() {
   LOGI("ClientSignalingThread::InitPresence");
   assert(talk_base::Thread::Current() == signal_thread_);
-
   my_status_.set_jid(sp_pump_->client()->jid());
   my_status_.set_available(true);
   my_status_.set_know_capabilities(true);

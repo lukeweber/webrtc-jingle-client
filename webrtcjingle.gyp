@@ -12,7 +12,7 @@
     'webrtc_ios': 'ios',
     'webrtc_android': 'android/voice-client-core/jni',
     'webrtc_client': 'client',
-  },  
+  },
   'targets': [
     {
       'target_name': 'Dummy',
@@ -32,6 +32,7 @@
           'defines': [
             'IOS',
             'LOGGING=1',
+            'IOS_XMPP_FRAMEWORK=1',
           ],
           'target_name': 'voiceclient',
           'message': 'building native pieces of the voiceclient',
@@ -83,6 +84,26 @@
           'include_dirs': [
             '<(webrtc_client)',
             '<(webrtc_ios)',
+            'third_party/',
+            'third_party/xmppframework/Core',
+            'third_party/xmppframework/Authentication',
+            'third_party/xmppframework/Categories',
+            'third_party/xmppframework/Utilities',
+            'third_party/xmppframework/Vendor/CocoaAsyncSocket',
+            'third_party/xmppframework/Vendor/CocoaLumberjack',
+            'third_party/xmppframework/Vendor/KissXml',
+            'third_party/xmppframework/Extensions/Reconnect',
+            'third_party/xmppframework/Extensions/Roster',
+            'third_party/xmppframework/Extensions/Roster/CoreDataStorage',
+            'third_party/xmppframework/Extensions/CoreDataStorage',
+            'third_party/xmppframework/Extensions/XEP-0054',
+            'third_party/xmppframework/Extensions/XEP-0153',
+            'third_party/xmppframework/Extensions/XEP-0054/CoreDataStorage',
+            'third_party/xmppframework/Extensions/XEP-0115',
+            'third_party/xmppframework/Extensions/XEP-0115/CoreDataStorage',
+            'third_party/xmppframework/Extensions/XEP-0045',
+            'third_party/xmppframework/Extensions/XEP-0045/CoreDataStorage',
+            "$(SDKROOT)/usr/include/libxml2",
             '.',
           ],
           'xcode_settings': {
@@ -91,9 +112,11 @@
                 '-framework CoreGraphics',
                 '-framework Foundation',
             ],
+            'CLANG_ENABLE_OBJC_ARC': 'YES',
             'INFOPLIST_FILE': '<(webrtc_ios)/VoiceClientExample/VoiceClientExample-Info.plist',
           },
-          'dependencies': [ 
+          'dependencies': [
+            'third_party/xmppframework/xmppframework.gyp:xmppframework_all',
             'third_party/libjingle/libjingle.gyp:libjingle_audio_only',
           ],
         },
@@ -166,7 +189,7 @@
             '<(webrtc_android)',
             '.',
           ],
-          'dependencies': [ 
+          'dependencies': [
             'third_party/libjingle/libjingle.gyp:libjingle_audio_only',
             #'src/voiceclient.gypi:voiceclient',
             #'../../base/base.gyp:base',

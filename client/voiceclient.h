@@ -117,6 +117,9 @@ class VoiceClient: public sigslot::has_slots<> {
   void OnSignalStatsUpdate(const char *stats);
   void OnSignalCallTrackerId(int call_id, const char *call_tracker_id);
 
+#if XMPP_FRAMEWORK
+  talk_base::Thread* GetSignalThread();
+#endif
   std::string stunserver_;
   std::string relayserver_;
 #ifdef ANDROID

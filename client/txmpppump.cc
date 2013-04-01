@@ -32,14 +32,30 @@
 #include "client/txmppsocket.h"
 #include "talk/base/logging.h"
 
+#if IOS_XMPP_FRAMEWORK
+#include "GCDAsyncSocketMultiDelegate.h"
+#include "AppDelegate.h"
+#endif
 namespace tuenti {
 TXmppPump::TXmppPump(TXmppPumpNotify * notify){
   LOGI("TXmppPump::TXmppPump");
   state_ = buzz::XmppEngine::STATE_NONE;
   notify_ = notify;
   client_ = NULL;
+#if IOS_XMPP_FRAMEWORK
+    if (client_ == NULL) {
+        AppDelegate* appDelegate = (AppDelegate*) [UIApplication sharedApplication].delegate;
+        clientDelegate_ = [[XmppClientDelegate alloc] init];
+        client_ = new tictok::IOSXmppClient(this, clientDelegate_);  // NOTE: deleted by TaskRunner
+        clientDelegate_.xmppClient = client_;
+        clientDelegate_.asyncSocket = [GCDAsyncSocketMultiDelegate instance].socket;
+        [[GCDAsyncSocketMultiDelegate instance] addDelegate:clientDelegate_];
+        [appDelegate.xmppStream addDelegate:clientDelegate_ delegateQueue:dispatch_get_main_queue()];
+    }
+#else
   socket_ = NULL;
   auth_ = NULL;
+#endif
   xmpp_log_ = NULL;
 }
 
@@ -52,15 +68,18 @@ void TXmppPump::DoLogin(const buzz::XmppClientSettings & xcs) {
   LOGI("TXmppPump::DoLogin");
   xcs_ = xcs;
 
-  if (socket_ == NULL) {
-    socket_ = new TXmppSocket(xcs_.use_tls());  // NOTE: deleted by TaskRunner
-  }
-  if (auth_ == NULL) {
-    auth_ = new TXmppAuth();  // NOTE: deleted by TaskRunner
-  }
-  if (client_ == NULL) {
-    client_ = new buzz::XmppClient(this);  // NOTE: deleted by TaskRunner
-  }
+#if !IOS_XMPP_FRAMEWORK
+    if (socket_ == NULL) {
+        socket_ = new TXmppSocket(xcs_.use_tls());  // NOTE: deleted by TaskRunner
+    }
+    if (auth_ == NULL) {
+        auth_ = new TXmppAuth();  // NOTE: deleted by TaskRunner
+    }
+    if (client_ == NULL) {
+        client_ = new buzz::XmppClient(this);  // NOTE: deleted by TaskRunner
+    }
+#endif
+
 
 #if XMPP_LOG_STANZAS
   xmpp_log_ = new XmppLog();
@@ -74,8 +93,13 @@ void TXmppPump::DoLogin(const buzz::XmppClientSettings & xcs) {
     OnStateChange(buzz::XmppEngine::STATE_START);
     LOGI("TXmppPump::DoLogin - logging on");
     client_->SignalStateChange.connect(this, &TXmppPump::OnStateChange);
+#if IOS_XMPP_FRAMEWORK
+    client_->SignalCloseEvent.connect(this, &TXmppPump::OnXmppSocketClose);
+    client_->Connect(xcs, "");
+#else
     socket_->SignalCloseEvent.connect(this, &TXmppPump::OnXmppSocketClose);
     client_->Connect(xcs, "", socket_, auth_);
+#endif
     client_->Start();
   }
 }

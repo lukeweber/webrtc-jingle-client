@@ -8,6 +8,13 @@
 
 #import "ViewController.h"
 #import "VoiceClientDelegate.h"
+#import "AppDelegate.h"
+
+@interface ViewController()
+{
+    AppDelegate* appDelegate;
+}
+@end
 
 @implementation ViewController
 
@@ -16,6 +23,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    appDelegate = (AppDelegate*) [UIApplication sharedApplication].delegate;
 	// Do any additional setup after loading the view, typically from a nib.
     [self statsUpdate:@"Sender:\nunknown stats\nReceiver:\nunknown stats\n"];
 }
@@ -28,12 +36,14 @@
 
 - (IBAction)init:(id)sender{
    printf("init");
+   [appDelegate setupStream];
    VoiceClientDelegate* vc = VoiceClientDelegate::getInstance();
    (void)vc;
 }
 
 - (IBAction)login:(id)sender{
     printf("logging in");
+    [appDelegate connect];
     VoiceClientDelegate* vc = VoiceClientDelegate::getInstance();
     vc->Login();
 }
@@ -61,12 +71,10 @@
 }
 
 - (void)dealloc {
-  [statsLabel_ release];
-  [super dealloc];
+  
 }
 
 - (void)viewDidUnload {
-  [statsLabel_ release];
   statsLabel_ = nil;
   [super viewDidUnload];
 }
