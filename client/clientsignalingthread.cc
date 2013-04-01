@@ -680,14 +680,28 @@ void ClientSignalingThread::CallS(const std::string &remoteJid, const std::strin
   cricket::CallOptions options;
   options.is_muc = false;
 
-  const buzz::Jid remote_jid(remoteJid);
-  const buzz::XmppRosterContact *contact = sp_roster_module_->FindRosterContact(remote_jid);
+  bool found = false;
+  buzz::Jid callto_jid(remoteJid);
+  buzz::Jid found_jid;
 
-  // Just call whichever JID we get.
-  if (contact) {
-    call = sp_media_client_->CreateCall();
-    call->InitiateSession(contact->jid(), sp_media_client_->jid(), options, call_tracker_id);
+  // now search available presences
+  for (int i = 0; i < sp_roster_module_->GetIncomingPresenceCount(); i++) {
+	  buzz::Jid jid = sp_roster_module_->GetIncomingPresence(i)->jid();
+	  if (jid.BareEquals(callto_jid)) {
+		  found_jid = jid;
+		  found = true;
+		  break;
+	  }
   }
+
+  if (found) {
+    LOGI("Found online friend '%s'", found_jid.Str().c_str());
+    call = sp_media_client_->CreateCall();
+    call->InitiateSession(found_jid, sp_media_client_->jid(), options, call_tracker_id);
+  } else {
+    LOGI("Could not find online friend '%s'", remoteJid.c_str());
+  }
+
 }
 
 void ClientSignalingThread::MuteCallS(uint32 call_id, bool mute) {
