@@ -33,9 +33,9 @@
 #include "talk/base/logging.h"
 
 #if IOS_XMPP_FRAMEWORK
-#include "GCDAsyncSocketMultiDelegate.h"
-#include "AppDelegate.h"
+#include "VoiceClientDelegate.h"
 #endif
+
 namespace tuenti {
 TXmppPump::TXmppPump(TXmppPumpNotify * notify){
   LOGI("TXmppPump::TXmppPump");
@@ -44,13 +44,9 @@ TXmppPump::TXmppPump(TXmppPumpNotify * notify){
   client_ = NULL;
 #if IOS_XMPP_FRAMEWORK
     if (client_ == NULL) {
-        AppDelegate* appDelegate = (AppDelegate*) [UIApplication sharedApplication].delegate;
-        clientDelegate_ = [[XmppClientDelegate alloc] init];
-        client_ = new tictok::IOSXmppClient(this, clientDelegate_);  // NOTE: deleted by TaskRunner
-        clientDelegate_.xmppClient = client_;
-        clientDelegate_.asyncSocket = [GCDAsyncSocketMultiDelegate instance].socket;
-        [[GCDAsyncSocketMultiDelegate instance] addDelegate:clientDelegate_];
-        [appDelegate.xmppStream addDelegate:clientDelegate_ delegateQueue:dispatch_get_main_queue()];
+        VoiceClientDelegate* instance = VoiceClientDelegate::getInstance();
+        instance->InitXmppClient(this);
+        client_ = instance->GetClient();
     }
 #else
   socket_ = NULL;

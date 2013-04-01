@@ -12,8 +12,17 @@
 #include "client/voiceclient.h"
 #include "client/client_defines.h"
 
+#ifdef IOS_XMPP_FRAMEWORK
+namespace tuenti {
+    class TXmppPump;
+};
+namespace tictok {
+    class IOSXmppClient;
+};
+#endif
+
 class VoiceClientDelegate {
-    
+
 public:
     static VoiceClientDelegate *getInstance();
     void Init();
@@ -29,20 +38,32 @@ public:
     void OnSignalXmppStateChange(int state);
     void OnSignalBuddyListReset();
     void OnSignalBuddyListRemove(const char *remote_jid);
-    
+
     void OnSignalBuddyListAdd(const char *remote_jid, const char *nick);
     void OnSignalStatsUpdate(const char *stats);
-#if XMPP_FRAMEWORK
-    talk_base::Thread* getSignalThread()
+#ifdef IOS_XMPP_FRAMEWORK
+    talk_base::Thread* GetSignalThread()
     {
         return voiceClient_->GetSignalThread();
     }
+
+    tictok::IOSXmppClient* GetClient()
+    {
+        return client_;
+    }
+
+    void InitXmppClient(talk_base::TaskParent* parent);
+    void WriteOutput(const char* bytes, size_t len);
+    void StartTls(const std::string& domain);
+    void CloseConnection();
 #endif
 private:
     static VoiceClientDelegate * voiceClientDelegateInstance_;
     tuenti::VoiceClient *voiceClient_;
     tuenti::StunConfig stun_config_;
-
+#ifdef IOS_XMPP_FRAMEWORK
+    tictok::IOSXmppClient* client_;
+#endif
 };
 
-#endif
+#endif // webrtcjingle_VoiceClientDelegate_h

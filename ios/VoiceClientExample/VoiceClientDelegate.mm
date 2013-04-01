@@ -11,6 +11,15 @@
 #import "AppDelegate.h"
 #import "ViewController.h"
 
+#ifdef XMPP_FRAMEWORK
+#import "XmppClientDelegate.h"
+#import "IOSXmppClient.h"
+#import "AppDelegate.h"
+#import "GCDAsyncSocketMultiDelegate.h"
+#endif
+
+static XmppClientDelegate* xmppClientDelegate_;
+
 VoiceClientDelegate *VoiceClientDelegate::voiceClientDelegateInstance_ = NULL;
 
 VoiceClientDelegate *VoiceClientDelegate::getInstance(){
@@ -77,4 +86,30 @@ void VoiceClientDelegate::OnSignalStatsUpdate(const char *stats) {
   AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
   ViewController* mainController = (ViewController*) appDelegate.window.rootViewController;
   [mainController statsUpdate:[NSString stringWithUTF8String:stats]];
+}
+
+void VoiceClientDelegate::InitXmppClient(talk_base::TaskParent *parent)
+{
+    AppDelegate* appDelegate = (AppDelegate*) [UIApplication sharedApplication].delegate;
+    xmppClientDelegate_ = [[XmppClientDelegate alloc] init];
+    client_ = new tictok::IOSXmppClient(parent);
+    xmppClientDelegate_.xmppClient = client_;
+    xmppClientDelegate_.asyncSocket = [GCDAsyncSocketMultiDelegate instance].socket;
+    [[GCDAsyncSocketMultiDelegate instance] addDelegate:xmppClientDelegate_];
+    [appDelegate.xmppStream addDelegate:xmppClientDelegate_ delegateQueue:dispatch_get_main_queue()];
+}
+
+void VoiceClientDelegate::WriteOutput(const char *bytes, size_t len)
+{
+    [xmppClientDelegate_ writeOutput:bytes withLenght:len];
+}
+
+void VoiceClientDelegate::StartTls(const std::string& domain) {
+#if defined(FEATURE_ENABLE_SSL)
+    [xmppClientDelegate_ startTLS:domain];
+#endif
+}
+
+void VoiceClientDelegate::CloseConnection() {
+    [xmppClientDelegate_ closeConnection];
 }
