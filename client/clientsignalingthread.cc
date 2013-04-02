@@ -544,12 +544,13 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
   case MSG_REPLACE_TURN:
     data = static_cast<ClientSignalingData*>(message->pdata);
     ReplaceTurnS(data->s_);
+    delete message->pdata;
     break;
-
   // ------> Events on Main Thread <------
   case MSG_XMPP_STATE:
     assert(talk_base::Thread::Current() == main_thread_.get());
     SignalXmppStateChange(static_cast<XmppStateData*>(message->pdata)->state_);
+    delete message->pdata;
     break;
   case MSG_XMPP_ERROR:
     assert(talk_base::Thread::Current() == main_thread_.get());
