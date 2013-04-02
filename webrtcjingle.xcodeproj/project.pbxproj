@@ -2757,7 +2757,6 @@
 					testing/gtest/include,
 					third_party/expat/files/lib,
 					"ios/VoiceClientExample/xmpp/**",
-					/usr/include/libxml2,
 					ios/VoiceClientExample,
 				);
 				INFOPLIST_FILE = "ios/VoiceClientExample/VoiceClientExample-Info.plist";
@@ -2892,7 +2891,6 @@
 					testing/gtest/include,
 					third_party/expat/files/lib,
 					"ios/VoiceClientExample/xmpp/**",
-					/usr/include/libxml2,
 					ios/VoiceClientExample,
 				);
 				INFOPLIST_FILE = "ios/VoiceClientExample/VoiceClientExample-Info.plist";
