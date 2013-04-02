@@ -15,6 +15,9 @@
 
 @implementation XmppClientDelegate
 
+@synthesize asyncSocket=_asyncSocket;
+@synthesize xmppClient=_xmppClient;
+
 -(void)writeOutput:(const char *) bytes withLenght:(size_t) len
 {
 #if DEBUG

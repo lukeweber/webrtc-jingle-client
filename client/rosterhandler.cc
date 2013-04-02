@@ -2,6 +2,7 @@
 #include "talk/base/logging.h"
 #include "talk/xmpp/constants.h"
 #include "talk/xmpp/rostermodule.h"
+//#include "talk/xmpp/rostermoduleimpl.h"
 #include "talk/xmpp/jid.h"
 
 using buzz::Jid;

@@ -47,8 +47,8 @@
 		30BEC4F1726CFFF50A48248B /* receivemessagetask.cc in Sources */ = {isa = PBXBuildFile; fileRef = 61AF0A86B3F2E35C3AA4D5CC /* receivemessagetask.cc */; };
 		31631F9E19FFA1F2383113B7 /* libwebrtc_utility.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D4C65A945A870DD20B01CF5D /* libwebrtc_utility.a */; };
 		39C8938AFABA31A722E89EED /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC92EA69C7E126ECA09E4551 /* AudioToolbox.framework */; };
-		3A569AFA6DC59406443DDC7A /* voiceclient.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1651F62B29AF1E7A355D8943 /* voiceclient.mm */; };
-		3B48DB3446404CC247D410E2 /* clientsignalingthread.mm in Sources */ = {isa = PBXBuildFile; fileRef = 70491BE1D90E687E48DD173F /* clientsignalingthread.mm */; };
+		3A569AFA6DC59406443DDC7A /* voiceclient.cc in Sources */ = {isa = PBXBuildFile; fileRef = 1651F62B29AF1E7A355D8943 /* voiceclient.cc */; };
+		3B48DB3446404CC247D410E2 /* clientsignalingthread.cc in Sources */ = {isa = PBXBuildFile; fileRef = 70491BE1D90E687E48DD173F /* clientsignalingthread.cc */; };
 		3C70AF8125926D941635A329 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5BB70A41ED59A81B9F5259D2 /* AppDelegate.mm */; };
 		44E0ABAEC199D0525ED6CC52 /* libPCM16B.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 389640D73D3984827C08EFFD /* libPCM16B.a */; };
 		50D3306F6F3D545786AA015C /* libiSAC.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 186D5C74B6E041BF46017F64 /* libiSAC.a */; };
@@ -57,7 +57,7 @@
 		6663002145EB84D19B78CA50 /* txmppauth.cc in Sources */ = {isa = PBXBuildFile; fileRef = 894B7555E2D1637CE7838FE7 /* txmppauth.cc */; };
 		6669AA23823D10FC7E314FBB /* libG722.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F66DA6107E791B744F76B377 /* libG722.a */; };
 		723D99F4579107A72A35B46F /* libvad.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 926CA395B10B7E2CBC5636DF /* libvad.a */; };
-		7952884E8D6FBCD192A668D9 /* keepalivetask.mm in Sources */ = {isa = PBXBuildFile; fileRef = 9A7F164F2AE524E49C61C305 /* keepalivetask.mm */; };
+		7952884E8D6FBCD192A668D9 /* keepalivetask.cc in Sources */ = {isa = PBXBuildFile; fileRef = 9A7F164F2AE524E49C61C305 /* keepalivetask.cc */; };
 		7FE63A032F8DE8C28CAD9E6F /* libaudio_coding_module.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 49EA86E601DEFF61A313584D /* libaudio_coding_module.a */; };
 		8C2308E77E4F0F1FFBB81042 /* libaudio_processing_sse2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 40E837BEEBE2BF5AB9F3660C /* libaudio_processing_sse2.a */; };
 		8E0CF71BD5433A00E3339AEF /* txmppsocket.cc in Sources */ = {isa = PBXBuildFile; fileRef = 50E18549D06C36C391B49D52 /* txmppsocket.cc */; };
@@ -188,7 +188,7 @@
 		C8649E6BABEB7DA5B2AA0265 /* sendmessagetask.cc in Sources */ = {isa = PBXBuildFile; fileRef = 0109085FFC68783363950598 /* sendmessagetask.cc */; };
 		C9799FDA674057C5469FB3C6 /* libaudio_conference_mixer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 041D7AF7958B650C3339694F /* libaudio_conference_mixer.a */; };
 		CADDEBAC6E9FA230FA777849 /* libG711.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C8B30C2102AC207B4C9BAC3B /* libG711.a */; };
-		D816B54EB91EF31F80F26BD4 /* txmpppump.mm in Sources */ = {isa = PBXBuildFile; fileRef = 11ED8D5BD84992BC6E0C53AC /* txmpppump.mm */; };
+		D816B54EB91EF31F80F26BD4 /* txmpppump.cc in Sources */ = {isa = PBXBuildFile; fileRef = 11ED8D5BD84992BC6E0C53AC /* txmpppump.cc */; };
 		DA8F7EAB65458A32CA5FF524 /* libsrtp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B000AF1EE45EF7F2F7067F96 /* libsrtp.a */; };
 		DB006E96ABF7C6FB0D72CD48 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 98543F4860B0B74F9E7F188C /* Default-568h@2x.png */; };
 		E09EC7981973A180E31DEA06 /* libjingle_audio_only.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 510E63A9CC07C95FDD2C0A76 /* libjingle_audio_only.a */; };
@@ -567,13 +567,6 @@
 			remoteGlobalIDString = 7FE828FDC4766075645F7183;
 			remoteInfo = media_file;
 		};
-		AD909C2D1709CA2400676C4B /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 7F27F3E5BB8C26DC676A8738 /* modules.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 47E7A1E345BD069D45BBFE04;
-			remoteInfo = NetEq4;
-		};
 		B3616D9B1CF93297FBC6F45D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 55DBAAC64CC1E9E7FB6FF88D /* libsrtp.xcodeproj */;
@@ -712,11 +705,11 @@
 /* Begin PBXFileReference section */
 		0109085FFC68783363950598 /* sendmessagetask.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = sendmessagetask.cc; sourceTree = "<group>"; };
 		1085E673B5F8866EC57A99A4 /* xmppmessage2.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xmppmessage2.h; sourceTree = "<group>"; };
-		11ED8D5BD84992BC6E0C53AC /* txmpppump.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = txmpppump.mm; sourceTree = "<group>"; };
+		11ED8D5BD84992BC6E0C53AC /* txmpppump.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = txmpppump.cc; sourceTree = "<group>"; };
 		13513DECBA93DED788453AF1 /* xmpplog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xmpplog.h; sourceTree = "<group>"; };
 		13D5F5BDCD2A48BF2974EDD0 /* voice_engine.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = voice_engine.xcodeproj; path = third_party/webrtc/voice_engine/voice_engine.xcodeproj; sourceTree = SOURCE_ROOT; };
 		1461D8506111F54BC31AD965 /* expat.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = expat.xcodeproj; path = third_party/expat/expat.xcodeproj; sourceTree = SOURCE_ROOT; };
-		1651F62B29AF1E7A355D8943 /* voiceclient.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = voiceclient.mm; sourceTree = "<group>"; };
+		1651F62B29AF1E7A355D8943 /* voiceclient.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = voiceclient.cc; sourceTree = "<group>"; };
 		1A694BB6F958A535721BE52E /* voiceclient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = voiceclient.h; sourceTree = "<group>"; };
 		1A9127F8D30FF8E10BD5C28C /* sendmessagetask.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sendmessagetask.h; sourceTree = "<group>"; };
 		1B5776A68DA2AFDAC3E2B84B /* xmpplog.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = xmpplog.cc; sourceTree = "<group>"; };
@@ -733,7 +726,7 @@
 		5BB70A41ED59A81B9F5259D2 /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
 		5F61B6AAA67277E7CD13239F /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
 		61AF0A86B3F2E35C3AA4D5CC /* receivemessagetask.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = receivemessagetask.cc; sourceTree = "<group>"; };
-		70491BE1D90E687E48DD173F /* clientsignalingthread.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = clientsignalingthread.mm; sourceTree = "<group>"; };
+		70491BE1D90E687E48DD173F /* clientsignalingthread.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = clientsignalingthread.cc; sourceTree = "<group>"; };
 		707FC31C3B93A692A3484871 /* VoiceClientDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = VoiceClientDelegate.mm; sourceTree = "<group>"; };
 		73DB3B6F9DC37CAADFD68A94 /* release_defaults.gypi */ = {isa = PBXFileReference; lastKnownFileType = text; name = release_defaults.gypi; path = build/internal/release_defaults.gypi; sourceTree = "<group>"; };
 		746AA5C2571BFC9BE5C6BC98 /* system_wrappers.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = system_wrappers.xcodeproj; path = third_party/webrtc/system_wrappers/source/system_wrappers.xcodeproj; sourceTree = SOURCE_ROOT; };
@@ -747,7 +740,7 @@
 		8EE2F499B8EEB6EA3DA20DCD /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		928720DBC2BA9BE52EDF72E8 /* voiceclient.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = voiceclient.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		98543F4860B0B74F9E7F188C /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
-		9A7F164F2AE524E49C61C305 /* keepalivetask.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = keepalivetask.mm; sourceTree = "<group>"; };
+		9A7F164F2AE524E49C61C305 /* keepalivetask.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = keepalivetask.cc; sourceTree = "<group>"; };
 		9E3410B09B3CE1F4E4BE8305 /* common.gypi */ = {isa = PBXFileReference; lastKnownFileType = text; name = common.gypi; path = third_party/webrtc/build/common.gypi; sourceTree = "<group>"; };
 		A229E080D5526BE77B6AD6D2 /* presenceouttask.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = presenceouttask.cc; sourceTree = "<group>"; };
 		A29C79CCBF897B5988A23FB3 /* libjingle.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libjingle.xcodeproj; path = third_party/libjingle/libjingle.xcodeproj; sourceTree = SOURCE_ROOT; };
@@ -1081,7 +1074,6 @@
 				389640D73D3984827C08EFFD /* libPCM16B.a */,
 				49EA86E601DEFF61A313584D /* libaudio_coding_module.a */,
 				9B69AB9D824DC5C9EBC7C07A /* libNetEq.a */,
-				AD909C2E1709CA2400676C4B /* libNetEq4.a */,
 				041D7AF7958B650C3339694F /* libaudio_conference_mixer.a */,
 				782491195FD8BD854590C0C8 /* libaudio_device.a */,
 				23DA0D28A6AF74A2183E9D25 /* libaudio_processing.a */,
@@ -1807,9 +1799,9 @@
 			isa = PBXGroup;
 			children = (
 				F838C3460FFFC580E3AE683A /* client_defines.h */,
-				70491BE1D90E687E48DD173F /* clientsignalingthread.mm */,
+				70491BE1D90E687E48DD173F /* clientsignalingthread.cc */,
 				D229388A3193BA74F6E7E5D9 /* clientsignalingthread.h */,
-				9A7F164F2AE524E49C61C305 /* keepalivetask.mm */,
+				9A7F164F2AE524E49C61C305 /* keepalivetask.cc */,
 				E8146FEE60B6CAE054BEF944 /* keepalivetask.h */,
 				1EAC7ACAA56E5D78ED70730F /* logging.h */,
 				A229E080D5526BE77B6AD6D2 /* presenceouttask.cc */,
@@ -1823,11 +1815,11 @@
 				C21F2DEA1C17F21CD326CACA /* status.h */,
 				894B7555E2D1637CE7838FE7 /* txmppauth.cc */,
 				F0ECCC8F18EF3EBA724F5953 /* txmppauth.h */,
-				11ED8D5BD84992BC6E0C53AC /* txmpppump.mm */,
+				11ED8D5BD84992BC6E0C53AC /* txmpppump.cc */,
 				77055FEA47FEB2A47010DCE1 /* txmpppump.h */,
 				50E18549D06C36C391B49D52 /* txmppsocket.cc */,
 				39AD4FF06B2A361520741909 /* txmppsocket.h */,
-				1651F62B29AF1E7A355D8943 /* voiceclient.mm */,
+				1651F62B29AF1E7A355D8943 /* voiceclient.cc */,
 				1A694BB6F958A535721BE52E /* voiceclient.h */,
 				1B5776A68DA2AFDAC3E2B84B /* xmpplog.cc */,
 				13513DECBA93DED788453AF1 /* xmpplog.h */,
@@ -2211,13 +2203,6 @@
 			remoteRef = E98DF86D843AFF3EFCA21858 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		AD909C2E1709CA2400676C4B /* libNetEq4.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libNetEq4.a;
-			remoteRef = AD909C2D1709CA2400676C4B /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		B000AF1EE45EF7F2F7067F96 /* libsrtp.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -2317,15 +2302,15 @@
 				3C70AF8125926D941635A329 /* AppDelegate.mm in Sources */,
 				EA22801A5BED295C246741FF /* ViewController.mm in Sources */,
 				F7B6B76077FF44E0FE516534 /* VoiceClientDelegate.mm in Sources */,
-				7952884E8D6FBCD192A668D9 /* keepalivetask.mm in Sources */,
+				7952884E8D6FBCD192A668D9 /* keepalivetask.cc in Sources */,
 				30BEC4F1726CFFF50A48248B /* receivemessagetask.cc in Sources */,
 				C8649E6BABEB7DA5B2AA0265 /* sendmessagetask.cc in Sources */,
 				C70A1ED0DD30E5CC3C1B19CC /* presenceouttask.cc in Sources */,
 				AA3AF680BAEA78208F8AD762 /* rosterhandler.cc in Sources */,
-				3B48DB3446404CC247D410E2 /* clientsignalingthread.mm in Sources */,
-				3A569AFA6DC59406443DDC7A /* voiceclient.mm in Sources */,
+				3B48DB3446404CC247D410E2 /* clientsignalingthread.cc in Sources */,
+				3A569AFA6DC59406443DDC7A /* voiceclient.cc in Sources */,
 				6663002145EB84D19B78CA50 /* txmppauth.cc in Sources */,
-				D816B54EB91EF31F80F26BD4 /* txmpppump.mm in Sources */,
+				D816B54EB91EF31F80F26BD4 /* txmpppump.cc in Sources */,
 				8E0CF71BD5433A00E3339AEF /* txmppsocket.cc in Sources */,
 				0C0E72AD579AF121CF72C66C /* xmpplog.cc in Sources */,
 				AD8626C117042EBA00352468 /* GCDAsyncSocket.m in Sources */,

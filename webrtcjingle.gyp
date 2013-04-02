@@ -47,7 +47,7 @@
             '<(webrtc_ios)/VoiceClientExample/VoiceClientDelegate.mm',
             '<(webrtc_client)/client_defines.h',
             '<(webrtc_client)/logging.h',
-            '<(webrtc_client)/xmppmessage.h',
+            '<(webrtc_client)/xmppmessage2.h',
             '<(webrtc_client)/keepalivetask.cc',
             '<(webrtc_client)/keepalivetask.h',
             '<(webrtc_client)/receivemessagetask.cc',

@@ -3,6 +3,7 @@
 
 #include "talk/base/sigslot.h"
 #include "talk/xmpp/rostermodule.h"
+//#include "talk/xmpp/rostermoduleimpl.h"
 #include "talk/xmpp/jid.h"
 
 #include "client/status.h"
