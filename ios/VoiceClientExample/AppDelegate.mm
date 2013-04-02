@@ -53,7 +53,7 @@
     // Setup the XMPP stream
 
 //	[self setupStream];
-//    [self connect];
+//  [self connect];
     return YES;
 }
 

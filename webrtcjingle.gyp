@@ -83,6 +83,12 @@
             '$(SDKROOT)/usr/lib/libxml2.dylib',
           ],
           'mac_bundle_resources': [
+            'third_party/xmppframework/Extensions/Roster/CoreDataStorage/XMPPRoster.xcdatamodel',
+            'third_party/xmppframework/Extensions/XEP-0045/CoreDataStorage/XMPPRoom.xcdatamodeld/XMPPRoom.xcdatamodel',
+            'third_party/xmppframework/Extensions/XEP-0045/HybridStorage/XMPPRoomHybrid.xcdatamodeld/XMPPRoomHybrid.xcdatamodel',
+            'third_party/xmppframework/Extensions/XEP-0054/CoreDataStorage/XMPPvCard.xcdatamodeld/XMPPvCard.xcdatamodel',
+            'third_party/xmppframework/Extensions/XEP-0115/CoreDataStorage/XMPPCapabilities.xcdatamodel',
+            'third_party/xmppframework/Extensions/XEP-0136/CoreDataStorage/XMPPMessageArchiving.xcdatamodeld/XMPPMessageArchiving.xcdatamodel',
             '<(webrtc_ios)/VoiceClientExample/en.lproj/InfoPlist.strings',
             '<(webrtc_ios)/VoiceClientExample/MainStoryboard_iPad.storyboard',
             '<(webrtc_ios)/VoiceClientExample/MainStoryboard_iPhone.storyboard',
