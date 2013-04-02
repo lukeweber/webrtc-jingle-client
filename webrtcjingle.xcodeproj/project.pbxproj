@@ -2787,6 +2787,7 @@
 					SystemConfiguration,
 					"-Wl,-search_paths_first",
 					"-Wl,-ObjC",
+					"-lxml2",
 				);
 				PRODUCT_NAME = voiceclient;
 				USE_HEADERMAP = NO;
@@ -2921,6 +2922,7 @@
 					SystemConfiguration,
 					"-Wl,-search_paths_first",
 					"-Wl,-ObjC",
+					"-lxml2",
 				);
 				PRODUCT_NAME = voiceclient;
 				STRIP_INSTALLED_PRODUCT = YES;
