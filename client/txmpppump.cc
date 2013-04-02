@@ -33,7 +33,7 @@
 #include "talk/base/logging.h"
 
 #if IOS_XMPP_FRAMEWORK
-#include "VoiceClientDelegate.h"
+#include "VoiceClientExample/VoiceClientDelegate.h"
 #endif
 
 namespace tuenti {

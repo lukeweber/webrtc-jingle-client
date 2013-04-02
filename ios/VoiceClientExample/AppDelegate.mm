@@ -33,6 +33,17 @@
 @implementation AppDelegate
 
 @synthesize window = _window;
+@synthesize xmppStream;
+@synthesize xmppReconnect;
+@synthesize xmppRoster;
+@synthesize xmppRosterStorage;
+@synthesize xmppvCardTempModule;
+@synthesize xmppvCardAvatarModule;
+@synthesize xmppCapabilities;
+@synthesize xmppCapabilitiesStorage;
+@synthesize xmppvCardStorage;
+@synthesize myJid;
+@synthesize password;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {

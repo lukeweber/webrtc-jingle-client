@@ -11,11 +11,12 @@
 #import "AppDelegate.h"
 #import "ViewController.h"
 
-#ifdef XMPP_FRAMEWORK
+#ifdef IOS_XMPP_FRAMEWORK
 #import "XmppClientDelegate.h"
 #import "IOSXmppClient.h"
 #import "AppDelegate.h"
 #import "GCDAsyncSocketMultiDelegate.h"
+#import "VoiceClientExample/XmppClientDelegate.h"
 #endif
 
 static XmppClientDelegate* xmppClientDelegate_;
