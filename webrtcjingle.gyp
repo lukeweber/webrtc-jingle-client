@@ -51,8 +51,6 @@
             '<(webrtc_ios)/VoiceClientExample/main.m',
             '<(webrtc_ios)/VoiceClientExample/XmppClientDelegate.h',
             '<(webrtc_ios)/VoiceClientExample/XmppClientDelegate.mm',
-            '<(webrtc_ios)/VoiceClientExample/GCDAsyncSocketMultiDelegate.h',
-            '<(webrtc_ios)/VoiceClientExample/GCDAsyncSocketMultiDelegate.m',
             '<(webrtc_client)/client_defines.h',
             '<(webrtc_client)/logging.h',
             '<(webrtc_client)/xmppmessage.h',

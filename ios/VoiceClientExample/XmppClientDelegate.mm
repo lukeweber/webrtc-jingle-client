@@ -43,16 +43,12 @@
     return _xmppClient;
 }
 
-#pragma mark GCDAsyncSocketDelegate
-
--(void)socketDidDisconnect:(GCDAsyncSocket *)sock withError:(NSError *)err
+#pragma mark XMPPStreamDelegate
+-(void)xmppStream:(XMPPStream *)sender socketDidConnect:(GCDAsyncSocket *)socket
 {
-    _xmppClient->ConnectionClosed(err.code);
+    self.asyncSocket = socket;
 }
 
-#pragma mark -
-
-#pragma mark XMPPStreamDelegate
 - (void)xmppStreamDidAuthenticate:(XMPPStream *)sender
 {
     XMPPJID* myJid = sender.myJID;
@@ -70,5 +66,10 @@
     return NO;
 }
 
+-(void)xmppStreamDidDisconnect:(XMPPStream *)sender withError:(NSError *)error
+{
+    self.asyncSocket = nil;
+    _xmppClient->ConnectionClosed(error.code);
+}
 #pragma mark -
 @end

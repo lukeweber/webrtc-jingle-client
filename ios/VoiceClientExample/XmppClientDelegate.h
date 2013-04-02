@@ -15,7 +15,7 @@ namespace tictok {
     class IOSXmppClient;
 }
 
-@interface XmppClientDelegate : NSObject <GCDAsyncSocketDelegate, XMPPStreamDelegate>
+@interface XmppClientDelegate : NSObject <XMPPStreamDelegate>
 
 @property (nonatomic, assign) GCDAsyncSocket* asyncSocket;
 @property (nonatomic, assign) tictok::IOSXmppClient* xmppClient;

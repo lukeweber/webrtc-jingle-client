@@ -15,7 +15,6 @@
 #import "XmppClientDelegate.h"
 #import "IOSXmppClient.h"
 #import "AppDelegate.h"
-#import "GCDAsyncSocketMultiDelegate.h"
 #import "VoiceClientExample/XmppClientDelegate.h"
 #endif
 
@@ -95,8 +94,6 @@ void VoiceClientDelegate::InitXmppClient(talk_base::TaskParent *parent)
     xmppClientDelegate_ = [[XmppClientDelegate alloc] init];
     client_ = new tictok::IOSXmppClient(parent);
     xmppClientDelegate_.xmppClient = client_;
-    xmppClientDelegate_.asyncSocket = [GCDAsyncSocketMultiDelegate instance].socket;
-    [[GCDAsyncSocketMultiDelegate instance] addDelegate:xmppClientDelegate_];
     [appDelegate.xmppStream addDelegate:xmppClientDelegate_ delegateQueue:dispatch_get_main_queue()];
 }
 
