@@ -14,7 +14,6 @@
 #define TAG_XMPP_WRITE_STREAM       201
 
 @implementation XmppClientDelegate
-
 @synthesize asyncSocket=_asyncSocket;
 @synthesize xmppClient=_xmppClient;
 

@@ -33,6 +33,17 @@
 @implementation AppDelegate
 
 @synthesize window = _window;
+@synthesize xmppStream;
+@synthesize xmppReconnect;
+@synthesize xmppRoster;
+@synthesize xmppRosterStorage;
+@synthesize xmppvCardTempModule;
+@synthesize xmppvCardAvatarModule;
+@synthesize xmppCapabilities;
+@synthesize xmppCapabilitiesStorage;
+@synthesize xmppvCardStorage;
+@synthesize myJid;
+@synthesize password;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
@@ -79,8 +90,8 @@
 		return YES;
 	}
     
-	NSString *myJID = @"";
-	NSString *myPassword = @"";
+	NSString *myJID = @"thanhhanhtieu@gmail.com";
+	NSString *myPassword = @"t1euha11h";
     
 	//
 	// If you don't want to use the Settings view to set the JID,
