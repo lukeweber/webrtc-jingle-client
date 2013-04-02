@@ -2758,6 +2758,7 @@
 					third_party/expat/files/lib,
 					"ios/VoiceClientExample/xmpp/**",
 					ios/VoiceClientExample,
+					/usr/include/libxml2,
 				);
 				INFOPLIST_FILE = "ios/VoiceClientExample/VoiceClientExample-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
@@ -2892,6 +2893,7 @@
 					third_party/expat/files/lib,
 					"ios/VoiceClientExample/xmpp/**",
 					ios/VoiceClientExample,
+					/usr/include/libxml2,
 				);
 				INFOPLIST_FILE = "ios/VoiceClientExample/VoiceClientExample-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
