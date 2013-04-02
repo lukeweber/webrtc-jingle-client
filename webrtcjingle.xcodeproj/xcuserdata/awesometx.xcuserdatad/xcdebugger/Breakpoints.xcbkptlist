@@ -33,39 +33,78 @@
          shouldBeEnabled = "Yes"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
-         filePath = "ios/VoiceClientExample/XmppClientDelegate.mm"
-         timestampString = "386566170.093691"
+         filePath = "ios/VoiceClientExample/IOSXmppClient.mm"
+         timestampString = "386584735.829874"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "55"
-         endingLineNumber = "55"
-         landmarkName = "-xmppStreamDidAuthenticate:"
+         startingLineNumber = "237"
+         endingLineNumber = "237"
+         landmarkName = "IOSXmppClient::ConnectionClosed(int code)"
          landmarkType = "5">
       </FileBreakpoint>
       <FileBreakpoint
          shouldBeEnabled = "Yes"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
-         filePath = "ios/VoiceClientExample/AppDelegate.mm"
-         timestampString = "386566249.738338"
+         filePath = "client/txmpppump.cc"
+         timestampString = "386569638.601839"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "381"
-         endingLineNumber = "381"
-         landmarkName = "-xmppStreamDidAuthenticate:"
+         startingLineNumber = "129"
+         endingLineNumber = "129"
+         landmarkName = "TXmppPump::OnXmppSocketClose(int state)"
          landmarkType = "5">
       </FileBreakpoint>
       <FileBreakpoint
          shouldBeEnabled = "Yes"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
-         filePath = "ios/VoiceClientExample/AppDelegate.mm"
-         timestampString = "386566310.392147"
+         filePath = "client/txmpppump.cc"
+         timestampString = "386582781.559876"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "78"
-         endingLineNumber = "78"
-         landmarkName = "-connect"
+         startingLineNumber = "46"
+         endingLineNumber = "46"
+         landmarkName = "TXmppPump::TXmppPump(TXmppPumpNotify * notify)"
+         landmarkType = "5">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "Yes"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "client/txmpppump.cc"
+         timestampString = "386582806.165578"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "45"
+         endingLineNumber = "45"
+         landmarkName = "TXmppPump::TXmppPump(TXmppPumpNotify * notify)"
+         landmarkType = "5">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "Yes"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "ios/VoiceClientExample/IOSXmppClient.mm"
+         timestampString = "386584735.829874"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "228"
+         endingLineNumber = "228"
+         landmarkName = "IOSXmppClient::ConnectionConnected(const char* fullJid)"
+         landmarkType = "5">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "Yes"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "ios/VoiceClientExample/IOSXmppClient.mm"
+         timestampString = "386584639.624023"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "272"
+         endingLineNumber = "272"
+         landmarkName = "IOSXmppClient::Private::CloseConnection()"
          landmarkType = "5">
       </FileBreakpoint>
    </FileBreakpoints>

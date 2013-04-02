@@ -14,7 +14,10 @@ function usage {
     echo "If you want to specify aditional options for ndk-build, call it: "
     echo "ndk-build NDK_APPLICATION_MK=filename.mk"
 }
-if [ -f "$ANDROID_NDK_ROOT/ndk-build" ];then
+ndk_build_exe=`which ndk-build`
+if [ -f "$ndk_build_exe" ];then
+    echo "Using $ndk_build_exe"
+elif [ -f "$ANDROID_NDK_ROOT/ndk-build" ];then
     echo "Using $ANDROID_NDK_ROOT/ndk-build"
     ndk_build_exe="$ANDROID_NDK_ROOT/ndk-build"
 else

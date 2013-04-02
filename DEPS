@@ -5,7 +5,7 @@ vars = {
   "chromium_trunk" : "http://src.chromium.org/svn/trunk",
   "chromium_git_url" : "http://git.chromium.org",
   "github_luke_url" : "https://www.github.com/lukeweber",
-  "chromium_revision": "182149",
+  "chromium_revision": "169394",
 
   # External resources like video and audio files used for testing purposes.
   # Downloaded on demand when needed.
@@ -18,6 +18,9 @@ deps = {
 
   "trunk/testing":
     Var("chromium_trunk") + "/src/testing@" + Var("chromium_revision"),
+
+  "trunk/base":
+    Var("chromium_trunk") + "/src/base@" + Var("chromium_revision"),
 
   "trunk/testing/gmock":
     (Var("googlecode_url") % "googlemock") + "/trunk@405",

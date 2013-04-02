@@ -91,7 +91,7 @@
 	}
     
 	NSString *myJID = @"thanhhanhtieu@gmail.com";
-	NSString *myPassword = @"t1euha11h";
+	NSString *myPassword = @"ha1111aht1eutha11h";
     
 	//
 	// If you don't want to use the Settings view to set the JID,
