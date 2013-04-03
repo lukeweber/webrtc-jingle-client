@@ -39,11 +39,11 @@
 #include "talk/session/media/mediamessages.h"
 #include "talk/session/media/mediasessionclient.h"
 #include "talk/xmpp/xmppclient.h"
-#include "talk/examples/login/xmpppump.h"
 #include "talk/base/criticalsection.h"
 
 #include "client/status.h"
 #include "client/xmppmessage.h"
+#include "client/txmpppump.h"
 
 namespace tuenti {
 

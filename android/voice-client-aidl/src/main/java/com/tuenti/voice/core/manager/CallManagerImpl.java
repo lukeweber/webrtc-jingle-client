@@ -172,6 +172,12 @@ public class CallManagerImpl
         Log.d(TAG, "Call Tracker ID " + callTrackerId + " for call_id " + callId);
     }
 
+    @Override
+    public void handleAudioPlayout()
+    {
+        //TODO: Should be fired when audio begins to play. Currently this is just synonymous with PROGRESS event.
+    }
+
 // -------------------------- OTHER METHODS --------------------------
 
     public IBinder onBind()

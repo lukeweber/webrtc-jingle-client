@@ -856,8 +856,9 @@ void ClientSignalingThread::PrintStatsS() {
 }
 
 void ClientSignalingThread::ReplaceTurnS(const std::string turn) {
+  LOG(INFO) << "ReplaceTurnS";
   talk_base::SocketAddress turn_socket = talk_base::SocketAddress();
-  if (!turn.empty() && !stun_config_->turn_username.empty() &&
+  if (stun_config_ && !turn.empty() && !stun_config_->turn_username.empty() &&
        !stun_config_->turn_password.empty() && turn_socket.FromString(turn)) {
     LOG(INFO) << "ReplaceTurn From: " << stun_config_->ToString();
     stun_config_->turn = std::string(turn);
