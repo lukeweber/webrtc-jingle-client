@@ -1,6 +1,5 @@
 #This comes directly from gclient revinfo and should ONLY look like this in the stable branch 
 deps = {
-  "trunk/base": "https://github.com/lukeweber/chromium-trunk-base-override.git@455807",
   "trunk/build": "https://github.com/lukeweber/chromium-trunk-build-override.git@0d0807",
   "trunk/testing": "http://src.chromium.org/svn/trunk/src/testing@182149",
   "trunk/testing/gmock": "http://googlemock.googlecode.com/svn/trunk@405",
