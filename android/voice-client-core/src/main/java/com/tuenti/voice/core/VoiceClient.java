@@ -115,7 +115,7 @@ public class VoiceClient
         }
     }
 
-    public void init( Context context )
+    public void init( Object context )
     {
         if ( loaded() && !initialized )
         {
@@ -370,7 +370,7 @@ public class VoiceClient
 
     private native void nativeHoldCall( long call_id, boolean hold );
 
-    private native void nativeInit( Context context );
+    private native void nativeInit( Object context );
 
     private native void nativeLogin( String user_name, String password, String stunServer, String turnServer,
                                      String turnUsername, String turnPassword, String xmppServer, int xmppPort,
