@@ -29,6 +29,8 @@
           'dependencies': [
             'voiceclient',
           ],
+        },
+        {
           'defines': [
             'IOS',
             'LOGGING=1',
