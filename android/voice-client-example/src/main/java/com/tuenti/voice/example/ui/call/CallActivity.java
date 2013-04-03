@@ -252,12 +252,19 @@ public class CallActivity
      */
     private void onStartCall()
     {
-        mCallTimer.startTimer( mCall );
-        mCallStateLabel.setVisibility( View.GONE );
-        mElapsedTime.setVisibility( View.VISIBLE );
-        mBottomBar.setVisibility( View.VISIBLE );
-        mAcceptButton.setVisibility( View.GONE );
-        onAudioChange();
+        runOnUiThread( new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                mCallTimer.startTimer( mCall );
+                mCallStateLabel.setVisibility( View.GONE );
+                mElapsedTime.setVisibility( View.VISIBLE );
+                mBottomBar.setVisibility( View.VISIBLE );
+                mAcceptButton.setVisibility( View.GONE );
+                onAudioChange();
+            }
+        } );
     }
 
     /**
