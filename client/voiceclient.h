@@ -41,6 +41,7 @@
 #include "talk/xmpp/xmppclient.h"
 #include "talk/base/criticalsection.h"
 
+#include "client/clientsignalingthread.h"
 #include "client/status.h"
 #include "client/xmppmessage.h"
 #include "client/txmpppump.h"
@@ -50,28 +51,7 @@ namespace tuenti {
 typedef enum {
   ADD,
   REMOVE,
-  RESET
 } BuddyList;
-
-typedef struct {
-  buzz::Jid jid;
-  buzz::Status::Show show;
-  std::string status;
-  std::string nick;
-} RosterItem;
-
-typedef struct {
-  std::string stun;
-  std::string turn;
-  std::string turn_username;
-  std::string turn_password;
-  std::string ToString() {
-    std::stringstream stream;
-    stream << "[stun=(" << stun << "),";
-    stream << "turn=(" << turn << ")]";
-    return stream.str();
-  }
-} StunConfig;
 
 class ClientSignalingThread;
 
@@ -112,8 +92,9 @@ class VoiceClient: public sigslot::has_slots<> {
   void OnSignalXmppSocketClose(int state);
   void OnSignalXmppStateChange(int state);
   void OnSignalBuddyListReset();
-  void OnSignalBuddyListRemove(const RosterItem item);
-  void OnSignalBuddyListAdd(const RosterItem item);
+  void OnSignalBuddyListRemove(const std::string& jid);
+  void OnSignalBuddyListAdd(const std::string& jid, const std::string& nick, int available, int show);
+  void OnPresenceChanged(const std::string& jid, int available, int show);
   void OnSignalStatsUpdate(const char *stats);
   void OnSignalCallTrackerId(int call_id, const char *call_tracker_id);
 

@@ -48,17 +48,25 @@
 
 #include "talk/xmllite/xmlelement.h"
 #include "talk/xmpp/constants.h"
+#include "talk/xmpp/rostermodule.h"
 
 namespace tuenti {
+
+struct RosterData : talk_base::MessageData {
+  RosterData(std::string jid, std::string nick, int available, int show)
+    : jid_(jid),
+    nick_(nick),
+    available_(available),
+    show_(show) {}
+  std::string jid_;
+  std::string nick_;
+  int available_;
+  int show_;
+};
 
 struct XmppMessageData : talk_base::MessageData {
   XmppMessageData(const tuenti::XmppMessage m) : m_(m) {}
   tuenti::XmppMessage m_;
-};
-
-struct RosterData : talk_base::MessageData {
-  RosterData(const RosterItem item) : item_(item) {}
-  RosterItem item_;
 };
 
 struct CallErrorData : talk_base::MessageData {
@@ -116,9 +124,7 @@ struct ClientSignalingData: public talk_base::MessageData {
 ///////////////////////////////////////////////////////////////////////////////
 
 ClientSignalingThread::ClientSignalingThread()
-    : roster_(NULL),
-    buddy_list_(NULL),
-    presence_out_(NULL),
+    : presence_out_(NULL),
     ping_task_(NULL),
     keepalive_task_(NULL),
     session_manager_task_(NULL),
@@ -139,14 +145,6 @@ ClientSignalingThread::ClientSignalingThread()
   // Set debugging to verbose in libjingle if LOGGING on android.
   talk_base::LogMessage::LogToDebug(talk_base::LS_VERBOSE);
 #endif
-  if (roster_ == NULL) {
-    roster_ = new RosterMap();
-    LOGI("ClientSignalingThread::ClientSignalingThread - new RosterMap "
-            "roster_@(0x%x)", reinterpret_cast<int>(roster_));
-  }
-  if (buddy_list_ == NULL) {
-    buddy_list_ = new BuddyListMap();
-  }
   sp_network_manager_.reset(new talk_base::BasicNetworkManager());
   my_status_.set_caps_node("http://github.com/lukeweber/webrtc-jingle");
   my_status_.set_version("1.0-SNAPSHOT");
@@ -155,58 +153,17 @@ ClientSignalingThread::ClientSignalingThread()
 ClientSignalingThread::~ClientSignalingThread() {
   LOGI("ClientSignalingThread::~ClientSignalingThread");
   Disconnect();
-  if (roster_) {
-    LOGI("ClientSignalingThread::~ClientSignalingThread - "
-        "deleting roster_@(0x%x)", reinterpret_cast<int>(roster_));
-    delete roster_;
-    roster_ = NULL;
-  }
-  if (buddy_list_) {
-    delete buddy_list_;
-    buddy_list_ = NULL;
-  }
   delete signal_thread_;
 }
 
-void ClientSignalingThread::OnStatusUpdate(const buzz::Status& status) {
-  LOGI("ClientSignalingThread::OnStatusUpdate");
-  assert(talk_base::Thread::Current() == signal_thread_);
-  RosterItem item;
-  item.jid = status.jid();
-  item.show = status.show();
-  item.status = status.status();
-  item.nick = status.nick();
-  std::string key = item.jid.Str();
+void ClientSignalingThread::OnContactAdded(const std::string& jid, const std::string& nick,
+        int available, int show) {
+  main_thread_->Post(this, MSG_ROSTER_ADD, new RosterData(jid, nick, available, show));
+}
 
-  std::string bare_jid_str = item.jid.BareJid().Str();
-  BuddyListMap::iterator buddy_iter = buddy_list_->find(bare_jid_str);
-
-  RosterMap::iterator iter = roster_->find(key);
-  if (status.available() && status.voice_capability()) {
-    // New buddy, add and notify
-    if (buddy_iter == buddy_list_->end()) {
-      // LOGI("Adding to roster: %s, %s", key.c_str(), item.nick.c_str());
-      (*buddy_list_)[bare_jid_str] = 1;
-      main_thread_->Post(this, MSG_ROSTER_ADD, new RosterData(item));
-    // New Available client of existing buddy
-    } else if (iter == roster_->end()) {
-      (*buddy_iter).second++;
-    // Something changed in a roster item, but we already have it.
-    } else {
-      LOGI("Updating roster info: %s", key.c_str());
-    }
-    (*roster_)[key] = item;
-  } else {
-    if (iter != roster_->end()) {
-      roster_->erase(iter);
-      // Last available endpoint gone, remove the buddy and notify
-      if (buddy_iter != buddy_list_->end() && --((*buddy_iter).second) == 0) {
-        // LOGI("Removing from roster: %s", key.c_str());
-        buddy_list_->erase(buddy_iter);
-        main_thread_->Post(this, MSG_ROSTER_REMOVE, new RosterData(item));
-      }
-    }
-  }
+void ClientSignalingThread::OnPresenceChanged(const std::string& jid,
+        int available, int show) {
+  main_thread_->Post(this, MSG_PRESENCE_CHANGED, new RosterData(jid, "", available, show));
 }
 
 void ClientSignalingThread::OnSessionState(cricket::Call* call,
@@ -435,9 +392,7 @@ void ClientSignalingThread::Login(const std::string &username,
   xcs_.set_pass(talk_base::CryptString(pass));
   xcs_.set_server(talk_base::SocketAddress(xmpp_host, xmpp_port));
   SetPortAllocatorFilter(port_allocator_filter);
-#if IOS_XMPP_FRAMEWORK
   sp_pump_.reset(new TXmppPump(this));
-#endif
   signal_thread_->Post(this, MSG_LOGIN);
 }
 
@@ -549,7 +504,6 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
     ReplaceTurnS(data->s_);
     delete message->pdata;
     break;
-
   // ------> Events on Main Thread <------
   case MSG_XMPP_STATE:
     assert(talk_base::Thread::Current() == main_thread_.get());
@@ -584,21 +538,24 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
   case MSG_ROSTER_REMOVE:
     {
     assert(talk_base::Thread::Current() == main_thread_.get());
-    SignalBuddyListRemove(static_cast<RosterData*>(message->pdata)->item_);
+    //SignalBuddyListRemove(static_cast<RosterData*>(message->pdata)->jid_.c_str());
     delete message->pdata;
     break;
+    }
+  case MSG_PRESENCE_CHANGED:
+    {
+        assert(talk_base::Thread::Current() == main_thread_.get());
+        RosterData *rd = static_cast<RosterData*>(message->pdata);
+        SignalPresenceChanged(rd->jid_, rd->available_, rd->show_);
+        delete message->pdata;
+        break;
     }
   case MSG_ROSTER_ADD:
     {
     assert(talk_base::Thread::Current() == main_thread_.get());
-    SignalBuddyListAdd(static_cast<RosterData*>(message->pdata)->item_);
+    RosterData *rd = static_cast<RosterData*>(message->pdata);
+    SignalBuddyListAdd(rd->jid_, rd->nick_, rd->available_, rd->show_);
     delete message->pdata;
-    break;
-    }
-  case MSG_ROSTER_RESET:
-    {
-    assert(talk_base::Thread::Current() == main_thread_.get());
-    SignalBuddyListReset();
     break;
     }
   case MSG_CALL_STATE:
@@ -621,14 +578,10 @@ void ClientSignalingThread::ResetMedia() {
   if (xcs_.use_tls() == buzz::TLS_REQUIRED) {
     talk_base::CleanupSSL();
   }
-  if (roster_) {
-    roster_->clear();
-  }
-  if (buddy_list_) {
-    main_thread_->Post(this, MSG_ROSTER_RESET);
-    buddy_list_->clear();
-  }
 
+#if XMPP_ENABLE_ROSTER
+  sp_roster_module_.reset(NULL);
+#endif
   sp_media_client_.reset(NULL);
 }
 
@@ -685,9 +638,11 @@ void ClientSignalingThread::LoginS() {
     talk_base::InitializeSSL();
   }
 
-#if !IOS_XMPP_FRAMEWORK
-  sp_pump_.reset(new TXmppPump(this));
+#if XMPP_ENABLE_ROSTER
+  //RosterModule depends on engine, Engine is destroyed/created in TxmppPump via client.
+  sp_roster_module_.reset();
 #endif
+  sp_pump_.reset(new TXmppPump(this));
   sp_pump_->DoLogin(xcs_);
 }
 
@@ -727,35 +682,42 @@ void ClientSignalingThread::CallS(const std::string &remoteJid, const std::strin
   cricket::Call* call;
   cricket::CallOptions options;
   options.is_muc = false;
-
-#if XMPP_ENABLE_ROSTER //Check the roster
   bool found = false;
+
   buzz::Jid callto_jid(remoteJid);
   buzz::Jid found_jid;
 
-  // otherwise, it's a friend
-  for (RosterMap::iterator iter = roster_->begin(); iter != roster_->end();
-      ++iter) {
-    if (iter->second.jid.BareEquals(callto_jid)) {
-      found = true;
-      found_jid = iter->second.jid;
-      break;
-    }
+#if XMPP_ENABLE_ROSTER
+  // TODO: Move this logic to the clients to allow calling all endpoints at the
+  // same time, and following the first that answers, and tearing down the rest.
+  // now search available presences
+  for (unsigned int i = 0; i < sp_roster_module_->GetIncomingPresenceCount(); i++) {
+      buzz::Jid jid = sp_roster_module_->GetIncomingPresence(i)->jid();
+      if (jid.BareEquals(callto_jid)) {
+          found_jid = jid;
+		  found = true;
+          break;
+      }
+  }
+#endif
+
+  // If we have roster disabled, we can pass pass a full jid directly to call.
+  if (!found && !callto_jid.IsBare()){
+    found_jid = callto_jid;
+	found = true;
   }
 
   if (found) {
-    LOGI("Found online friend '%s'", found_jid.Str().c_str());
+    LOGI("Calling friend '%s'", found_jid.Str().c_str());
     call = sp_media_client_->CreateCall();
     call->InitiateSession(found_jid, sp_media_client_->jid(), options, call_tracker_id);
   } else {
-    LOGI("Could not find online friend '%s'", remoteJid.c_str());
-  }
+#if !XMPP_ENABLE_ROSTER
+    LOGE("Can not call a bare jid, enable roster or call a full jid ex@blah.com/resource: '%s'", remoteJid.c_str());
 #else
-  // Just call whichever JID we get.
-  buzz::Jid remote_jid(remoteJid);
-  call = sp_media_client_->CreateCall();
-  call->InitiateSession(remote_jid, sp_media_client_->jid(), options, call_tracker_id);  // REQ_MAIN_THREAD
-#endif  // !XMPP_ENABLE_ROSTER
+    LOGI("Could not find online friend '%s'", remoteJid.c_str());
+#endif
+  }
 }
 
 void ClientSignalingThread::MuteCallS(uint32 call_id, bool mute) {
@@ -863,8 +825,9 @@ void ClientSignalingThread::PrintStatsS() {
 }
 
 void ClientSignalingThread::ReplaceTurnS(const std::string turn) {
+  LOG(INFO) << "ReplaceTurnS";
   talk_base::SocketAddress turn_socket = talk_base::SocketAddress();
-  if (!turn.empty() && !stun_config_->turn_username.empty() &&
+  if (stun_config_ && !turn.empty() && !stun_config_->turn_username.empty() &&
        !stun_config_->turn_password.empty() && turn_socket.FromString(turn)) {
     LOG(INFO) << "ReplaceTurn From: " << stun_config_->ToString();
     stun_config_->turn = std::string(turn);
@@ -903,17 +866,16 @@ void ClientSignalingThread::InitPresence() {
   my_status_.set_show(buzz::Status::SHOW_ONLINE);
 #endif
 
-#if XMPP_ENABLE_ROSTER
   sp_roster_handler_.reset(new tuenti::RosterHandler());
-  //TODO: This is hooked up as a fake roster based on presences for voip.
-  //Kill this callback, and hook the handler here directly to the
-  //native app. Instead of filtering presences to decide which users
-  //are online use roster handler methods to know the entire roster.
-  sp_roster_handler_->SignalStatusUpdate.connect(this,
-      &ClientSignalingThread::OnStatusUpdate);//Killme
+  sp_roster_handler_->SignalContactAdded.connect(this,
+    &ClientSignalingThread::OnContactAdded);
+  sp_roster_handler_->SignalPresenceChanged.connect(this,
+    &ClientSignalingThread::OnPresenceChanged);
+
+#if XMPP_ENABLE_ROSTER
   sp_roster_module_.reset(buzz::XmppRosterModule::Create());
-  sp_roster_module_->RegisterEngine(sp_pump_->client()->engine());
   sp_roster_module_->set_roster_handler(sp_roster_handler_.get());
+  sp_roster_module_->RegisterEngine(sp_pump_->client()->engine());
   sp_roster_module_->BroadcastPresence();//Empty presence to get things going.
   sp_roster_module_->RequestRosterUpdate();
 #endif
