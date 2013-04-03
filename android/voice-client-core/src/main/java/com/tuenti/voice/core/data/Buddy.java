@@ -2,6 +2,9 @@ package com.tuenti.voice.core.data;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.TextUtils;
+import com.tuenti.voice.core.XmppPresenceAvailable;
+import com.tuenti.voice.core.XmppPresenceShow;
 
 public class Buddy
     implements Parcelable
@@ -21,11 +24,13 @@ public class Buddy
         }
     };
 
+    private XmppPresenceAvailable available;
+
     private String nick;
 
-    private boolean online;
-
     private String remoteJid;
+
+    private XmppPresenceShow show;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -36,11 +41,22 @@ public class Buddy
     public Buddy( Parcel in )
     {
         nick = in.readString();
-        online = in.readByte() == 1;
         remoteJid = in.readString();
+        available = XmppPresenceAvailable.fromInteger( in.readInt() );
+        show = XmppPresenceShow.fromInteger( in.readInt() );
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
+
+    public XmppPresenceAvailable getAvailable()
+    {
+        return available;
+    }
+
+    public void setAvailable( XmppPresenceAvailable available )
+    {
+        this.available = available;
+    }
 
     public String getNick()
     {
@@ -62,14 +78,14 @@ public class Buddy
         this.remoteJid = remoteJid;
     }
 
-    public boolean isOnline()
+    public XmppPresenceShow getShow()
     {
-        return online;
+        return show;
     }
 
-    public void setOnline( boolean online )
+    public void setShow( XmppPresenceShow show )
     {
-        this.online = online;
+        this.show = show;
     }
 
 // ------------------------ INTERFACE METHODS ------------------------
@@ -86,7 +102,19 @@ public class Buddy
     public void writeToParcel( Parcel out, int flags )
     {
         out.writeString( nick );
-        out.writeByte( (byte) ( online ? 1 : 0 ) );
         out.writeString( remoteJid );
+        out.writeInt( available.ordinal() );
+        out.writeInt( show.ordinal() );
+    }
+
+// -------------------------- OTHER METHODS --------------------------
+
+    public String getName()
+    {
+        if ( !TextUtils.isEmpty( nick ) )
+        {
+            return nick;
+        }
+        return remoteJid;
     }
 }

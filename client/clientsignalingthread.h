@@ -51,7 +51,6 @@
 #include "client/keepalivetask.h"
 #include "client/status.h"
 #include "client/txmpppump.h"  // Needed for TXmppPumpNotify
-#include "client/voiceclient.h"
 
 namespace talk_base {
 class BasicNetworkManager;
@@ -74,6 +73,19 @@ class PresenceOutTask;
 }
 
 namespace tuenti {
+
+struct StunConfig {
+  std::string stun;
+  std::string turn;
+  std::string turn_username;
+  std::string turn_password;
+  std::string ToString() {
+    std::stringstream stream;
+    stream << "[stun=(" << stun << "),";
+    stream << "turn=(" << turn << ")]";
+    return stream.str();
+  }
+};
 
 class TXmppPump;
 class VoiceClientNotify;
@@ -103,7 +115,7 @@ enum ClientSignals {
   MSG_INCOMING_MESSAGE,
   MSG_ROSTER_ADD,
   MSG_ROSTER_REMOVE,
-  MSG_ROSTER_RESET,
+  MSG_PRESENCE_CHANGED
 };
 
 #if LOGGING
@@ -131,7 +143,7 @@ struct ClientSignalingMap : std::map<unsigned int, std::string>
   this->operator[]( MSG_INCOMING_MESSAGE ) = "MSG_INCOMING_MESSAGE";
   this->operator[]( MSG_ROSTER_ADD ) = "MSG_ROSTER_ADD";
   this->operator[]( MSG_ROSTER_REMOVE ) = "MSG_ROSTER_REMOVE";
-  this->operator[]( MSG_ROSTER_RESET ) = "MSG_ROSTER_RESET";
+  this->operator[]( MSG_PRESENCE_CHANGED ) = "MSG_PRESENCE_CHANGED";
   };
   ~ClientSignalingMap(){};
 };
@@ -264,7 +276,8 @@ class ClientSignalingThread
                       cricket::Session::State state);
   void OnSessionError(cricket::Call* call, cricket::Session* session,
                       cricket::Session::Error error);
-  void OnStatusUpdate(const buzz::Status& status);
+  void OnContactAdded(const std::string& jid, const std::string& nick, int available, int show);
+  void OnPresenceChanged(const std::string& jid, int available, int show);
   // OnStateChange Needed by TXmppPumpNotify maybe better in another class
   void OnStateChange(buzz::XmppEngine::State state);
   void OnXmppSocketClose(int state);
@@ -304,9 +317,11 @@ class ClientSignalingThread
   sigslot::signal1<const XmppMessage> SignalXmppMessage;
 
   sigslot::signal0<> SignalAudioPlayout;
-  sigslot::signal0<> SignalBuddyListReset;
-  sigslot::signal1<const RosterItem> SignalBuddyListRemove;
-  sigslot::signal1<const RosterItem> SignalBuddyListAdd;
+
+  sigslot::signal1<const std::string&> SignalBuddyListRemove;
+  sigslot::signal3<const std::string&, int, int> SignalPresenceChanged;
+  sigslot::signal4<const std::string&, const std::string&, int, int> SignalBuddyListAdd;
+
   sigslot::signal1<const char *> SignalStatsUpdate;
 
 
@@ -339,10 +354,6 @@ class ClientSignalingThread
 
   void SetPortAllocatorFilter(uint32 filter) { port_allocator_filter_ = filter; };
 
-  // data
-  typedef std::map<std::string, RosterItem> RosterMap;
-  typedef std::map<std::string, int> BuddyListMap;
-
   std::string turn_username_;
   std::string turn_password_;
 
@@ -357,8 +368,6 @@ class ClientSignalingThread
 
   talk_base::Thread *signal_thread_;
   talk_base::scoped_ptr<talk_base::Thread> main_thread_;
-  RosterMap *roster_;
-  BuddyListMap *buddy_list_;
   buzz::PresenceOutTask* presence_out_;
   buzz::PingTask* ping_task_;
   KeepAliveTask * keepalive_task_;

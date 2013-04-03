@@ -12,6 +12,7 @@ import com.github.kevinsawicki.wishlist.SingleTypeAdapter;
 import com.tuenti.voice.core.BuddyCallback;
 import com.tuenti.voice.core.CallCallback;
 import com.tuenti.voice.core.ConnectionCallback;
+import com.tuenti.voice.core.XmppPresenceAvailable;
 import com.tuenti.voice.core.data.Buddy;
 import com.tuenti.voice.core.data.Call;
 import com.tuenti.voice.core.data.Connection;
@@ -22,6 +23,8 @@ import com.tuenti.voice.example.ui.ItemListActivity;
 import com.tuenti.voice.example.ui.connection.ConnectionActivity;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
@@ -67,7 +70,10 @@ public class BuddyActivity
     public void onListItemClick( ListView l, View v, int position, long id )
     {
         Buddy buddy = (Buddy) l.getItemAtPosition( position );
-        mCallCallback.call( buddy.getRemoteJid() );
+        if ( XmppPresenceAvailable.XMPP_PRESENCE_AVAILABLE.equals( buddy.getAvailable() ) )
+        {
+            mCallCallback.call( buddy.getRemoteJid() );
+        }
     }
 
     @Override
@@ -98,6 +104,24 @@ public class BuddyActivity
     @Override
     protected SingleTypeAdapter<Buddy> createAdapter( List<Buddy> items )
     {
+        // sort items first
+        Collections.sort( items, new Comparator<Buddy>()
+        {
+            @Override
+            public int compare( Buddy o1, Buddy o2 )
+            {
+                if ( !o1.getAvailable().equals( o2.getAvailable() ) )
+                {
+                    if ( XmppPresenceAvailable.XMPP_PRESENCE_AVAILABLE.equals( o1.getAvailable() ) )
+                    {
+                        return -1;
+                    }
+                    return 1;
+                }
+                return o1.getName().toLowerCase().compareTo( o2.getName().toLowerCase() );
+            }
+        } );
+
         Buddy[] buddies = items.toArray( new Buddy[items.size()] );
         return new BuddyListAdapter( getLayoutInflater(), buddies );
     }
