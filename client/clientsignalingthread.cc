@@ -691,9 +691,10 @@ void ClientSignalingThread::CallS(const std::string &remoteJid, const std::strin
   // same time, and following the first that answers, and tearing down the rest.
   // now search available presences
   for (unsigned int i = 0; i < sp_roster_module_->GetIncomingPresenceCount(); i++) {
-      buzz::Jid jid = sp_roster_module_->GetIncomingPresence(i)->jid();
-      if (jid.BareEquals(callto_jid)) {
-          found_jid = jid;
+	  const buzz::XmppPresence *presence = sp_roster_module_->GetIncomingPresence(i);
+      if (presence->available() == buzz::XMPP_PRESENCE_AVAILABLE
+    		  && presence->jid().BareEquals(callto_jid)) {
+          found_jid = presence->jid();
 		  found = true;
           break;
       }
