@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    android:layout_width="fill_parent"
+    android:layout_height="64.0dip"
+    android:minHeight="?android:listPreferredItemHeight"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:id="@+id/line1"
+        android:paddingLeft="12.0dip"
+        android:paddingTop="8.0dip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true">
+
+        <TextView
+            android:textAppearance="?android:textAppearanceMedium"
+            android:id="@+id/buddy_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:layout_weight="1.0" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:paddingLeft="12.0dip"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/line1">
+
+        <ImageView
+            android:gravity="center_vertical"
+            android:layout_gravity="center_vertical"
+            android:id="@+id/buddy_presence"
+            android:contentDescription="@string/presence"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:scaleType="centerCrop" />
+
+        <TextView
+            android:textAppearance="?android:textAppearanceSmall"
+            android:ellipsize="marquee"
+            android:gravity="center_vertical"
+            android:id="@+id/buddy_status"
+            android:paddingLeft="4.0dip"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:singleLine="true" />
+
+    </LinearLayout>
+
+</RelativeLayout>

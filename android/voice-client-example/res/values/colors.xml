@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="text">#1E1E1E</color>
+    <color name="incall_call_banner_background">#A0000000</color>
+    <color name="incall_call_banner_text_color">#FFFFFF</color>
+    <color name="incall_secondary_info_background">#8033b5e5</color>
+    <color name="list_divider_top">#E2E2E2</color>
+    <color name="list_divider_bottom">#FFFFFF</color>
+    <color name="edit_text_background">#F8F8F8</color>
+    <color name="edit_text_inner">#EDEDED</color>
+    <color name="edit_text_outer">#959595</color>
+</resources>

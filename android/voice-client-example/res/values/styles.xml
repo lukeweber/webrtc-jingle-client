@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="InCallEndButton">
+        <item name="android:layout_width">0dip</item>
+        <item name="android:layout_height">74dp</item>
+        <item name="android:layout_weight">1</item>
+    </style>
+
+    <style name="InCallButton">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">76dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:background">?android:attr/selectableItemBackground</item>
+    </style>
+
+    <style name="InCallCompoundButton" parent="InCallButton">
+        <item name="android:textOn">@null</item>
+        <item name="android:textOff">@null</item>
+    </style>
+
+    <style name="VerticalSeparator">
+        <item name="android:layout_width">2dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:background">@android:color/black</item>
+    </style>
+
+    <style name="NotificationText">
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+    </style>
+
+    <style name="NotificationTitle">
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TitleText">
+        <item name="android:textSize">17sp</item>
+        <item name="android:paddingBottom">2dp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+    </style>
+
+    <style name="HeaderTitleText" parent="TitleText">
+        <item name="android:paddingLeft">10dp</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <style name="EditText">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:textColor">@color/text</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:padding">10dp</item>
+        <item name="android:background">@drawable/edit_text_background</item>
+    </style>
+
+    <style name="LoginEditText" parent="EditText">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:autoText">false</item>
+        <item name="android:capitalize">none</item>
+        <item name="android:scrollHorizontally">true</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+
+    <style name="ListView">
+        <item name="android:dividerHeight">2dp</item>
+        <item name="android:divider">@drawable/list_divider</item>
+        <item name="android:cacheColorHint">@android:color/transparent</item>
+        <item name="android:fadingEdge">none</item>
+    </style>
+
+    <style name="SubtitleText">
+        <item name="android:textSize">14sp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+    </style>
+
+    <style name="ListSubtitleText" parent="SubtitleText"></style>
+
+    <style name="Spinner">
+        <item name="android:indeterminate">true</item>
+        <item name="android:indeterminateDuration">2000</item>
+        <item name="android:indeterminateOnly">true</item>
+    </style>
+
+    <style name="ListSpinner" parent="Spinner">
+        <item name="android:layout_width">64dp</item>
+        <item name="android:layout_height">64dp</item>
+    </style>
+
+</resources>

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="10dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingTop="5dp">
+
+        <TextView
+            style="@style/HeaderTitleText"
+            android:text="@string/username_or_email" />
+
+        <EditText
+            android:id="@+id/username"
+            style="@style/LoginEditText"
+            android:imeOptions="actionNext"
+            android:inputType="textEmailAddress" />
+
+        <TextView
+            style="@style/HeaderTitleText"
+            android:text="@string/password" />
+
+        <EditText
+            android:id="@+id/password"
+            style="@style/LoginEditText"
+            android:imeOptions="actionNext"
+            android:inputType="textPassword" />
+
+        <TextView
+            style="@style/HeaderTitleText"
+            android:text="@string/xmpp_host" />
+
+        <EditText
+            android:id="@+id/xmpp_host"
+            style="@style/LoginEditText"
+            android:imeOptions="actionNext" />
+
+        <TextView
+            style="@style/HeaderTitleText"
+            android:text="@string/xmpp_port" />
+
+        <EditText
+            android:id="@+id/xmpp_port"
+            style="@style/LoginEditText"
+            android:imeOptions="actionNext" />
+
+        <TextView
+            style="@style/HeaderTitleText"
+            android:text="@string/xmpp_use_ssl" />
+
+        <EditText
+            android:id="@+id/xmpp_use_ssl"
+            style="@style/LoginEditText"
+            android:imeOptions="actionNext" />
+
+        <TextView
+            style="@style/HeaderTitleText"
+            android:text="@string/stun_host" />
+
+        <EditText
+            android:id="@+id/stun_host"
+            style="@style/LoginEditText"
+            android:imeOptions="actionNext" />
+
+        <TextView
+            style="@style/HeaderTitleText"
+            android:text="@string/stun_port" />
+
+        <EditText
+            android:id="@+id/stun_port"
+            style="@style/LoginEditText"
+            android:imeOptions="actionNext" />
+
+        <TextView
+            style="@style/HeaderTitleText"
+            android:text="@string/turn_host" />
+
+        <EditText
+            android:id="@+id/turn_host"
+            style="@style/LoginEditText"
+            android:imeOptions="actionNext" />
+
+        <TextView
+            style="@style/HeaderTitleText"
+            android:text="@string/turn_username" />
+
+        <EditText
+            android:id="@+id/turn_username"
+            style="@style/LoginEditText"
+            android:imeOptions="actionNext" />
+
+        <TextView
+            style="@style/HeaderTitleText"
+            android:text="@string/turn_password" />
+
+        <EditText
+            android:id="@+id/turn_password"
+            style="@style/LoginEditText"
+            android:imeOptions="actionNext"
+            android:inputType="textPassword" />
+
+        <TextView
+            style="@style/HeaderTitleText"
+            android:text="@string/relay_host" />
+
+        <EditText
+            android:id="@+id/relay_host"
+            style="@style/LoginEditText"
+            android:imeOptions="actionDone" />
+
+        <Button
+            android:id="@+id/login_button"
+            android:text="@string/login"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right|center_vertical" />
+
+    </LinearLayout>
+
+</ScrollView>
