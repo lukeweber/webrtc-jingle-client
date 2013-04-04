@@ -167,6 +167,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := libvoiceclient
 LOCAL_CPP_EXTENSION := .cc
 LOCAL_SRC_FILES := \
+    client/helpers.cc \
 	voiceclient_main.cc
 
 LOCAL_C_INCLUDES := \

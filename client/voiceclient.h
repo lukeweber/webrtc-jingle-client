@@ -27,11 +27,6 @@
 #ifndef CLIENT_VOICECLIENT_H_
 #define CLIENT_VOICECLIENT_H_
 
-#ifdef ANDROID
-#include <jni.h>
-#include "client/helpers.h"
-#endif
-
 #include <string>
 
 #include "talk/p2p/base/session.h"
@@ -58,11 +53,7 @@ class ClientSignalingThread;
 class VoiceClient: public sigslot::has_slots<> {
  public:
   // initialization
-#ifdef ANDROID
-  explicit VoiceClient(JavaObjectReference *reference);
-#elif IOS
   explicit VoiceClient();
-#endif
   ~VoiceClient();
   void Init();
   void Destroy();
@@ -82,27 +73,10 @@ class VoiceClient: public sigslot::has_slots<> {
   void DeclineCall(uint32 call_id, bool busy);
   void ReplaceTurn(const std::string &turn);
 
-  // signals
-  void OnSignalCallStateChange(int state, const char *remote_jid, int call_id);
-  void OnSignalCallError(int error, int call_id);
-  void OnSignalAudioPlayout();
-  void OnSignalXmppMessage(const XmppMessage msg);
-
-  void OnSignalXmppError(int error);
-  void OnSignalXmppSocketClose(int state);
-  void OnSignalXmppStateChange(int state);
-  void OnSignalBuddyListReset();
-  void OnSignalBuddyListRemove(const std::string& jid);
-  void OnSignalBuddyListAdd(const std::string& jid, const std::string& nick, int available, int show);
-  void OnPresenceChanged(const std::string& jid, int available, int show);
-  void OnSignalStatsUpdate(const char *stats);
-  void OnSignalCallTrackerId(int call_id, const char *call_tracker_id);
+  ClientSignalingThread* SignalingThread();
 
   std::string stunserver_;
   std::string relayserver_;
-#ifdef ANDROID
-  JavaObjectReference *reference_;
-#endif
   tuenti::ClientSignalingThread *client_signaling_thread_;
   StunConfig *stun_config_;
   talk_base::CriticalSection destroy_cs_;
