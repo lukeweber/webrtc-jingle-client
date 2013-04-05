@@ -12,7 +12,6 @@
 
 @property (nonatomic, strong) UIWindow *window;
 
-
 @property (nonatomic, strong) XMPPStream *xmppStream;
 @property (nonatomic, strong) XMPPReconnect *xmppReconnect;
 @property (nonatomic, strong) XMPPRoster *xmppRoster;
@@ -22,7 +21,7 @@
 @property (nonatomic, strong) XMPPCapabilities *xmppCapabilities;
 @property (nonatomic, strong) XMPPCapabilitiesCoreDataStorage *xmppCapabilitiesStorage;
 @property (nonatomic, strong) XMPPvCardCoreDataStorage* xmppvCardStorage;
-
+@property BOOL reconnectAfterClosed;
 @property (nonatomic, strong) XMPPJID* myJid;
 @property (nonatomic, strong) NSString* password;
 
@@ -37,6 +36,8 @@
 - (BOOL)connect;
 - (void)disconnect;
 
-
+#pragma mark VoiceClientDelegate section
+-(void)call;
+#pragma mark -
 @end
 

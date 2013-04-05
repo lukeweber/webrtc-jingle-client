@@ -41,6 +41,10 @@
 #include "client/xmppmessage.h"
 #include "client/txmpppump.h"
 
+#ifdef IOS_XMPP_FRAMEWORK
+#include "VoiceClientExample/VoiceClientDelegate.h"
+#endif
+
 namespace tuenti {
 
 typedef enum {
@@ -48,11 +52,15 @@ typedef enum {
   REMOVE,
 } BuddyList;
 
+
 class ClientSignalingThread;
 
 class VoiceClient: public sigslot::has_slots<> {
  public:
   // initialization
+#elif IOS_XMPP_FRAMEWORK
+  explicit VoiceClient(VoiceClientDelegate* voiceClientDelegate);
+#elif IOS
   explicit VoiceClient();
   ~VoiceClient();
   void Init();
@@ -77,6 +85,8 @@ class VoiceClient: public sigslot::has_slots<> {
 
 #if IOS_XMPP_FRAMEWORK
   talk_base::Thread* GetSignalThread();
+  
+  VoiceClientDelegate* voiceClientDelegate_;
 #endif
   std::string stunserver_;
   std::string relayserver_;

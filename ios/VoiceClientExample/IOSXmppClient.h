@@ -15,9 +15,12 @@
 #include "talk/xmpp/xmppclientsettings.h"
 #include "talk/xmpp/xmppengine.h"
 #include "talk/xmpp/xmpptask.h"
-#include "talk/xmpp/xmppclient.h"
 
-#import "talk/base/messagehandler.h"
+#include "talk/base/messagehandler.h"
+
+#ifdef IOS_XMPP_FRAMEWORK
+#include "VoiceClientExample/VoiceClientDelegate.h"
+#endif
 
 namespace tictok {
     class IOSXmppClient : public talk_base::MessageHandler, public buzz::XmppTaskParentInterface, public buzz::XmppClientInterface, public sigslot::has_slots<>
@@ -25,7 +28,11 @@ namespace tictok {
     private:
         void OnMessage(talk_base::Message* msg);
     public:
+#ifdef IOS_XMPP_FRAMEWORK
+        explicit IOSXmppClient(talk_base::TaskParent * parent, VoiceClientDelegate* voiceClientDelegate);
+#else
         explicit IOSXmppClient(talk_base::TaskParent * parent);
+#endif
         virtual ~IOSXmppClient();
         
         void Connect(const buzz::XmppClientSettings & settings, const std::string & lang);
@@ -78,6 +85,9 @@ namespace tictok {
         bool started;
         bool delivering_signal_;
         bool valid_;
+#ifdef IOS_XMPP_FRAMEWORK
+        VoiceClientDelegate* voiceClientDelegate_;
+#endif
     };
 }
 

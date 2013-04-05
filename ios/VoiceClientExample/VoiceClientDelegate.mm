@@ -18,8 +18,6 @@
 #import "VoiceClientExample/XmppClientDelegate.h"
 #endif
 
-static XmppClientDelegate* xmppClientDelegate_;
-
 VoiceClientDelegate *VoiceClientDelegate::voiceClientDelegateInstance_ = NULL;
 
 VoiceClientDelegate *VoiceClientDelegate::getInstance(){
@@ -30,10 +28,30 @@ VoiceClientDelegate *VoiceClientDelegate::getInstance(){
     return VoiceClientDelegate::voiceClientDelegateInstance_;
 }
 
+#ifdef IOS_XMPP_FRAMEWORK
+VoiceClientDelegate *VoiceClientDelegate::Create(XmppClientDelegatePtr xmppClientDelegate)
+{
+    VoiceClientDelegate* result = new VoiceClientDelegate();
+    result->xmppClientDelegate_ = xmppClientDelegate;
+    result->Init();
+    return result;
+}
+#endif
+
+VoiceClientDelegate::~VoiceClientDelegate()
+{
+    delete voiceClient_;
+    voiceClient_ = NULL;
+}
+
 void VoiceClientDelegate::Init(){
     if (voiceClient_ == NULL){
         printf("initing");
+#ifdef IOS_XMPP_FRAMEWORK
+        voiceClient_ = new tuenti::VoiceClient(this);
+#else
         voiceClient_ = new tuenti::VoiceClient();
+#endif
     }
 }
 
@@ -48,7 +66,7 @@ void VoiceClientDelegate::Logout(){
 }
 
 void VoiceClientDelegate::Call(){
-    voiceClient_->Call("userto@gmail.com");
+    voiceClient_->Call("hailegia@gmail.com");
 }
 
 void VoiceClientDelegate::OnSignalCallStateChange(int state, const char *remote_jid, int call_id) {
@@ -89,14 +107,12 @@ void VoiceClientDelegate::OnSignalStatsUpdate(const char *stats) {
   [mainController statsUpdate:[NSString stringWithUTF8String:stats]];
 }
 
-void VoiceClientDelegate::InitXmppClient(talk_base::TaskParent *parent)
+#ifdef IOS_XMPP_FRAMEWORK
+talk_base::Thread* VoiceClientDelegate::GetSignalThread()
 {
-    AppDelegate* appDelegate = (AppDelegate*) [UIApplication sharedApplication].delegate;
-    xmppClientDelegate_ = [[XmppClientDelegate alloc] init];
-    client_ = new tictok::IOSXmppClient(parent);
-    xmppClientDelegate_.xmppClient = client_;
-    [appDelegate.xmppStream addDelegate:xmppClientDelegate_ delegateQueue:dispatch_get_main_queue()];
+    return voiceClient_->GetSignalThread();
 }
+#endif
 
 void VoiceClientDelegate::WriteOutput(const char *bytes, size_t len)
 {
@@ -111,4 +127,7 @@ void VoiceClientDelegate::StartTls(const std::string& domain) {
 
 void VoiceClientDelegate::CloseConnection() {
     [xmppClientDelegate_ closeConnection];
+    client_->ConnectionClosed(0);
+    xmppClientDelegate_ = nil;
+    client_ = NULL;
 }

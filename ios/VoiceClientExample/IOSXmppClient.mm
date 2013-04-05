@@ -11,12 +11,27 @@
 
 #include "talk/xmpp/constants.h"
 #include "talk/base/messagehandler.h"
-#include "VoiceClientDelegate.h"
 
 using namespace buzz;
 
 namespace tictok
 {
+    enum MessageDataType {
+        HANDLE_INPUT = 0,
+        CONNECTION_CONNECTED = 1
+    };
+    
+    struct ConnectionConnectedData: talk_base::MessageData
+    {
+        ConnectionConnectedData(const char* fullJid) : fullJid_(fullJid) {}
+        const char* fullJid_;
+    };
+    
+    struct ConnectionClosedData: talk_base::MessageData
+    {
+        
+    };
+    
     struct StateData: talk_base::MessageData {
         StateData(XmppEngine::State state) : state_(state) {}
         XmppEngine::State state_;
@@ -61,14 +76,19 @@ namespace tictok
         void OnMessage(talk_base::Message* msg);
     };
     
+#ifdef IOS_XMPP_FRAMEWORK
+    IOSXmppClient::IOSXmppClient(TaskParent* parent, VoiceClientDelegate* voiceClientDelegate) : XmppTaskParentInterface(parent), delivering_signal_(false),valid_(false),voiceClientDelegate_(voiceClientDelegate)
+    {
+        d_.reset(new Private(this));
+        valid_ = true;
+    }
+#else
     IOSXmppClient::IOSXmppClient(TaskParent* parent) : XmppTaskParentInterface(parent), delivering_signal_(false),valid_(false)
     {
         d_.reset(new Private(this));
-        d_->engine_.reset(XmppEngine::Create());
-        d_->engine_->SetSessionHandler(d_.get());
-        d_->engine_->SetOutputHandler(d_.get());
         valid_ = true;
     }
+#endif
     
     IOSXmppClient::~IOSXmppClient() {
         valid_ = false;
@@ -119,25 +139,49 @@ namespace tictok
         
         d_->engine_->Connect();
         
-//        d_->OnStateChange(XmppEngine::STATE_OPEN);
     }
     
     void IOSXmppClient::OnMessage(talk_base::Message *message)
     {
-        InputStateData* data = static_cast<InputStateData*>(message->pdata);
-        char* bytes = data->data_;
-        size_t len = data->len_;
+        switch (message->message_id) {
+            case HANDLE_INPUT:
+            {
+                InputStateData* data = static_cast<InputStateData*>(message->pdata);
+                char* bytes = data->data_;
+                size_t len = data->len_;
 #ifdef _DEBUG
-        SignalLogInput(bytes, len);
+                SignalLogInput(bytes, len);
 #endif
-        d_->engine_->HandleInput(bytes, len);
-        delete message->pdata;
+                d_->engine_->HandleInput(bytes, len);
+                delete message->pdata;
+            }
+                break;
+            case CONNECTION_CONNECTED:
+            {
+                ConnectionConnectedData* data = static_cast<ConnectionConnectedData*>(message->pdata);
+                d_->engine_->RaiseReset();
+                d_->engine_->SignalBound(buzz::Jid(data->fullJid_));
+                d_->OnStateChange(XmppEngine::STATE_OPEN);
+                Wake();
+            }
+                break;
+            default:
+                break;
+        }
     }
     
     void IOSXmppClient::HandleInput(char* bytes, size_t len)
     {
-        talk_base::Thread* signalThread = VoiceClientDelegate::getInstance()->GetSignalThread();
-        signalThread->Post(this, 0, new InputStateData(bytes, len));
+        if (!IsDone())
+        {
+            talk_base::Thread* signalThread = voiceClientDelegate_->GetSignalThread();
+            signalThread->Post(this, 0, new InputStateData(bytes, len));
+        }
+        else
+        {
+            printf("IGNORE MESSAGE BECAUSE I'M DONE.");
+        }
+        
     }
     
     int IOSXmppClient::ProcessStart()
@@ -226,10 +270,7 @@ namespace tictok
     
     void IOSXmppClient::ConnectionConnected(const char* fullJid)
     {
-        d_->engine_->RaiseReset();
-        d_->engine_->SignalBound(buzz::Jid(fullJid));
-        d_->OnStateChange(XmppEngine::STATE_OPEN);
-        Wake();
+        voiceClientDelegate_->GetSignalThread()->Post(this, CONNECTION_CONNECTED, new ConnectionConnectedData(fullJid));
     }
     
     void IOSXmppClient::ConnectionClosed(int code)
@@ -239,7 +280,7 @@ namespace tictok
     }
     
     void IOSXmppClient::Private::OnStateChange(int state) {
-        VoiceClientDelegate::getInstance()->GetSignalThread()->Post(this, 0, new StateData((XmppEngine::State)state));
+        client_->voiceClientDelegate_->GetSignalThread()->Post(this, 0, new StateData((XmppEngine::State)state));
     }
     
     void IOSXmppClient::Private::OnMessage(talk_base::Message *msg)
@@ -260,15 +301,15 @@ namespace tictok
 #ifdef _DEBUG
         client_->SignalLogOutput(bytes, len);
 #endif
-        VoiceClientDelegate::getInstance()->WriteOutput(bytes, len);
+        client_->voiceClientDelegate_->WriteOutput(bytes, len);
         // TODO: deal with error information
     }
     
     void IOSXmppClient::Private::StartTls(const std::string& domain) {
-        VoiceClientDelegate::getInstance()->StartTls(domain);
+        client_->voiceClientDelegate_->StartTls(domain);
     }
     
     void IOSXmppClient::Private::CloseConnection() {
-        VoiceClientDelegate::getInstance()->CloseConnection();
+        client_->voiceClientDelegate_->CloseConnection();
     }
 }

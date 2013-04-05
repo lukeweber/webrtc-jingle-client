@@ -9,15 +9,23 @@
 #ifndef webrtcjingle_VoiceClientDelegate_h
 #define webrtcjingle_VoiceClientDelegate_h
 
-#include "client/voiceclient.h"
 #include "client/client_defines.h"
 
 #ifdef IOS_XMPP_FRAMEWORK
+#ifdef __OBJC__
+@class XmppClientDelegate;
+typedef XmppClientDelegate * XmppClientDelegatePtr;
+#endif
 namespace tuenti {
     class TXmppPump;
+    class VoiceClient;
 };
 namespace tictok {
     class IOSXmppClient;
+};
+namespace talk_base
+{
+    class Thread;
 };
 #endif
 
@@ -25,6 +33,12 @@ class VoiceClientDelegate {
 
 public:
   static VoiceClientDelegate *getInstance();
+#ifdef IOS_XMPP_FRAMEWORK
+#ifdef __OBJC__
+    static VoiceClientDelegate *Create(XmppClientDelegatePtr xmppClientDelegate);
+#endif
+#endif
+  ~VoiceClientDelegate();
   void Init();
   void Login();
   void Logout();
@@ -42,16 +56,16 @@ public:
 		int available, int show);
   void OnSignalStatsUpdate(const char *stats);
 #ifdef IOS_XMPP_FRAMEWORK
-    talk_base::Thread* GetSignalThread()
-    {
-        return voiceClient_->GetSignalThread();
-    }
+    talk_base::Thread* GetSignalThread();
 
     tictok::IOSXmppClient* GetClient()
     {
         return client_;
     }
-    void InitXmppClient(talk_base::TaskParent* parent);
+    void SetClient(tictok::IOSXmppClient* client)
+    {
+        client_ = client;
+    }
     void WriteOutput(const char* bytes, size_t len);
     void StartTls(const std::string& domain);
     void CloseConnection();
@@ -62,6 +76,9 @@ private:
     tuenti::StunConfig stun_config_;
 #ifdef IOS_XMPP_FRAMEWORK
     tictok::IOSXmppClient* client_;
+#ifdef __OBJC__
+    XmppClientDelegatePtr xmppClientDelegate_;
+#endif
 #endif
 };
 

@@ -14,16 +14,44 @@
 #define TAG_XMPP_WRITE_STREAM       201
 
 @implementation XmppClientDelegate
+{
+    VoiceClientDelegate* voiceClientDelegate;
+}
 
 @synthesize asyncSocket=_asyncSocket;
-@synthesize xmppClient=_xmppClient;
+
+- (id)init
+{
+    return [self initWithDispatchQueue:nil];
+}
+
+- (id)initWithDispatchQueue:(dispatch_queue_t)queue
+{
+    self = [super initWithDispatchQueue:queue];
+    if (self)
+    {
+        NSLog(@"CREATE VOICE CLIENT DELEGATAE");
+        voiceClientDelegate = VoiceClientDelegate::Create(self);
+    }
+    return self;
+}
+
+-(void)dealloc
+{
+    NSLog(@"REMOVE VOICE CLIENT DELEGATAE");
+//    delete voiceClientDelegate;
+    voiceClientDelegate = nil;
+}
+
+- (VoiceClientDelegate*) getVoiceClientDelegate
+{
+    return voiceClientDelegate;
+}
 
 -(void)writeOutput:(const char *) bytes withLenght:(size_t) len
 {
-#if DEBUG
     NSString* s = [NSString stringWithCString:bytes encoding:NSUTF8StringEncoding];
     NSLog(@"SEND: %@", s);
-#endif
     NSData* data = [NSData dataWithBytes:(void *)bytes length:len];
     [_asyncSocket writeData:data withTimeout:-1 tag:TAG_XMPP_WRITE_STREAM];
 }
@@ -35,12 +63,10 @@
 
 -(void)closeConnection
 {
-    [_asyncSocket disconnectAfterReadingAndWriting];
-}
-
--(tictok::IOSXmppClient*) getClient
-{
-    return _xmppClient;
+//    [_asyncSocket disconnectAfterReadingAndWriting];
+    AppDelegate* appDelegate = (AppDelegate*) [UIApplication sharedApplication].delegate;
+    [appDelegate.xmppStream disconnect];
+    appDelegate.reconnectAfterClosed = YES;
 }
 
 #pragma mark XMPPStreamDelegate
@@ -52,15 +78,21 @@
 - (void)xmppStreamDidAuthenticate:(XMPPStream *)sender
 {
     XMPPJID* myJid = sender.myJID;
-    _xmppClient->ConnectionConnected([[myJid full] cStringUsingEncoding:NSUTF8StringEncoding]);
+    tictok::IOSXmppClient* xmppClient = voiceClientDelegate->GetClient();
+    xmppClient->ConnectionConnected([[myJid full] cStringUsingEncoding:NSUTF8StringEncoding]);
 }
 
 -(BOOL)xmppStream:(XMPPStream *)sender didReceiveIQ:(XMPPIQ *)iq
 {
-    if ([iq elementForName:@"jingle"] || [iq elementForName:@"gingle"])
+    if ([iq elementForName:@"jingle"] || [iq elementForName:@"session"])
     {
+        NSLog(@"RECEIVE: %@", [iq compactXMLString]);
         NSData* data = [[iq XMLString] dataUsingEncoding:NSUTF8StringEncoding];
-        _xmppClient->HandleInput((char*) [data bytes], [data length]);
+        tictok::IOSXmppClient* xmppClient = voiceClientDelegate->GetClient();
+        if (xmppClient)
+        {
+            xmppClient->HandleInput((char*) [data bytes], [data length]);
+        }
         return YES;
     }
     return NO;
@@ -69,7 +101,11 @@
 -(void)xmppStreamDidDisconnect:(XMPPStream *)sender withError:(NSError *)error
 {
     self.asyncSocket = nil;
-    _xmppClient->ConnectionClosed(error.code);
+    tictok::IOSXmppClient* xmppClient = voiceClientDelegate->GetClient();
+    if (xmppClient != NULL && !xmppClient->IsDone())
+    {
+        xmppClient->ConnectionClosed(error.code);
+    }
 }
 #pragma mark -
 @end
