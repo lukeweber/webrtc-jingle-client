@@ -50,6 +50,10 @@
 #include "talk/xmpp/constants.h"
 #include "talk/xmpp/rostermodule.h"
 
+#ifdef IOS_XMPP_FRAMEWORK
+#include "VoiceClientExample/IOSXmppClient.h"
+#endif
+
 namespace tuenti {
 
 struct RosterData : talk_base::MessageData {
@@ -122,7 +126,35 @@ struct ClientSignalingData: public talk_base::MessageData {
 ///////////////////////////////////////////////////////////////////////////////
 // ClientSignalingThread
 ///////////////////////////////////////////////////////////////////////////////
-
+#ifdef IOS_XMPP_FRAMEWORK
+ClientSignalingThread::ClientSignalingThread(VoiceClientDelegate* voiceClientDelegate)
+    : presence_out_(NULL),
+    ping_task_(NULL),
+    keepalive_task_(NULL),
+    session_manager_task_(NULL),
+    call_(NULL),
+    port_allocator_flags_(0),
+    port_allocator_filter_(0),
+    use_ssl_(false),
+    auto_accept_(false),
+    is_caller_(true),
+    xmpp_state_(buzz::XmppEngine::STATE_NONE),
+    voiceClientDelegate_(voiceClientDelegate) {
+        // int numRelayPorts = 0;
+        LOGI("ClientSignalingThread::ClientSignalingThread");
+        main_thread_.reset(new talk_base::AutoThread());
+        main_thread_.get()->Start();
+        signal_thread_ = new talk_base::Thread(&pss_);
+        signal_thread_->Start();
+#if LOGGING
+        // Set debugging to verbose in libjingle if LOGGING on android.
+        talk_base::LogMessage::LogToDebug(talk_base::LS_VERBOSE);
+#endif
+        sp_network_manager_.reset(new talk_base::BasicNetworkManager());
+        my_status_.set_caps_node("http://github.com/lukeweber/webrtc-jingle");
+        my_status_.set_version("1.0-SNAPSHOT");
+    }
+#else
 ClientSignalingThread::ClientSignalingThread()
     : presence_out_(NULL),
     ping_task_(NULL),
@@ -149,7 +181,8 @@ ClientSignalingThread::ClientSignalingThread()
   my_status_.set_caps_node("http://github.com/lukeweber/webrtc-jingle");
   my_status_.set_version("1.0-SNAPSHOT");
 }
-
+#endif
+    
 ClientSignalingThread::~ClientSignalingThread() {
   LOGI("ClientSignalingThread::~ClientSignalingThread");
   Disconnect();
@@ -392,7 +425,6 @@ void ClientSignalingThread::Login(const std::string &username,
   xcs_.set_pass(talk_base::CryptString(pass));
   xcs_.set_server(talk_base::SocketAddress(xmpp_host, xmpp_port));
   SetPortAllocatorFilter(port_allocator_filter);
-  sp_pump_.reset(new TXmppPump(this));
   signal_thread_->Post(this, MSG_LOGIN);
 }
 
@@ -642,7 +674,11 @@ void ClientSignalingThread::LoginS() {
   //RosterModule depends on engine, Engine is destroyed/created in TxmppPump via client.
   sp_roster_module_.reset();
 #endif
+#ifdef IOS_XMPP_FRAMEWORK
+  sp_pump_.reset(new TXmppPump(this, voiceClientDelegate_));
+#else
   sp_pump_.reset(new TXmppPump(this));
+#endif
   sp_pump_->DoLogin(xcs_);
 }
 

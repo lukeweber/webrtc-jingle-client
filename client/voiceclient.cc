@@ -49,16 +49,24 @@ VoiceClient::VoiceClient(JavaObjectReference *reference) {
     reference_ = reference;
     Init();
 }
-
 #elif IOS
+#ifdef IOS_XMPP_FRAMEWORK
+VoiceClient::VoiceClient(VoiceClientDelegate* voiceClientDelegate)
+    :voiceClientDelegate_(voiceClientDelegate)
+{
+    Init();
+}
+#else
 VoiceClient::VoiceClient() {
     Init();
 }
+#endif
 #endif
 
 VoiceClient::~VoiceClient() {
   LOGI("VoiceClient::~VoiceClient");
   delete client_signaling_thread_;
+  client_signaling_thread_ = NULL;
 }
 
 void VoiceClient::Init() {
@@ -66,7 +74,11 @@ void VoiceClient::Init() {
           "client_signaling_thread_@(0x%x)",
           reinterpret_cast<int>(client_signaling_thread_));
 
+#ifdef IOS_XMPP_FRAMEWORK
+  client_signaling_thread_  = new tuenti::ClientSignalingThread(voiceClientDelegate_);
+#else
   client_signaling_thread_  = new tuenti::ClientSignalingThread();
+#endif
   client_signaling_thread_->SignalCallStateChange.connect(
       this, &VoiceClient::OnSignalCallStateChange);
   client_signaling_thread_->SignalCallError.connect(
@@ -251,48 +263,92 @@ void VoiceClient::OnSignalXmppMessage(const XmppMessage m){
 #elif IOS
 
 void VoiceClient::OnSignalCallStateChange(int state, const char *remote_jid, int call_id) {
+#ifdef IOS_XMPP_FRAMEWORK
+    voiceClientDelegate_->OnSignalCallStateChange(state, remote_jid, call_id);
+#else
     VoiceClientDelegate::getInstance()->OnSignalCallStateChange(state, remote_jid, call_id);
+#endif
 }
 
 void VoiceClient::OnSignalAudioPlayout() {
+#ifdef IOS_XMPP_FRAMEWORK
+    voiceClientDelegate_->OnSignalAudioPlayout();
+#else
     VoiceClientDelegate::getInstance()->OnSignalAudioPlayout();
+#endif
 }
 
 void VoiceClient::OnSignalCallError(int error, int call_id) {
+#ifdef IOS_XMPP_FRAMEWORK
+    voiceClientDelegate_->OnSignalCallError(error, call_id);
+#else
     VoiceClientDelegate::getInstance()->OnSignalCallError(error, call_id);
+#endif
 }
 
 void VoiceClient::OnSignalXmppError(int error) {
+#ifdef IOS_XMPP_FRAMEWORK
+    voiceClientDelegate_->OnSignalXmppError(error);
+#else
     VoiceClientDelegate::getInstance()->OnSignalXmppError(error);
+#endif
 }
 
 void VoiceClient::OnSignalXmppSocketClose(int state) {
+#ifdef IOS_XMPP_FRAMEWORK
+    voiceClientDelegate_->OnSignalXmppSocketClose(state);
+#else
     VoiceClientDelegate::getInstance()->OnSignalXmppSocketClose(state);
+#endif
 }
 
 void VoiceClient::OnSignalXmppStateChange(int state) {
+#ifdef IOS_XMPP_FRAMEWORK
+    voiceClientDelegate_->OnSignalXmppStateChange(state);
+#else
     VoiceClientDelegate::getInstance()->OnSignalXmppStateChange(state);
+#endif
 }
 
 void VoiceClient::OnPresenceChanged(const std::string& jid, int available, int show) {
-	VoiceClientDelegate::getInstance()->OnPresenceChanged(jid, available, show);
+#ifdef IOS_XMPP_FRAMEWORK
+    voiceClientDelegate_->OnPresenceChanged(jid, available, show);
+#else
+    VoiceClientDelegate::getInstance()->OnPresenceChanged(jid, available, show);
+#endif
 }
 
 void VoiceClient::OnSignalBuddyListRemove(const std::string& jid) {
+#ifdef IOS_XMPP_FRAMEWORK
+    voiceClientDelegate_->OnSignalBuddyListRemove(jid);
+#else
     VoiceClientDelegate::getInstance()->OnSignalBuddyListRemove(jid);
+#endif
 }
 
 void VoiceClient::OnSignalBuddyListAdd(const std::string& jid, const std::string& nick,
 		int available, int show) {
+#ifdef IOS_XMPP_FRAMEWORK
+    voiceClientDelegate_->OnSignalBuddyListAdd(jid, nick, available, show);
+#else
     VoiceClientDelegate::getInstance()->OnSignalBuddyListAdd(jid, nick, available, show);
+#endif
 }
 
 void VoiceClient::OnSignalStatsUpdate(const char *stats) {
+#ifdef IOS_XMPP_FRAMEWORK
+    voiceClientDelegate_->OnSignalStatsUpdate(stats);
+#else
     VoiceClientDelegate::getInstance()->OnSignalStatsUpdate(stats);
+#endif
 }
 
 void VoiceClient::OnSignalCallTrackerId(int call_id, const char *call_tracker_id) {
+#ifdef IOS_XMPP_FRAMEWORK
+    voiceClientDelegate_->OnSignalCallTrackingId(call_id, call_tracker_id);
+#else
     VoiceClientDelegate::getInstance()->OnSignalCallTrackingId(call_id, call_tracker_id);
+#endif
 }
 
 #if IOS_XMPP_FRAMEWORK

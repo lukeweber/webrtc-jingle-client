@@ -39,9 +39,25 @@
 #endif
 
 #include <string>
+#include <sstream>
 
 namespace tuenti{
 
+#ifdef IOS_XMPP_FRAMEWORK
+    struct StunConfig {
+        std::string stun;
+        std::string turn;
+        std::string turn_username;
+        std::string turn_password;
+        std::string ToString() {
+            std::stringstream stream;
+            stream << "[stun=(" << stun << "),";
+            stream << "turn=(" << turn << ")]";
+            return stream.str();
+        }
+    };
+#endif
+    
 enum XmppTimings {
   PingTimeout = 10000, // 10 Seconds
   PingInterval = 360000, // 6 minutes

@@ -33,28 +33,33 @@
 #include "talk/base/logging.h"
 
 #if IOS_XMPP_FRAMEWORK
+#include "VoiceClientExample/IOSXmppClient.h"
 #include "VoiceClientExample/VoiceClientDelegate.h"
 #endif
 
 namespace tuenti {
-TXmppPump::TXmppPump(TXmppPumpNotify * notify){
-  LOGI("TXmppPump::TXmppPump");
-  state_ = buzz::XmppEngine::STATE_NONE;
-  notify_ = notify;
-  client_ = NULL;
-#if IOS_XMPP_FRAMEWORK
-    if (client_ == NULL) {
-        VoiceClientDelegate* instance = VoiceClientDelegate::getInstance();
-        instance->InitXmppClient(this);
-        client_ = instance->GetClient();
+    
+#ifdef IOS_XMPP_FRAMEWORK
+    TXmppPump::TXmppPump(TXmppPumpNotify * notify, VoiceClientDelegate* voiceClientDelegate){
+        LOGI("TXmppPump::TXmppPump");
+        state_ = buzz::XmppEngine::STATE_NONE;
+        notify_ = notify;
+        client_ = new tictok::IOSXmppClient(this, voiceClientDelegate); //Will be deleted by TaskRunner
+        voiceClientDelegate->SetClient(client_);
+        xmpp_log_ = NULL;
     }
 #else
-  socket_ = NULL;
-  auth_ = NULL;
+    TXmppPump::TXmppPump(TXmppPumpNotify * notify){
+        LOGI("TXmppPump::TXmppPump");
+        state_ = buzz::XmppEngine::STATE_NONE;
+        notify_ = notify;
+        client_ = NULL;
+        socket_ = NULL;
+        auth_ = NULL;
+        xmpp_log_ = NULL;
+    }
 #endif
-  xmpp_log_ = NULL;
-}
-
+    
 TXmppPump::~TXmppPump() {
   LOGI("TXmppPump::~TXmppPump this@(0x%x)",
           reinterpret_cast<int>(this));

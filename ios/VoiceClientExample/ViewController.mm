@@ -37,27 +37,40 @@
 - (IBAction)init:(id)sender{
    printf("init");
    [appDelegate setupStream];
+#ifndef IOS_XMPP_FRAMEWORK
    VoiceClientDelegate* vc = VoiceClientDelegate::getInstance();
    (void)vc;
+#endif
 }
 
 - (IBAction)login:(id)sender{
     printf("logging in");
     [appDelegate connect];
+#ifndef IOS_XMPP_FRAMEWORK
     VoiceClientDelegate* vc = VoiceClientDelegate::getInstance();
     vc->Login();
+#endif
 }
 
 - (IBAction)call:(id)sender{
     printf("calling");
+#ifdef IOS_XMPP_FRAMEWORK
+    [appDelegate call];
+#else
     VoiceClientDelegate* vc = VoiceClientDelegate::getInstance();
     vc->Call();
+#endif
+    
 }
 
 - (IBAction)logout:(id)sender{
     printf("logout");
+#ifdef IOS_XMPP_FRAMEWORK
+    [appDelegate disconnect];
+#else
     VoiceClientDelegate* vc = VoiceClientDelegate::getInstance();
     vc->Logout();
+#endif
 }
 
 - (void)statsUpdate:(NSString *)stats {

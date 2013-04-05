@@ -8,6 +8,7 @@
 #include "talk/base/logging.h"
 #include "client/logging.h"
 #include "client/xmpplog.h"
+#include "VoiceClientExample/VoiceClientDelegate.h"
 
 namespace tuenti {
 void XmppLog::Input(const char * data, int len) {

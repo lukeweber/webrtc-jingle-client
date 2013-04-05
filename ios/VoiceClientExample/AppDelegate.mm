@@ -8,6 +8,7 @@
 
 #import "AppDelegate.h"
 #import "VoiceClientDelegate.h"
+#import "XmppClientDelegate.h"
 #import "DDLog.h"
 #import "DDTTYLogger.h"
 
@@ -26,6 +27,7 @@
 	BOOL allowSSLHostNameMismatch;
 
 	BOOL isXmppConnected;
+    XmppClientDelegate* xmppClientDelegate;
 }
 
 @end
@@ -44,12 +46,12 @@
 @synthesize xmppvCardStorage;
 @synthesize myJid;
 @synthesize password;
+@synthesize reconnectAfterClosed;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     // Override point for customization after application launch.
     [DDLog addLogger:[DDTTYLogger sharedInstance]];
-
     // Setup the XMPP stream
 
 //	[self setupStream];
@@ -89,9 +91,9 @@
 	if (![self.xmppStream isDisconnected]) {
 		return YES;
 	}
-
-	NSString *myJID = @"";
-	NSString *myPassword = @"";
+    
+	NSString *myJID = @"thanhhanhtieu@gmail.com";
+	NSString *myPassword = @"ha1111aht1eutha11h";
 
 	//
 	// If you don't want to use the Settings view to set the JID,
@@ -109,6 +111,10 @@
 
     [self.xmppStream setMyJID:self.myJid];
 
+    xmppClientDelegate = [[XmppClientDelegate alloc] init];
+    [xmppClientDelegate activate:self.xmppStream];
+    [xmppClientDelegate getVoiceClientDelegate]->Login();
+    
 	NSError *error = nil;
 	if (![self.xmppStream connect:&error])
 	{
@@ -123,8 +129,15 @@
 
 		return NO;
 	}
-
 	return YES;
+}
+
+-(void)reconnect
+{
+    xmppClientDelegate = [[XmppClientDelegate alloc] init];
+    [xmppClientDelegate activate:self.xmppStream];
+    [xmppClientDelegate getVoiceClientDelegate]->Login();
+    [self.xmppReconnect manualStart];
 }
 
 - (void)disconnect
@@ -235,6 +248,7 @@
     self.xmppCapabilities.autoFetchHashedCapabilities = YES;
     self.xmppCapabilities.autoFetchNonHashedCapabilities = NO;
 
+    
 	// Activate xmpp modules
 
 	[self.xmppReconnect         activate:self.xmppStream];
@@ -242,7 +256,6 @@
 	[self.xmppvCardTempModule   activate:self.xmppStream];
 	[self.xmppvCardAvatarModule activate:self.xmppStream];
 	[self.xmppCapabilities      activate:self.xmppStream];
-
 	// Add ourself as a delegate to anything we may be interested in
 
 	[self.xmppStream addDelegate:self delegateQueue:dispatch_get_main_queue()];
@@ -312,6 +325,7 @@
 - (void)xmppStream:(XMPPStream *)sender socketDidConnect:(GCDAsyncSocket *)socket
 {
 //	DDLogVerbose(@"%@: %@", THIS_FILE, THIS_METHOD);
+    NSLog(@"SOCKET DID CONNECT");
 }
 
 - (void)xmppStream:(XMPPStream *)sender willSecureWithSettings:(NSMutableDictionary *)settings
@@ -388,8 +402,8 @@
 - (void)xmppStreamDidAuthenticate:(XMPPStream *)sender
 {
 //	DDLogVerbose(@"%@: %@", THIS_FILE, THIS_METHOD);
-
-	[self goOnline];
+//	[self goOnline];
+    NSLog(@"SOCKET DID AUTHENTICATE");
 }
 
 - (void)xmppStream:(XMPPStream *)sender didNotAuthenticate:(NSXMLElement *)error
@@ -458,6 +472,12 @@
 	{
 //		DDLogError(@"Unable to connect to server. Check xmppStream.hostName");
 	}
+    [xmppClientDelegate deactivate];
+    xmppClientDelegate = nil;
+    if (self.reconnectAfterClosed)
+    {
+        [NSTimer scheduledTimerWithTimeInterval:2 target:self selector:@selector(reconnect) userInfo:nil repeats:NO];
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -506,6 +526,16 @@
 	}
 
 }
+
+#pragma mark VoiceClientDelegate section
+-(void)call
+{
+    if (xmppClientDelegate)
+    {
+        [xmppClientDelegate getVoiceClientDelegate]->Call();
+    }
+}
+#pragma mark -
 
 @end
 
