@@ -390,7 +390,9 @@
 //	DDLogVerbose(@"%@: %@", THIS_FILE, THIS_METHOD);
 
 	isXmppConnected = YES;
-
+//    NSString* str = [sender.rootElement compactXMLString];
+//    const char* strC = [str cStringUsingEncoding:NSUTF8StringEncoding];
+//    printf("%s", strC);
 	NSError *error = nil;
 
 	if (![[self xmppStream] authenticateWithPassword:self.password error:&error])
