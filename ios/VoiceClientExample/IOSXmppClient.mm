@@ -159,7 +159,6 @@ namespace tictok
             case CONNECTION_CONNECTED:
             {
                 ConnectionConnectedData* data = static_cast<ConnectionConnectedData*>(message->pdata);
-                d_->engine_->RaiseReset();
                 d_->engine_->SignalBound(buzz::Jid(data->fullJid_));
                 d_->OnStateChange(XmppEngine::STATE_OPEN);
                 Wake();

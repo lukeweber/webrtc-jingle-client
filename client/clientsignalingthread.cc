@@ -136,7 +136,7 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientDelegate* voiceClientDel
     port_allocator_flags_(0),
     port_allocator_filter_(0),
     use_ssl_(false),
-    auto_accept_(false),
+    auto_accept_(true),
     is_caller_(true),
     xmpp_state_(buzz::XmppEngine::STATE_NONE),
     voiceClientDelegate_(voiceClientDelegate) {

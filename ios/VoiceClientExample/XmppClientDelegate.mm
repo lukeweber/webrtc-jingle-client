@@ -78,8 +78,11 @@
 - (void)xmppStreamDidAuthenticate:(XMPPStream *)sender
 {
     XMPPJID* myJid = sender.myJID;
+    NSString* startStream = [NSString stringWithFormat:@"<stream:stream from='gmail.com' to='%@' version='1.0' xml:lang='en' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams'>", [myJid full]];
     tictok::IOSXmppClient* xmppClient = voiceClientDelegate->GetClient();
+    xmppClient->HandleInput((char*) [startStream cStringUsingEncoding:NSUTF8StringEncoding], startStream.length);
     xmppClient->ConnectionConnected([[myJid full] cStringUsingEncoding:NSUTF8StringEncoding]);
+    
 }
 
 -(BOOL)xmppStream:(XMPPStream *)sender didReceiveIQ:(XMPPIQ *)iq
