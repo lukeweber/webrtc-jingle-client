@@ -42,9 +42,9 @@ include $(MY_WEBRTC_PATH)/modules/audio_device/Android.mk
 include $(MY_WEBRTC_PATH)/modules/audio_processing/aec/Android.mk
 include $(MY_WEBRTC_PATH)/modules/audio_processing/aecm/Android.mk
 include $(MY_WEBRTC_PATH)/modules/audio_processing/agc/Android.mk
-include $(MY_WEBRTC_PATH)/modules/audio_processing/Android.mk
 include $(MY_WEBRTC_PATH)/modules/audio_processing/ns/Android.mk
 include $(MY_WEBRTC_PATH)/modules/audio_processing/utility/Android.mk
+include $(MY_WEBRTC_PATH)/modules/audio_processing/Android.mk
 include $(MY_WEBRTC_PATH)/modules/media_file/source/Android.mk
 include $(MY_WEBRTC_PATH)/modules/rtp_rtcp/source/Android.mk
 include $(MY_WEBRTC_PATH)/system_wrappers/source/Android.mk
@@ -117,7 +117,14 @@ include $(CLEAR_VARS)
 LOCAL_ARM_MODE := arm
 LOCAL_MODULE := libwebrtc_audio_preprocessing
 LOCAL_MODULE_TAGS := optional
-LOCAL_WHOLE_STATIC_LIBRARIES := \
+ifeq ($(WEBRTC_BUILD_NEON_LIBS), true)
+LOCAL_WHOLE_STATIC_LIBRARIES += \
+	libwebrtc_spl_neon \
+	libwebrtc_ns_neon \
+	libwebrtc_aecm_neon \
+	libwebrtc_isacfix_neon
+endif
+LOCAL_WHOLE_STATIC_LIBRARIES += \
 	libwebrtc_spl \
 	libwebrtc_resampler \
 	libwebrtc_apm \
@@ -128,6 +135,8 @@ LOCAL_WHOLE_STATIC_LIBRARIES := \
 	libwebrtc_aec \
 	libwebrtc_aecm \
 	libwebrtc_system_wrappers
+
+
 LOCAL_LDLIBS := -lgcc -llog
 LOCAL_PRELINK_MODULE := false
 include $(BUILD_STATIC_LIBRARY)

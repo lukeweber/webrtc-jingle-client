@@ -16,34 +16,19 @@ MY_WEBRTC_COMMON_DEFS := \
     '-DWEBRTC_ANDROID' \
     '-DWEBRTC_SVNREVISION="2356"' \
     '-DWEBRTC_EXTERNAL_TRANSPORT'
-#    The following macros are used by modules,
-#    we might need to re-organize them
-#    '-DWEBRTC_ANDROID_OPENSLES' [module audio_device]
-#    '-DNETEQ_VOICEENGINE_CODECS' [module audio_coding neteq]
-#    '-DWEBRTC_MODULE_UTILITY_VIDEO' [module media_file] [module utility]
 
-ifeq ($(TARGET_ARCH),arm)
+ifeq ($(TARGET_ARCH), arm)
 MY_WEBRTC_COMMON_DEFS += \
     '-DWEBRTC_ARCH_ARM'
-#    '-DWEBRTC_DETECT_ARM_NEON' # only used in a build configuration without Neon
-# TODO(kma): figure out if the above define could be moved to NDK build only.
-
-# TODO(kma): test if the code under next two macros works with generic GCC compilers
-ifeq ($(ARCH_ARM_HAVE_NEON),true)
-MY_WEBRTC_COMMON_DEFS += \
-    '-DWEBRTC_ARCH_ARM_NEON'
-MY_ARM_CFLAGS_NEON := \
-    -flax-vector-conversions
-endif
-
-ifneq (,$(filter '-DWEBRTC_DETECT_ARM_NEON' '-DWEBRTC_ARCH_ARM_NEON', \
-    $(MY_WEBRTC_COMMON_DEFS)))
-WEBRTC_BUILD_NEON_LIBS := true
 endif
 
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
+WEBRTC_BUILD_NEON_LIBS := true
 MY_WEBRTC_COMMON_DEFS += \
-    '-DWEBRTC_ARCH_ARM_V7A'
+    '-DWEBRTC_ARCH_ARM_V7A' \
+	'-DWEBRTC_DETECT_ARM_NEON'
+MY_ARM_CFLAGS_NEON := \
+	-flax-vector-conversions
+else 
+WEBRTC_BUILD_NEON_LIBS := false
 endif
-
-endif # ifeq ($(TARGET_ARCH),arm)

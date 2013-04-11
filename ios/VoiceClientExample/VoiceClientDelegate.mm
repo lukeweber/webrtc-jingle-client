@@ -64,13 +64,14 @@ void VoiceClientDelegate::OnSignalXmppSocketClose(int state) {
 void VoiceClientDelegate::OnSignalXmppStateChange(int state) {
 }
 
-void VoiceClientDelegate::OnSignalBuddyListReset() {
+void VoiceClientDelegate::OnPresenceChanged(const std::string& jid, int available, int show) {
 }
 
-void VoiceClientDelegate::OnSignalBuddyListRemove(const char *remote_jid) {
+void VoiceClientDelegate::OnSignalBuddyListRemove(const std::string& jid) {
 }
 
-void VoiceClientDelegate::OnSignalBuddyListAdd(const char *remote_jid, const char *nick) {
+void VoiceClientDelegate::OnSignalBuddyListAdd(const std::string& jid, const std::string& nick,
+		int available, int show) {
 }
 
 void VoiceClientDelegate::OnSignalStatsUpdate(const char *stats) {
