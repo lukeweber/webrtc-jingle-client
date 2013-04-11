@@ -103,6 +103,9 @@ deps = {
 
   "trunk/third_party/libvpx/source/libvpx":
     "http://git.chromium.org/webm/libvpx.git@7a09f6b8",
+
+  "trunk/third_party/opus/":
+	Var("chromium_trunk") + "/deps/third_party/opus@185324",
 }
 
 hooks = [
