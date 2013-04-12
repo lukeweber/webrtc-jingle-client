@@ -168,6 +168,7 @@ void ClientSignalingThread::OnPresenceChanged(const std::string& jid,
 
 void ClientSignalingThread::OnSessionState(cricket::Call* call,
     cricket::Session* session, cricket::Session::State state) {
+  const char *trackerIdStr = NULL;
 #if LOGGING
   LOG(LS_INFO) << "ClientSignalingThread::OnSessionState "
                << call_session_map_debug_[state];
@@ -185,7 +186,7 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
     if (auto_accept_) {
       AcceptCall(call->id());
     }
-    SignalCallTrackerId(call->id(), call->sessions()[0]->call_tracker_id().c_str());
+    trackerIdStr = call->sessions()[0]->call_tracker_id().c_str();
     break;
     }
   case cricket::Session::STATE_RECEIVEDACCEPT:
@@ -208,6 +209,9 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
     jid_str = session->remote_name();
   }
   main_thread_->Post(this, MSG_CALL_STATE, new CallStateData(state, jid_str, call->id()));
+  if(trackerIdStr) {
+    SignalCallTrackerId(call->id(), trackerIdStr);
+  }
 }
 
 void ClientSignalingThread::OnSessionError(cricket::Call* call,
