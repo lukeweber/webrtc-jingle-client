@@ -99,12 +99,13 @@ void VoiceClient::Init() {
 
 void VoiceClient::Login(const std::string &username,
   const std::string &password, StunConfig* stun_config,
-  const std::string &xmpp_host, int xmpp_port, bool use_ssl, int port_allocator_filter) {
+  const std::string &xmpp_host, int xmpp_port, bool use_ssl,
+  int port_allocator_filter, bool is_gtalk) {
   LOGI("VoiceClient::Login");
   LOG(INFO) << "LOGT " << stun_config->ToString();
   if (client_signaling_thread_) {
     client_signaling_thread_->Login(username, password, stun_config,
-        xmpp_host, xmpp_port, use_ssl, port_allocator_filter);
+        xmpp_host, xmpp_port, use_ssl, port_allocator_filter, is_gtalk);
   }
 }
 

@@ -13,7 +13,6 @@ APP_CPPFLAGS += \
 APP_CFLAGS += \
 	-DENABLE_DEBUG=0 \
 	-DTUENTI_CUSTOM_BUILD=1 \
-	-DXMPP_COMPATIBILITY=1 \
 	-DLOGGING=1 \
 	-fvisibility=hidden \
 	-ffunction-sections  \

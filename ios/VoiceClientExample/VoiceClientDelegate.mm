@@ -31,7 +31,7 @@ void VoiceClientDelegate::Init(){
 void VoiceClientDelegate::Login(){
     stun_config_.stun = "stun.l.google.com:19302";
     voiceClient_->Login("username@gmail.com","password",
-                        &stun_config_, "talk.google.com", 5222, true, 0);
+                        &stun_config_, "talk.google.com", 5222, true, 0, true/*isGtalk*/);
 }
 
 void VoiceClientDelegate::Logout(){

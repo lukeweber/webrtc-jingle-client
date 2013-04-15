@@ -294,7 +294,8 @@ class ClientSignalingThread
   // out to the worker equivilent functions
   void Login(const std::string &username, const std::string &password,
              StunConfig* stun_config, const std::string &xmpp_host,
-             int xmpp_port, bool use_ssl, uint32 port_allocator_filter);
+             int xmpp_port, bool use_ssl, uint32 port_allocator_filter,
+			 bool is_gtalk);
   void Disconnect();
   void Call(std::string remoteJid, std::string call_tracker_id);
   void AcceptCall(uint32 call_id);

@@ -146,7 +146,7 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeReplaceTurn(
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin(
     JNIEnv *env, jobject object, jstring username, jstring password,
     jstring stun, jstring turn, jstring turnUsername, jstring turnPassword,
-    jstring xmppHost, jint xmppPort, jboolean useSSL, jint portAllocatorFilter) {
+    jstring xmppHost, jint xmppPort, jboolean useSSL, jint portAllocatorFilter, jboolean isGtalk) {
 
   //We enforce that we have a client_ and VoiceClient returns before we allow a login.
   talk_base::CritScope lock(&init_cs_);
@@ -194,7 +194,7 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin(
 
     // login
     client_->Login(nativeUsernameS, nativePasswordS, stun_config_,
-        nativeXmppHostS, xmppPort, useSSL, portAllocatorFilter);
+        nativeXmppHostS, xmppPort, useSSL, portAllocatorFilter, isGtalk);
   }
 }
 

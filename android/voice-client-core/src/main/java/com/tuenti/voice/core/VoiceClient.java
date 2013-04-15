@@ -151,7 +151,8 @@ public class VoiceClient
     }
 
     public void login( String username, String password, String stunServer, String turnServer, String turnUsername,
-                       String turnPassword, String xmppServer, int xmppPort, boolean useSsl, int portAllocatorFilter )
+                       String turnPassword, String xmppServer, int xmppPort, boolean useSsl, int portAllocatorFilter,
+                       boolean isGtalk)
     {
         if ( loaded() )
         {
@@ -164,7 +165,8 @@ public class VoiceClient
                          xmppServer,
                          xmppPort,
                          useSsl,
-                         portAllocatorFilter );
+                         portAllocatorFilter,
+                         isGtalk);
         }
     }
 
@@ -432,7 +434,7 @@ public class VoiceClient
 
     private native void nativeLogin( String user_name, String password, String stunServer, String turnServer,
                                      String turnUsername, String turnPassword, String xmppServer, int xmppPort,
-                                     boolean UseSSL, int portAllocatorFilter );
+                                     boolean UseSSL, int portAllocatorFilter, boolean isGtalk );
 
     private native void nativeLogout();
 

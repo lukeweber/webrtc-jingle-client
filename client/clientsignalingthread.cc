@@ -373,7 +373,7 @@ void ClientSignalingThread::OnCallStatsUpdate(char *stats) {
 void ClientSignalingThread::Login(const std::string &username,
     const std::string &password, StunConfig* stun_config,
     const std::string &xmpp_host, int xmpp_port, bool use_ssl,
-    uint32 port_allocator_filter) {
+    uint32 port_allocator_filter, bool isGtalk) {
   LOGI("ClientSignalingThread::Login");
 
   stun_config_ = stun_config;
@@ -395,6 +395,7 @@ void ClientSignalingThread::Login(const std::string &username,
   xcs_.set_use_tls(use_ssl ? buzz::TLS_REQUIRED : buzz::TLS_DISABLED);
   xcs_.set_pass(talk_base::CryptString(pass));
   xcs_.set_server(talk_base::SocketAddress(xmpp_host, xmpp_port));
+  xcs_.set_allow_gtalk_username_custom_domain(isGtalk);
   SetPortAllocatorFilter(port_allocator_filter);
   signal_thread_->Post(this, MSG_LOGIN);
 }

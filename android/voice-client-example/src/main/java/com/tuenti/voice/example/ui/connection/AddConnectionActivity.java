@@ -74,6 +74,7 @@ public class AddConnectionActivity
         connection.setXmppUseSsl( Boolean.valueOf( mXmppUseSsl.getText().toString() ) );
         connection.setStunHost( mStunHost.getText().toString() );
         connection.setStunPort( Integer.valueOf( mStunPort.getText().toString() ) );
+        connection.setIsGtalk( true );
 
         AuthenticationTask mAuthenticationTask = new AuthenticationTask( this )
         {

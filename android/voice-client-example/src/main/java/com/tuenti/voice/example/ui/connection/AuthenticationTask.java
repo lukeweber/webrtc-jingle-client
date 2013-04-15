@@ -107,7 +107,8 @@ public abstract class AuthenticationTask
                        connection.getXmppHost(),
                        connection.getXmppPort(),
                        connection.getXmppUseSsl(),
-                       0 );
+                       0,
+                       true /*isGtalk*/);
         return null;
     }
 }
