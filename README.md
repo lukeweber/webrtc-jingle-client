@@ -117,6 +117,11 @@ Index: expat.gyp
 * In xcode, build and deploy
 * May experience issues about sse from audio_processing.gypi. If you push to an IOS device add -Dtarget_arch=arm. If emulator, the other command will probably work. 
 
+## Opus
+* Opus is currently alpha in implementation, is hard set to 48kHz in webrtc. Android mic is set to 16kHz, meaning you'll probably upsample/downsample all audio by 3x.
+* Add "WEBRTC_BUILD_WITH_OPUS := true" to android/voice-client-core/jni/Android.mk
+* Modify offer kCodecPrefs in third_party/libjingle/talk/media/webrtc/webrtcvoiceengine.cc to include OPUS and exclude ISAC. 
+
 ## Windows
 * Native code won't build on a windows machine.
 * VM with Ubuntu 64bit Linux
