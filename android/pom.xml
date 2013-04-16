@@ -97,7 +97,7 @@
                             <path>${env.ANDROID_HOME}</path>
                         </sdk>
                         <ndkBuildAdditionalCommandline>NDK_APP_OUT=${project.basedir}/obj/${android.liboutdir}</ndkBuildAdditionalCommandline>
-                        <undeployBeforeDeploy>true</undeployBeforeDeploy>
+                        <undeployBeforeDeploy>false</undeployBeforeDeploy>
                         <nativeLibrariesDependenciesHardwareArchitectureOverrides>
                             <nativeLibrariesDependenciesHardwareArchitectureOverride>
                                 armeabi
