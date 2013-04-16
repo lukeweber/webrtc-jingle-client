@@ -145,6 +145,19 @@ ClientSignalingThread::ClientSignalingThread()
   // Set debugging to verbose in libjingle if LOGGING on android.
   talk_base::LogMessage::LogToDebug(talk_base::LS_VERBOSE);
 #endif
+  sp_ssl_identity_.reset(NULL);
+  transport_protocol_ = cricket::ICEPROTO_HYBRID;
+#ifdef TUENTI_CUSTOM_BUILD
+  transport_protocol_ = cricket::ICEPROTO_RFC5245;
+#endif
+#if ENABLE_SRTP
+  sdes_policy_ = cricket::SEC_ENABLED;
+  dtls_policy_ = cricket::SEC_ENABLED;
+#else
+  dtls_policy_ = cricket::SEC_DISABLED;
+  sdes_policy_ = cricket::SEC_DISABLED;
+#endif
+  sp_ssl_identity_.reset(NULL);
   sp_network_manager_.reset(new talk_base::BasicNetworkManager());
   my_status_.set_caps_node("http://github.com/lukeweber/webrtc-jingle");
   my_status_.set_version("1.0-SNAPSHOT");
@@ -284,11 +297,7 @@ void ClientSignalingThread::OnConnected(){
       &ClientSignalingThread::OnCallCreate);
   sp_media_client_->SignalCallDestroy.connect(this,
       &ClientSignalingThread::OnCallDestroy);
-#if ENABLE_SRTP
-  sp_media_client_->set_secure(cricket::SEC_ENABLED);
-#else
-  sp_media_client_->set_secure(cricket::SEC_DISABLED);
-#endif
+  sp_media_client_->set_secure(sdes_policy_);
   InitPresence();
 
 #if XMPP_WHITESPACE_KEEPALIVE_ENABLED
@@ -381,7 +390,11 @@ void ClientSignalingThread::Login(const std::string &username,
   buzz::Jid jid = buzz::Jid(username);
   talk_base::InsecureCryptStringImpl pass;
   pass.password() = password;
-
+#if ENABLE_SRTP
+  sp_ssl_identity_.reset(talk_base::SSLIdentity::Generate(jid.Str()));
+#else
+  sp_ssl_identity_.reset(NULL);
+#endif
   xcs_.set_user(jid.node());
   xcs_.set_resource("voice");
 #if ADD_RANDOM_RESOURCE_TO_JID
@@ -637,6 +650,9 @@ void ClientSignalingThread::LoginS() {
   }
   sp_session_manager_.reset(
       new cricket::SessionManager(sp_port_allocator_.get(), signal_thread_));
+  sp_session_manager_->set_secure(dtls_policy_);
+  sp_session_manager_->set_identity(sp_ssl_identity_.get());
+  sp_session_manager_->set_transport_protocol(transport_protocol_);
 
   if (xcs_.use_tls() == buzz::TLS_REQUIRED) {
     talk_base::InitializeSSL();

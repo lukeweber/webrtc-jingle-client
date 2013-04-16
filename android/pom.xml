@@ -97,9 +97,19 @@
                             <platform>${android.api.version}</platform>
                             <path>${env.ANDROID_HOME}</path>
                         </sdk>
-                        <ndkBuildAdditionalCommandline>NDK_APP_OUT=${project.basedir}/obj/${android.liboutdir}
-                        </ndkBuildAdditionalCommandline>
-                        <undeployBeforeDeploy>true</undeployBeforeDeploy>
+                        <ndkBuildAdditionalCommandline>NDK_APP_OUT=${project.basedir}/obj/${android.liboutdir}</ndkBuildAdditionalCommandline>
+                        <undeployBeforeDeploy>false</undeployBeforeDeploy>
+                        <nativeLibrariesDependenciesHardwareArchitectureOverrides>
+                            <nativeLibrariesDependenciesHardwareArchitectureOverride>
+                                armeabi
+                            </nativeLibrariesDependenciesHardwareArchitectureOverride>
+                            <nativeLibrariesDependenciesHardwareArchitectureOverride>
+                                armeabi-v7a
+                            </nativeLibrariesDependenciesHardwareArchitectureOverride>
+                            <nativeLibrariesDependenciesHardwareArchitectureOverride>
+                                x86
+                            </nativeLibrariesDependenciesHardwareArchitectureOverride>
+                        </nativeLibrariesDependenciesHardwareArchitectureOverrides>
                     </configuration>
                 </plugin>
             </plugins>
