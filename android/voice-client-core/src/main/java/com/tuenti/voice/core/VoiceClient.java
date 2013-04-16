@@ -72,7 +72,7 @@ public class VoiceClient
             Log.i( TAG, "loading native library voiceclient" );
             try
             {
-                System.loadLibrary( "voiceclient" );
+                System.loadLibrary( "voice-native" );
                 voiceClientLoaded = true;
             }
             catch ( UnsatisfiedLinkError e )
