@@ -147,9 +147,6 @@ ClientSignalingThread::ClientSignalingThread()
 #endif
   sp_ssl_identity_.reset(NULL);
   transport_protocol_ = cricket::ICEPROTO_HYBRID;
-#ifdef TUENTI_CUSTOM_BUILD
-  transport_protocol_ = cricket::ICEPROTO_RFC5245;
-#endif
 #if ENABLE_SRTP
   sdes_policy_ = cricket::SEC_ENABLED;
   dtls_policy_ = cricket::SEC_ENABLED;
