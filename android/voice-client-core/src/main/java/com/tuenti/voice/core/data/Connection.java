@@ -45,6 +45,8 @@ public class Connection
 
     private boolean xmppUseSsl;
 
+    private boolean isGtalk;
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
     public Connection()
@@ -65,9 +67,17 @@ public class Connection
         xmppHost = in.readString();
         xmppPort = in.readInt();
         xmppUseSsl = in.readByte() == 1;
+        isGtalk = in.readByte() == 1;
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
+    public boolean getIsGtalk(){
+        return isGtalk;
+    }
+
+    public void setIsGtalk(boolean isGtalk){
+        this.isGtalk = isGtalk;
+    }
 
     public String getPassword()
     {
@@ -214,5 +224,6 @@ public class Connection
         out.writeString( xmppHost );
         out.writeInt( xmppPort );
         out.writeByte( (byte) ( xmppUseSsl ? 1 : 0 ) );
+        out.writeByte( (byte) ( isGtalk ? 1 : 0 ) );
     }
 }

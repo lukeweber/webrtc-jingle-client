@@ -27,6 +27,7 @@ WEBRTC_BUILD_NEON_LIBS := true
 MY_WEBRTC_COMMON_DEFS += \
     '-DWEBRTC_ARCH_ARM_V7A' \
 	'-DWEBRTC_DETECT_ARM_NEON'
+
 MY_ARM_CFLAGS_NEON := \
 	-flax-vector-conversions
 else 

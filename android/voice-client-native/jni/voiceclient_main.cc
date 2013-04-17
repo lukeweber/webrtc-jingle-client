@@ -36,7 +36,88 @@
 #include "client/helpers.h"
 #include "talk/base/criticalsection.h"
 
+class VoiceClientCallback : public sigslot::has_slots<> {
+
+public:
+
+	VoiceClientCallback(JavaObjectReference *reference) : reference_(reference) {}
+
+	void OnSignalCallStateChange(int state, const char *remote_jid, int call_id) {
+	  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_CALL_STATE_EVENT, state, remote_jid, call_id);
+	}
+
+	void OnSignalAudioPlayout() {
+	  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_AUDIO_PLAYOUT_EVENT, 0, "", 0);
+	}
+
+	void OnSignalCallError(int error, int call_id) {
+	  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_CALL_ERROR_EVENT, error, "", call_id);
+	}
+
+	void OnSignalXmppError(int error) {
+	  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_XMPP_ERROR_EVENT, error, "", 0);
+	}
+
+	void OnSignalXmppSocketClose(int state) {
+	  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_XMPP_SOCKET_CLOSE_EVENT, state, "", 0);
+	}
+
+	void OnSignalXmppStateChange(int state) {
+	  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_XMPP_STATE_EVENT, state, "", 0);
+	}
+
+	void OnSignalBuddyListReset() {
+	  LOGI("Resetting buddy list");
+	  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT, 2, "", 0);
+	}
+
+	void OnSignalBuddyListRemove(const std::string& jid) {
+	  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT, 1, jid.c_str(), 0);
+	}
+
+	void OnSignalBuddyListAdd(const std::string& jid, const std::string& nick, int available, int show) {
+	  CALLBACK_START("handleBuddyAdded", "(Ljava/lang/String;Ljava/lang/String;II)V", reference_);
+	  if (mid != NULL) {
+		jstring jid_jni = env->NewStringUTF(jid.c_str());
+		jstring nick_jni = env->NewStringUTF(nick.c_str());
+		jint available_jni = available;
+		jint show_jni = show;
+		env->CallVoidMethod(reference_->handler_object, mid, jid_jni, nick_jni, available_jni, show_jni);
+      }
+	  DETACH_FROM_VM(reference_);
+	}
+
+	void OnSignalPresenceChanged(const std::string& jid, int available, int show) {
+	  CALLBACK_START("handlePresenceChanged", "(Ljava/lang/String;II)V", reference_);
+	  if (mid != NULL) {
+	    jstring jid_jni = env->NewStringUTF(jid.c_str());
+		jint available_jni = available;
+		jint show_jni = show;
+		env->CallVoidMethod(reference_->handler_object, mid, jid_jni, available_jni, show_jni);
+	  }
+	  DETACH_FROM_VM(reference_);
+	}
+
+	void OnSignalStatsUpdate(const char *stats) {
+	  LOGI("Updating stats=%s", stats);
+	  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_STATS_UPDATE_EVENT, 0, stats, 0);
+	}
+
+	void OnSignalCallTrackerId(int call_id, const char* call_tracker_id) {
+	  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_CALL_TRACKER_ID_EVENT, 0, call_tracker_id, call_id);
+	}
+
+	void OnSignalXmppMessage(const tuenti::XmppMessage m){
+	  //Implement me.
+	}
+
+private:
+
+	JavaObjectReference *reference_;
+};
+
 tuenti::VoiceClient *client_;
+VoiceClientCallback *callback_;
 tuenti::StunConfig *stun_config_;
 talk_base::CriticalSection native_release_cs_;
 talk_base::CriticalSection init_cs_;
@@ -119,10 +200,25 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeInit(
     JavaObjectReference *instance = NEW_OBJECT(JavaObjectReference, 1);
     RETURN_IF_FAIL(instance != NULL);
     SetJavaObject(instance, env, object, context);
+    callback_ = new VoiceClientCallback(instance);
 
     //We enforce that we have a client_ and VoiceClient returns before we allow events.
     talk_base::CritScope lock(&init_cs_);
-    client_ = new tuenti::VoiceClient(instance);
+    client_ = new tuenti::VoiceClient();
+    client_->SignalingThread()->SignalCallStateChange.connect(callback_, &VoiceClientCallback::OnSignalCallStateChange);
+    client_->SignalingThread()->SignalCallError.connect(callback_, &VoiceClientCallback::OnSignalCallError);
+    client_->SignalingThread()->SignalAudioPlayout.connect(callback_, &VoiceClientCallback::OnSignalAudioPlayout);
+    client_->SignalingThread()->SignalCallTrackerId.connect(callback_, &VoiceClientCallback::OnSignalCallTrackerId);
+    client_->SignalingThread()->SignalXmppError.connect(callback_, &VoiceClientCallback::OnSignalXmppError);
+    client_->SignalingThread()->SignalXmppSocketClose.connect(callback_, &VoiceClientCallback::OnSignalXmppSocketClose);;
+    client_->SignalingThread()->SignalXmppStateChange.connect(callback_, &VoiceClientCallback::OnSignalXmppStateChange);
+    client_->SignalingThread()->SignalBuddyListAdd.connect(callback_, &VoiceClientCallback::OnSignalBuddyListAdd);
+    client_->SignalingThread()->SignalBuddyListRemove.connect(callback_, &VoiceClientCallback::OnSignalBuddyListRemove);
+    client_->SignalingThread()->SignalPresenceChanged.connect(callback_, &VoiceClientCallback::OnSignalPresenceChanged);
+    client_->SignalingThread()->SignalXmppMessage.connect(callback_, &VoiceClientCallback::OnSignalXmppMessage);
+	#ifdef LOGGING
+    client_->SignalingThread()->SignalStatsUpdate.connect(callback_, &VoiceClientCallback::OnSignalStatsUpdate);
+	#endif
   }
 }
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeReplaceTurn(
@@ -146,7 +242,7 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeReplaceTurn(
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin(
     JNIEnv *env, jobject object, jstring username, jstring password,
     jstring stun, jstring turn, jstring turnUsername, jstring turnPassword,
-    jstring xmppHost, jint xmppPort, jboolean useSSL, jint portAllocatorFilter) {
+    jstring xmppHost, jint xmppPort, jboolean useSSL, jint portAllocatorFilter, jboolean isGtalk) {
 
   //We enforce that we have a client_ and VoiceClient returns before we allow a login.
   talk_base::CritScope lock(&init_cs_);
@@ -194,7 +290,7 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin(
 
     // login
     client_->Login(nativeUsernameS, nativePasswordS, stun_config_,
-        nativeXmppHostS, xmppPort, useSSL, portAllocatorFilter);
+        nativeXmppHostS, xmppPort, useSSL, portAllocatorFilter, isGtalk);
   }
 }
 

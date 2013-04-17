@@ -29,12 +29,6 @@
 #include <vector>
 #include <memory>
 
-#ifdef ANDROID
-#include "com_tuenti_voice_core_VoiceClient.h"
-#elif IOS
-#include "VoiceClientExample/VoiceClientDelegate.h"
-#endif
-
 #include "client/voiceclient.h"
 #include "client/logging.h"
 #include "client/xmppmessage.h"
@@ -44,17 +38,9 @@
 
 namespace tuenti {
 
-#ifdef ANDROID
-VoiceClient::VoiceClient(JavaObjectReference *reference) {
-    reference_ = reference;
-    Init();
-}
-
-#elif IOS
 VoiceClient::VoiceClient() {
     Init();
 }
-#endif
 
 VoiceClient::~VoiceClient() {
   LOGI("VoiceClient::~VoiceClient");
@@ -67,44 +53,17 @@ void VoiceClient::Init() {
           reinterpret_cast<int>(client_signaling_thread_));
 
   client_signaling_thread_  = new tuenti::ClientSignalingThread();
-  client_signaling_thread_->SignalCallStateChange.connect(
-      this, &VoiceClient::OnSignalCallStateChange);
-  client_signaling_thread_->SignalCallError.connect(
-      this, &VoiceClient::OnSignalCallError);
-  client_signaling_thread_->SignalAudioPlayout.connect(
-      this, &VoiceClient::OnSignalAudioPlayout);
-  client_signaling_thread_->SignalCallTrackerId.connect(
-      this, &VoiceClient::OnSignalCallTrackerId);
-
-  client_signaling_thread_->SignalXmppError.connect(
-      this, &VoiceClient::OnSignalXmppError);
-  client_signaling_thread_->SignalXmppSocketClose.connect(
-      this, &VoiceClient::OnSignalXmppSocketClose);;
-  client_signaling_thread_->SignalXmppStateChange.connect(
-      this, &VoiceClient::OnSignalXmppStateChange);
-
-  client_signaling_thread_->SignalBuddyListRemove.connect(
-      this, &VoiceClient::OnSignalBuddyListRemove);
-  client_signaling_thread_->SignalBuddyListAdd.connect(
-      this, &VoiceClient::OnSignalBuddyListAdd);
-  client_signaling_thread_->SignalPresenceChanged.connect(
-	  this, &VoiceClient::OnPresenceChanged);
-  client_signaling_thread_->SignalXmppMessage.connect(
-      this, &VoiceClient::OnSignalXmppMessage);
-  #ifdef LOGGING
-  client_signaling_thread_->SignalStatsUpdate.connect(
-      this, &VoiceClient::OnSignalStatsUpdate);
-  #endif
 }
 
 void VoiceClient::Login(const std::string &username,
   const std::string &password, StunConfig* stun_config,
-  const std::string &xmpp_host, int xmpp_port, bool use_ssl, int port_allocator_filter) {
+  const std::string &xmpp_host, int xmpp_port, bool use_ssl,
+  int port_allocator_filter, bool is_gtalk) {
   LOGI("VoiceClient::Login");
   LOG(INFO) << "LOGT " << stun_config->ToString();
   if (client_signaling_thread_) {
     client_signaling_thread_->Login(username, password, stun_config,
-        xmpp_host, xmpp_port, use_ssl, port_allocator_filter);
+        xmpp_host, xmpp_port, use_ssl, port_allocator_filter, is_gtalk);
   }
 }
 
@@ -181,124 +140,8 @@ void VoiceClient::DeclineCall(uint32 call_id, bool busy) {
   }
 }
 
-
-#ifdef ANDROID
-void VoiceClient::OnSignalCallStateChange(int state, const char *remote_jid, int call_id) {
-  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_CALL_STATE_EVENT, state, remote_jid, call_id);
+ClientSignalingThread* VoiceClient::SignalingThread() {
+	return client_signaling_thread_;
 }
-
-void VoiceClient::OnSignalAudioPlayout() {
-  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_AUDIO_PLAYOUT_EVENT, 0, "", 0);
-}
-
-void VoiceClient::OnSignalCallError(int error, int call_id) {
-  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_CALL_ERROR_EVENT, error, "", call_id);
-}
-
-void VoiceClient::OnSignalXmppError(int error) {
-  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_XMPP_ERROR_EVENT, error, "", 0);
-}
-
-void VoiceClient::OnSignalXmppSocketClose(int state) {
-  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_XMPP_SOCKET_CLOSE_EVENT, state, "", 0);
-}
-
-void VoiceClient::OnSignalXmppStateChange(int state) {
-  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_XMPP_STATE_EVENT, state, "", 0);
-}
-
-void VoiceClient::OnSignalBuddyListRemove(const std::string& jid) {
-  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT, REMOVE, jid.c_str(), 0);
-}
-
-void VoiceClient::OnSignalBuddyListAdd(const std::string& jid, const std::string& nick,
-		int available, int show) {
-  CALLBACK_START("handleBuddyAdded", "(Ljava/lang/String;Ljava/lang/String;II)V", reference_);
-  if (mid != NULL) {
-    jstring jid_jni = env->NewStringUTF(jid.c_str());
-    jstring nick_jni = env->NewStringUTF(nick.c_str());
-    jint available_jni = available;
-    jint show_jni = show;
-    env->CallVoidMethod(reference_->handler_object, mid, jid_jni, nick_jni, available_jni, show_jni);
-  }
-  DETACH_FROM_VM(reference_);
-}
-
-void VoiceClient::OnPresenceChanged(const std::string& jid, int available, int show) {
-  CALLBACK_START("handlePresenceChanged", "(Ljava/lang/String;II)V", reference_);
-  if (mid != NULL) {
-    jstring jid_jni = env->NewStringUTF(jid.c_str());
-	jint available_jni = available;
-	jint show_jni = show;
-	env->CallVoidMethod(reference_->handler_object, mid, jid_jni, available_jni, show_jni);
-  }
-  DETACH_FROM_VM(reference_);
-}
-
-void VoiceClient::OnSignalStatsUpdate(const char *stats) {
-  LOGI("Updating stats=%s", stats);
-  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_STATS_UPDATE_EVENT, 0, stats, 0);
-}
-
-void VoiceClient::OnSignalCallTrackerId(int call_id, const char* call_tracker_id) {
-  CALLBACK_DISPATCH(reference_, com_tuenti_voice_core_VoiceClient_CALL_TRACKER_ID_EVENT, 0, call_tracker_id, call_id);
-}
-
-void VoiceClient::OnSignalXmppMessage(const XmppMessage m){
-  //Implement me.
-}
-
-#elif IOS
-
-void VoiceClient::OnSignalCallStateChange(int state, const char *remote_jid, int call_id) {
-    VoiceClientDelegate::getInstance()->OnSignalCallStateChange(state, remote_jid, call_id);
-}
-
-void VoiceClient::OnSignalAudioPlayout() {
-    VoiceClientDelegate::getInstance()->OnSignalAudioPlayout();
-}
-
-void VoiceClient::OnSignalCallError(int error, int call_id) {
-    VoiceClientDelegate::getInstance()->OnSignalCallError(error, call_id);
-}
-
-void VoiceClient::OnSignalXmppError(int error) {
-    VoiceClientDelegate::getInstance()->OnSignalXmppError(error);
-}
-
-void VoiceClient::OnSignalXmppSocketClose(int state) {
-    VoiceClientDelegate::getInstance()->OnSignalXmppSocketClose(state);
-}
-
-void VoiceClient::OnSignalXmppStateChange(int state) {
-    VoiceClientDelegate::getInstance()->OnSignalXmppStateChange(state);
-}
-
-void VoiceClient::OnPresenceChanged(const std::string& jid, int available, int show) {
-	VoiceClientDelegate::getInstance()->OnPresenceChanged(jid, available, show);
-}
-
-void VoiceClient::OnSignalBuddyListRemove(const std::string& jid) {
-    VoiceClientDelegate::getInstance()->OnSignalBuddyListRemove(jid);
-}
-
-void VoiceClient::OnSignalBuddyListAdd(const std::string& jid, const std::string& nick,
-		int available, int show) {
-    VoiceClientDelegate::getInstance()->OnSignalBuddyListAdd(jid, nick, available, show);
-}
-
-void VoiceClient::OnSignalStatsUpdate(const char *stats) {
-    VoiceClientDelegate::getInstance()->OnSignalStatsUpdate(stats);
-}
-
-void VoiceClient::OnSignalCallTrackerId(int call_id, const char *call_tracker_id) {
-    VoiceClientDelegate::getInstance()->OnSignalCallTrackingId(call_id, call_tracker_id);
-}
-
-void VoiceClient::OnSignalXmppMessage(const XmppMessage m){
-  printf("Message from: %s\n", m.jid.BareJid().Str().c_str());
-  printf("Message body: %s\n", m.body.c_str());
-}
-#endif  //IOS
 
 }  // namespace tuenti

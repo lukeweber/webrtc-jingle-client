@@ -7,7 +7,7 @@ TEST(WebrtcJingleTest, ConstructDestruct) {
   for (int i = 0; i < 5; ++i) {
     StunConfig* cfg = new StunConfig();
     ClientSignalingThread *clientsignalingthread = new ClientSignalingThread();
-    clientsignalingthread->Login("lukewebertest@gmail.com", "testtester", cfg, "talk.google.com", 5222, false, 0);
+    clientsignalingthread->Login("lukewebertest@gmail.com", "testtester", cfg, "talk.google.com", 5222, false, 0, true);
     delete clientsignalingthread;
     delete cfg;
   }

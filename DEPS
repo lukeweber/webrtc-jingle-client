@@ -9,7 +9,7 @@ deps = {
   "trunk/third_party/gtest": "https://github.com/lukeweber/googletest.git@361c8f",
   "trunk/third_party/icu": "http://git.chromium.org/chromium/deps/icu46.git@53ac6db57d9d09e43079f54feec59b735ed23670",
   "trunk/third_party/libevent": "http://src.chromium.org/svn/trunk/src/third_party/libevent@182149",
-  "trunk/third_party/libjingle": "https://github.com/lukeweber/libjingle-override.git@34ff9f",
+  "trunk/third_party/libjingle": "https://github.com/lukeweber/libjingle-override.git@26fdc317802b15a0fb0b9983d3892719c7d73e7d",
   "trunk/third_party/libjpeg": "http://src.chromium.org/svn/trunk/src/third_party/libjpeg@182149",
   "trunk/third_party/libjpeg_turbo": "http://git.chromium.org/chromium/deps/libjpeg_turbo.git@82ce8a6d4ebe12a177c0c3597192f2b4f09e81c3",
   "trunk/third_party/libsrtp/source": "http://git.chromium.org/chromium/deps/libsrtp.git@362c71e8d0dc205a4ad9f4709d42c25864ac872a",
@@ -20,7 +20,7 @@ deps = {
   "trunk/third_party/openssl": "https://github.com/lukeweber/openssl-override.git@5c21728",
   "trunk/third_party/protobuf": "http://src.chromium.org/svn/trunk/src/third_party/protobuf@182149",
   "trunk/base":"https://github.com/lukeweber/chromium-trunk-base-override.git@455807",
-  "trunk/third_party/webrtc": "https://github.com/lukeweber/webrtc-src-override.git@60c3258",
+  "trunk/third_party/webrtc": "https://github.com/lukeweber/webrtc-src-override.git@e8d40656028af8d6f8eb2e019a3af891c3b77e46",
   "trunk/third_party/yasm": "http://src.chromium.org/svn/trunk/src/third_party/yasm@182149",
   "trunk/third_party/yasm/source/patched-yasm": "http://git.chromium.org/chromium/deps/yasm/patched-yasm.git@f164a228f51c17ffc3ed69516a7dc6abdf2d2c8e",
   "trunk/tools/clang": "http://src.chromium.org/svn/trunk/src/tools/clang@182149",
@@ -28,6 +28,7 @@ deps = {
   "trunk/tools/python": "http://src.chromium.org/svn/trunk/src/tools/python@182149",
   "trunk/tools/valgrind": "http://src.chromium.org/svn/trunk/src/tools/valgrind@182149",
   "trunk/tools/win/supalink": "http://src.chromium.org/svn/trunk/src/tools/win/supalink@182149",
+  "trunk/third_party/opus/": "http://src.chromium.org/svn/trunk/src/third_party/opus@185324",
 }
 hooks = [
   {

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.tuenti.voice</groupId>
@@ -12,6 +11,7 @@
 
     <modules>
         <module>voice-client-core</module>
+        <module>voice-client-native</module>
         <module>voice-client-aidl</module>
         <module>voice-client-example</module>
     </modules>
@@ -34,8 +34,9 @@
     <properties>
         <android.api.version>14</android.api.version>
         <android.version>4.0.1.2</android.version>
+        <android.ndk.architecture>x86</android.ndk.architecture>
 
-        <android-maven-plugin.version>3.5.1</android-maven-plugin.version>
+        <android-maven-plugin.version>3.5.3</android-maven-plugin.version>
         <maven-enforcer-plugin.version>1.2</maven-enforcer-plugin.version>
         <maven-clean-plugin.version>2.5</maven-clean-plugin.version>
         <maven-compiler-plugin.version>2.3.2</maven-compiler-plugin.version>
@@ -97,7 +98,7 @@
                             <path>${env.ANDROID_HOME}</path>
                         </sdk>
                         <ndkBuildAdditionalCommandline>NDK_APP_OUT=${project.basedir}/obj/${android.liboutdir}</ndkBuildAdditionalCommandline>
-                        <undeployBeforeDeploy>true</undeployBeforeDeploy>
+                        <undeployBeforeDeploy>false</undeployBeforeDeploy>
                         <nativeLibrariesDependenciesHardwareArchitectureOverrides>
                             <nativeLibrariesDependenciesHardwareArchitectureOverride>
                                 armeabi

@@ -227,7 +227,8 @@ public class ConnectionManagerImpl
                            connection.getXmppHost(),
                            connection.getXmppPort(),
                            connection.getXmppUseSsl(),
-                           PortAllocatorFilter.NO_FILTER.ordinal() );
+                           PortAllocatorFilter.NO_FILTER.ordinal(),
+                           connection.getIsGtalk());
         }
     }
 

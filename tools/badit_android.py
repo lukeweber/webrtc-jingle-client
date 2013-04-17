@@ -113,7 +113,8 @@ def installApk():
         uninstalled = False
         success = False
         while not success:
-            if runCmd("Install", ["mvn", "-pl", "voice-client-example", "android:redeploy"]) == 0:
+            #android:redeploy uninstalls and reinstalls
+            if runCmd("Install", ["mvn", "-pl", "voice-client-example", "android:deploy"]) == 0:
                 success = True
             elif not uninstalled:
                 logger.info("install failed trying uninstall first")
