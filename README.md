@@ -48,11 +48,10 @@ export ANDROID_NDK_HOME=$ANDROID_NDK_ROOT
 
 ### Running the project
 
-* Set your username, pass and connection setttings in android/voice-client-example/src/main/java/com/tuenti/voice/example/ui/LoginView.java.
-* Build the core(c++ code): cd trunk/android/voice-client-core && ./build.sh
+* Build, deploy to phone, and start debugger in one script: tools/badit_android.py
 * Build the apks: cd trunk/android && mvn install
 * To run a debugger: build/android/gdb_apk -p com.tuenti.voice.example -l android/voice-client-core/obj/local/${app_abi}
-* Build, deploy to phone, and start debugger in one script: tools/badit_android.py
+* For debugging the ndk build steps of maven, I sometimes prefer and use a light shell wrapper instead of maven for building only the c++ project. trunk/android/voice-client-native && ./build.sh
 
 ### Run unittests
 * Build debug code jni in debug mode: cd trunk/android/voice-client-core && ./build.sh
