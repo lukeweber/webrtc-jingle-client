@@ -145,6 +145,16 @@ ClientSignalingThread::ClientSignalingThread()
   // Set debugging to verbose in libjingle if LOGGING on android.
   talk_base::LogMessage::LogToDebug(talk_base::LS_VERBOSE);
 #endif
+  sp_ssl_identity_.reset(NULL);
+  transport_protocol_ = cricket::ICEPROTO_HYBRID;
+#if ENABLE_SRTP
+  sdes_policy_ = cricket::SEC_ENABLED;
+  dtls_policy_ = cricket::SEC_ENABLED;
+#else
+  dtls_policy_ = cricket::SEC_DISABLED;
+  sdes_policy_ = cricket::SEC_DISABLED;
+#endif
+  sp_ssl_identity_.reset(NULL);
   sp_network_manager_.reset(new talk_base::BasicNetworkManager());
   my_status_.set_caps_node("http://github.com/lukeweber/webrtc-jingle");
   my_status_.set_version("1.0-SNAPSHOT");
@@ -168,6 +178,7 @@ void ClientSignalingThread::OnPresenceChanged(const std::string& jid,
 
 void ClientSignalingThread::OnSessionState(cricket::Call* call,
     cricket::Session* session, cricket::Session::State state) {
+  const char *trackerIdStr = NULL;
 #if LOGGING
   LOG(LS_INFO) << "ClientSignalingThread::OnSessionState "
                << call_session_map_debug_[state];
@@ -185,7 +196,7 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
     if (auto_accept_) {
       AcceptCall(call->id());
     }
-    SignalCallTrackerId(call->id(), call->sessions()[0]->call_tracker_id().c_str());
+    trackerIdStr = call->sessions()[0]->call_tracker_id().c_str();
     break;
     }
   case cricket::Session::STATE_RECEIVEDACCEPT:
@@ -208,6 +219,9 @@ void ClientSignalingThread::OnSessionState(cricket::Call* call,
     jid_str = session->remote_name();
   }
   main_thread_->Post(this, MSG_CALL_STATE, new CallStateData(state, jid_str, call->id()));
+  if(trackerIdStr) {
+    SignalCallTrackerId(call->id(), trackerIdStr);
+  }
 }
 
 void ClientSignalingThread::OnSessionError(cricket::Call* call,
@@ -280,11 +294,7 @@ void ClientSignalingThread::OnConnected(){
       &ClientSignalingThread::OnCallCreate);
   sp_media_client_->SignalCallDestroy.connect(this,
       &ClientSignalingThread::OnCallDestroy);
-#if ENABLE_SRTP
-  sp_media_client_->set_secure(cricket::SEC_ENABLED);
-#else
-  sp_media_client_->set_secure(cricket::SEC_DISABLED);
-#endif
+  sp_media_client_->set_secure(sdes_policy_);
   InitPresence();
 
 #if XMPP_WHITESPACE_KEEPALIVE_ENABLED
@@ -369,7 +379,7 @@ void ClientSignalingThread::OnCallStatsUpdate(char *stats) {
 void ClientSignalingThread::Login(const std::string &username,
     const std::string &password, StunConfig* stun_config,
     const std::string &xmpp_host, int xmpp_port, bool use_ssl,
-    uint32 port_allocator_filter) {
+    uint32 port_allocator_filter, bool isGtalk) {
   LOGI("ClientSignalingThread::Login");
 
   stun_config_ = stun_config;
@@ -377,7 +387,11 @@ void ClientSignalingThread::Login(const std::string &username,
   buzz::Jid jid = buzz::Jid(username);
   talk_base::InsecureCryptStringImpl pass;
   pass.password() = password;
-
+#if ENABLE_SRTP
+  sp_ssl_identity_.reset(talk_base::SSLIdentity::Generate(jid.Str()));
+#else
+  sp_ssl_identity_.reset(NULL);
+#endif
   xcs_.set_user(jid.node());
   xcs_.set_resource("voice");
 #if ADD_RANDOM_RESOURCE_TO_JID
@@ -391,6 +405,7 @@ void ClientSignalingThread::Login(const std::string &username,
   xcs_.set_use_tls(use_ssl ? buzz::TLS_REQUIRED : buzz::TLS_DISABLED);
   xcs_.set_pass(talk_base::CryptString(pass));
   xcs_.set_server(talk_base::SocketAddress(xmpp_host, xmpp_port));
+  xcs_.set_allow_gtalk_username_custom_domain(isGtalk);
   SetPortAllocatorFilter(port_allocator_filter);
   sp_pump_.reset(new TXmppPump(this));
   signal_thread_->Post(this, MSG_LOGIN);
@@ -633,6 +648,9 @@ void ClientSignalingThread::LoginS() {
   }
   sp_session_manager_.reset(
       new cricket::SessionManager(sp_port_allocator_.get(), signal_thread_));
+  sp_session_manager_->set_secure(dtls_policy_);
+  sp_session_manager_->set_identity(sp_ssl_identity_.get());
+  sp_session_manager_->set_transport_protocol(transport_protocol_);
 
   if (xcs_.use_tls() == buzz::TLS_REQUIRED) {
     talk_base::InitializeSSL();
@@ -692,9 +710,10 @@ void ClientSignalingThread::CallS(const std::string &remoteJid, const std::strin
   // same time, and following the first that answers, and tearing down the rest.
   // now search available presences
   for (unsigned int i = 0; i < sp_roster_module_->GetIncomingPresenceCount(); i++) {
-      buzz::Jid jid = sp_roster_module_->GetIncomingPresence(i)->jid();
-      if (jid.BareEquals(callto_jid)) {
-          found_jid = jid;
+	  const buzz::XmppPresence *presence = sp_roster_module_->GetIncomingPresence(i);
+      if (presence->available() == buzz::XMPP_PRESENCE_AVAILABLE
+    		  && presence->jid().BareEquals(callto_jid)) {
+          found_jid = presence->jid();
 		  found = true;
           break;
       }

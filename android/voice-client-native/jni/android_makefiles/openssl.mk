@@ -634,7 +634,7 @@ local_c_flags += \
 include $(CLEAR_VARS)
 include $(MY_ROOT_PATH)/android-webrtc.mk
 LOCAL_SRC_FILES += $(local_src_files)
-LOCAL_CFLAGS += $(local_c_flags) -DPURIFY
+LOCAL_CFLAGS += $(local_c_flags) -DPURIFY -w
 LOCAL_C_INCLUDES += $(local_c_includes)
 LOCAL_LDLIBS += -ldl -lz
 LOCAL_MODULE_TAGS := optional

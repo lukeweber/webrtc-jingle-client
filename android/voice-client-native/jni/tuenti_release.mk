@@ -7,15 +7,20 @@
 # be found in the AUTHORS file in the root of the source tree.
 APP_ABI := armeabi armeabi-v7a x86
 APP_PLATFORM := android-9
-APP_CPPFLAGS += -fno-rtti
+APP_CPPFLAGS += \
+	-fno-rtti -ffast-math -O3
+
 APP_CFLAGS += \
-	-D_DEBUG=1 \
-	-DENABLE_DEBUG=1 \
-	-DLOGGING=1 \
-	-DWEBRTC_ANDROID_DEBUG=1 \
+	-DENABLE_DEBUG=0 \
 	-DTUENTI_CUSTOM_BUILD=1 \
-	-DXMPP_COMPATIBILITY=1
+	-DLOGGING=1 \
+	-fvisibility=hidden \
+	-ffunction-sections  \
+	-fdata-sections
+
+APP_LDFLAGS += -Wl,--gc-sections \
+			   -Wl,--icf=safe
+
 APP_STL := stlport_static
-APP_OPTIM := debug
-ENABLE_WEBRTC_TRACE := 1
-ENABLE_UNITTEST := 1
+APP_OPTIM := release
+ENABLE_WEBRTC_TRACE := 0

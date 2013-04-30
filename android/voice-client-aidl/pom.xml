@@ -25,7 +25,6 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>voice-core</artifactId>
             <version>${project.version}</version>
-            <type>apklib</type>
         </dependency>
     </dependencies>
 

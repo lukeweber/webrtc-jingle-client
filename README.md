@@ -29,7 +29,7 @@ or for an older stable build, take the head of the stable branch revision.
 ## Android
 
 ### Prereqs
-* [android NDK r8d](http://developer.android.com/sdk/ndk/index.html)
+* [android NDK r8e](http://developer.android.com/sdk/ndk/index.html)
 * [Android SDK](http://developer.android.com/sdk/index.html)
 * [eclipse](http://www.eclipse.org/downloads/)
 * [Maven](http://maven.apache.org/download.html) v3.0.3+
@@ -48,11 +48,10 @@ export ANDROID_NDK_HOME=$ANDROID_NDK_ROOT
 
 ### Running the project
 
-* Set your username, pass and connection setttings in android/voice-client-example/src/main/java/com/tuenti/voice/example/ui/LoginView.java.
-* Build the core(c++ code): cd trunk/android/voice-client-core && ./build.sh
+* Build, deploy to phone, and start debugger in one script: tools/badit_android.py
 * Build the apks: cd trunk/android && mvn install
 * To run a debugger: build/android/gdb_apk -p com.tuenti.voice.example -l android/voice-client-core/obj/local/${app_abi}
-* Build, deploy to phone, and start debugger in one script: tools/badit_android.py
+* For debugging the ndk build steps of maven, I sometimes prefer and use a light shell wrapper instead of maven for building only the c++ project. trunk/android/voice-client-native && ./build.sh
 
 ### Run unittests
 * Build debug code jni in debug mode: cd trunk/android/voice-client-core && ./build.sh
@@ -116,3 +115,15 @@ Index: expat.gyp
 * Modify users/hardcoded setttings, in ios/VoiceClientExample/VoiceClientDelegate.mm
 * In xcode, build and deploy
 * May experience issues about sse from audio_processing.gypi. If you push to an IOS device add -Dtarget_arch=arm. If emulator, the other command will probably work. 
+
+## Opus
+* Opus is currently alpha in implementation, is hard set to 48kHz in webrtc. Android mic is set to 16kHz, meaning you'll probably upsample/downsample all audio by 3x.
+* Add "WEBRTC_BUILD_WITH_OPUS := true" to android/voice-client-core/jni/Android.mk
+* Modify offer kCodecPrefs in third_party/libjingle/talk/media/webrtc/webrtcvoiceengine.cc to include OPUS and exclude ISAC. 
+
+## Windows
+* Native code won't build on a windows machine.
+* VM with Ubuntu 64bit Linux
+* Recommended disk of at least 3GB. Current build cache is approx, 1.5GB.
+* 64bit Android Linux NDK required.
+* Video from jreyes https://www.youtube.com/watch?v=f0NU-E8l_qQ

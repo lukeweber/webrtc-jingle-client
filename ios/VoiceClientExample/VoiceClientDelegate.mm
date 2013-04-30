@@ -40,7 +40,7 @@ void VoiceClientDelegate::Init(){
 void VoiceClientDelegate::Login(){
     stun_config_.stun = "stun.l.google.com:19302";
     AppDelegate* appDelegate = (AppDelegate*)[UIApplication sharedApplication].delegate;
-    voiceClient_->Login([[appDelegate.myJid full] cStringUsingEncoding:NSUTF8StringEncoding], [appDelegate.password cStringUsingEncoding:NSUTF8StringEncoding], &stun_config_, "talk.google.com", 5222, true, 0);
+    voiceClient_->Login([[appDelegate.myJid full] cStringUsingEncoding:NSUTF8StringEncoding], [appDelegate.password cStringUsingEncoding:NSUTF8StringEncoding], &stun_config_, "talk.google.com", 5222, true, 0, true/*isGtalk*/);
 }
 
 void VoiceClientDelegate::Logout(){

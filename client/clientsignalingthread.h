@@ -295,7 +295,8 @@ class ClientSignalingThread
   // out to the worker equivilent functions
   void Login(const std::string &username, const std::string &password,
              StunConfig* stun_config, const std::string &xmpp_host,
-             int xmpp_port, bool use_ssl, uint32 port_allocator_filter);
+             int xmpp_port, bool use_ssl, uint32 port_allocator_filter,
+			 bool is_gtalk);
   void Disconnect();
   void Call(std::string remoteJid, std::string call_tracker_id);
   void AcceptCall(uint32 call_id);
@@ -369,6 +370,7 @@ class ClientSignalingThread
   talk_base::scoped_ptr<buzz::XmppRosterModule> sp_roster_module_;
   talk_base::scoped_ptr<tuenti::RosterHandler> sp_roster_handler_;
   talk_base::scoped_ptr<talk_base::BasicNetworkManager> sp_network_manager_;
+  talk_base::scoped_ptr<talk_base::SSLIdentity> sp_ssl_identity_;
 
   talk_base::Thread *signal_thread_;
   talk_base::scoped_ptr<talk_base::Thread> main_thread_;
@@ -378,6 +380,9 @@ class ClientSignalingThread
   ReceiveMessageTask *receive_message_task_;
   cricket::SessionManagerTask *session_manager_task_;
   cricket::Call* call_;
+  cricket::SecurePolicy sdes_policy_;
+  cricket::SecurePolicy dtls_policy_;
+  cricket::TransportProtocol transport_protocol_;
   uint32 port_allocator_flags_;
   uint32 port_allocator_filter_;
   bool use_ssl_;

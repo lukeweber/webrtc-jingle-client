@@ -7,24 +7,24 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#undef com_tuenti_voice_core_VoiceClient_CALL_STATE_EVENT
-#define com_tuenti_voice_core_VoiceClient_CALL_STATE_EVENT 0L
-#undef com_tuenti_voice_core_VoiceClient_XMPP_STATE_EVENT
-#define com_tuenti_voice_core_VoiceClient_XMPP_STATE_EVENT 1L
-#undef com_tuenti_voice_core_VoiceClient_XMPP_ERROR_EVENT
-#define com_tuenti_voice_core_VoiceClient_XMPP_ERROR_EVENT 2L
-#undef com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT
-#define com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT 3L
-#undef com_tuenti_voice_core_VoiceClient_XMPP_SOCKET_CLOSE_EVENT
-#define com_tuenti_voice_core_VoiceClient_XMPP_SOCKET_CLOSE_EVENT 4L
-#undef com_tuenti_voice_core_VoiceClient_CALL_ERROR_EVENT
-#define com_tuenti_voice_core_VoiceClient_CALL_ERROR_EVENT 5L
 #undef com_tuenti_voice_core_VoiceClient_AUDIO_PLAYOUT_EVENT
 #define com_tuenti_voice_core_VoiceClient_AUDIO_PLAYOUT_EVENT 6L
-#undef com_tuenti_voice_core_VoiceClient_STATS_UPDATE_EVENT
-#define com_tuenti_voice_core_VoiceClient_STATS_UPDATE_EVENT 7L
+#undef com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT
+#define com_tuenti_voice_core_VoiceClient_BUDDY_LIST_EVENT 3L
+#undef com_tuenti_voice_core_VoiceClient_CALL_ERROR_EVENT
+#define com_tuenti_voice_core_VoiceClient_CALL_ERROR_EVENT 5L
+#undef com_tuenti_voice_core_VoiceClient_CALL_STATE_EVENT
+#define com_tuenti_voice_core_VoiceClient_CALL_STATE_EVENT 0L
 #undef com_tuenti_voice_core_VoiceClient_CALL_TRACKER_ID_EVENT
 #define com_tuenti_voice_core_VoiceClient_CALL_TRACKER_ID_EVENT 8L
+#undef com_tuenti_voice_core_VoiceClient_STATS_UPDATE_EVENT
+#define com_tuenti_voice_core_VoiceClient_STATS_UPDATE_EVENT 7L
+#undef com_tuenti_voice_core_VoiceClient_XMPP_ERROR_EVENT
+#define com_tuenti_voice_core_VoiceClient_XMPP_ERROR_EVENT 2L
+#undef com_tuenti_voice_core_VoiceClient_XMPP_SOCKET_CLOSE_EVENT
+#define com_tuenti_voice_core_VoiceClient_XMPP_SOCKET_CLOSE_EVENT 4L
+#undef com_tuenti_voice_core_VoiceClient_XMPP_STATE_EVENT
+#define com_tuenti_voice_core_VoiceClient_XMPP_STATE_EVENT 1L
 /*
  * Class:     com_tuenti_voice_core_VoiceClient
  * Method:    nativeAcceptCall
@@ -84,18 +84,10 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeInit
 /*
  * Class:     com_tuenti_voice_core_VoiceClient
  * Method:    nativeLogin
- * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IZI)V
+ * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IZIZ)V
  */
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeLogin
-  (JNIEnv *, jobject, jstring, jstring, jstring, jstring, jstring, jstring, jstring, jint, jboolean, jint);
-
-/*
- * Class:     com_tuenti_voice_core_VoiceClient
- * Method:    nativeReplaceTurn
- * Signature: (Ljava/lang/String;)V
- */
-JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeReplaceTurn
-  (JNIEnv *, jobject, jstring);
+  (JNIEnv *, jobject, jstring, jstring, jstring, jstring, jstring, jstring, jstring, jint, jboolean, jint, jboolean);
 
 /*
  * Class:     com_tuenti_voice_core_VoiceClient
@@ -120,6 +112,14 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeMuteCall
  */
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeRelease
   (JNIEnv *, jobject);
+
+/*
+ * Class:     com_tuenti_voice_core_VoiceClient
+ * Method:    nativeReplaceTurn
+ * Signature: (Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeReplaceTurn
+  (JNIEnv *, jobject, jstring);
 
 #ifdef __cplusplus
 }
