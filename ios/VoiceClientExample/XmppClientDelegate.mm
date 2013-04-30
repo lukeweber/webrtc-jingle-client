@@ -87,8 +87,12 @@
 
 -(BOOL)xmppStream:(XMPPStream *)sender didReceiveIQ:(XMPPIQ *)iq
 {
-    if ([iq elementForName:@"jingle"] || [iq elementForName:@"session"])
-    {
+    /*
+     * I need to comment this "if" because in jingle session, they will set a password for P2P authentication and
+     * those stanzas are just iq set, so we need to pass all iq stanzas to webrtc.
+     */
+//    if ([iq elementForName:@"jingle"] || [iq elementForName:@"session"])
+//    {
         NSLog(@"RECEIVE: %@", [iq compactXMLString]);
         NSData* data = [[iq XMLString] dataUsingEncoding:NSUTF8StringEncoding];
         tictok::IOSXmppClient* xmppClient = voiceClientDelegate->GetClient();
@@ -97,7 +101,7 @@
             xmppClient->HandleInput((char*) [data bytes], [data length]);
         }
         return YES;
-    }
+//    }
     return NO;
 }
 
