@@ -140,20 +140,27 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientDelegate* voiceClientDel
     is_caller_(true),
     xmpp_state_(buzz::XmppEngine::STATE_NONE),
     voiceClientDelegate_(voiceClientDelegate) {
-        // int numRelayPorts = 0;
-        LOGI("ClientSignalingThread::ClientSignalingThread");
-        main_thread_.reset(new talk_base::AutoThread());
-        main_thread_.get()->Start();
-        signal_thread_ = new talk_base::Thread(&pss_);
-        signal_thread_->Start();
+  // int numRelayPorts = 0;
+  LOGI("ClientSignalingThread::ClientSignalingThread");
+  main_thread_.reset(new talk_base::AutoThread());
+  main_thread_.get()->Start();
+  signal_thread_ = new talk_base::Thread(&pss_);
+  signal_thread_->Start();
 #if LOGGING
-        // Set debugging to verbose in libjingle if LOGGING on android.
-        talk_base::LogMessage::LogToDebug(talk_base::LS_VERBOSE);
+  // Set debugging to verbose in libjingle if LOGGING on android.
+  talk_base::LogMessage::LogToDebug(talk_base::LS_VERBOSE);
 #endif
-        sp_network_manager_.reset(new talk_base::BasicNetworkManager());
-        my_status_.set_caps_node("http://github.com/lukeweber/webrtc-jingle");
-        my_status_.set_version("1.0-SNAPSHOT");
-    }
+  sp_ssl_identity_.reset(NULL);
+  transport_protocol_ = cricket::ICEPROTO_HYBRID;
+#if ENABLE_SRTP
+  sdes_policy_ = cricket::SEC_ENABLED;
+  dtls_policy_ = cricket::SEC_ENABLED;
+#else
+  dtls_policy_ = cricket::SEC_DISABLED;
+  sdes_policy_ = cricket::SEC_DISABLED;
+#endif
+  sp_ssl_identity_.reset(NULL);
+}
 #else
 ClientSignalingThread::ClientSignalingThread()
     : presence_out_(NULL),
