@@ -58,9 +58,9 @@ class ClientSignalingThread;
 class VoiceClient: public sigslot::has_slots<> {
  public:
   // initialization
-#elif IOS_XMPP_FRAMEWORK
+#if IOS_XMPP_FRAMEWORK
   explicit VoiceClient(VoiceClientDelegate* voiceClientDelegate);
-#elif IOS
+#endif
   explicit VoiceClient();
   ~VoiceClient();
   void Init();
@@ -85,7 +85,6 @@ class VoiceClient: public sigslot::has_slots<> {
 
 #if IOS_XMPP_FRAMEWORK
   talk_base::Thread* GetSignalThread();
-  
   VoiceClientDelegate* voiceClientDelegate_;
 #endif
   std::string stunserver_;

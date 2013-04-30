@@ -32,16 +32,20 @@
 #include "client/voiceclient.h"
 #include "client/logging.h"
 #include "client/xmppmessage.h"
+
+#ifdef ANDROID
 #include "client/threadpriorityhandler.h"
+#endif
+
 #include "talk/base/thread.h"
 #include "talk/base/logging.h"
 
 namespace tuenti {
 
-<<<<<<< HEAD
 VoiceClient::VoiceClient() {
     Init();
 }
+
 #ifdef IOS_XMPP_FRAMEWORK
 VoiceClient::VoiceClient(VoiceClientDelegate* voiceClientDelegate)
     :voiceClientDelegate_(voiceClientDelegate)
@@ -65,6 +69,7 @@ void VoiceClient::Init() {
   client_signaling_thread_  = new tuenti::ClientSignalingThread(voiceClientDelegate_);
 #else
   client_signaling_thread_  = new tuenti::ClientSignalingThread();
+#endif
 }
 
 void VoiceClient::Login(const std::string &username,
@@ -157,8 +162,7 @@ ClientSignalingThread* VoiceClient::SignalingThread() {
 }
 
 #if IOS_XMPP_FRAMEWORK
-talk_base::Thread* VoiceClient::GetSignalThread()
-{
+talk_base::Thread* VoiceClient::GetSignalThread() {
     return client_signaling_thread_->GetSignalThread();
 }
 #endif
