@@ -160,6 +160,9 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientDelegate* voiceClientDel
   sdes_policy_ = cricket::SEC_DISABLED;
 #endif
   sp_ssl_identity_.reset(NULL);
+  sp_network_manager_.reset(new talk_base::BasicNetworkManager());
+  my_status_.set_caps_node("http://github.com/lukeweber/webrtc-jingle");
+  my_status_.set_version("1.0-SNAPSHOT");
 }
 #else
 ClientSignalingThread::ClientSignalingThread()
