@@ -125,7 +125,7 @@ Index: expat.gyp
 ```
 * open trunk/webrtcjingle.xcodeproj
 * Modify myJID, and myPassword in AppDelegate.mm.
-* Modify user in call method in VoiceClientDelegate.mm. Make sure it's a full jid, or change code to lookup a friend inside xmppframework.
+* Modify user you wish to call in ios/VoiceClientExample/ViewController.mm => [appDelegate call:@"user@gmail.com"];
 * If using an xmpp server make sure to change the flag isGtalk in login in VoiceClientDelegate.mm.
 * In xcode, build and deploy
 * May experience issues about sse from audio_processing.gypi. If you push to an IOS device add -Dtarget_arch=arm. If emulator, the other command will probably work. 

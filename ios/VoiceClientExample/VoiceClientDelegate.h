@@ -42,7 +42,7 @@ public:
   void Init();
   void Login();
   void Logout();
-  void Call();
+  void Call(const char *remote_jid);
   void OnSignalCallStateChange(int state, const char *remote_jid, int call_id);
   void OnSignalCallTrackingId(int call_id, const char *call_tracker_id);
   void OnSignalAudioPlayout();

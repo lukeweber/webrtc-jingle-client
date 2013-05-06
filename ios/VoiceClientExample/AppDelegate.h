@@ -37,7 +37,7 @@
 - (void)disconnect;
 
 #pragma mark VoiceClientDelegate section
--(void)call;
+-(void)call:(NSString*) jid;
 #pragma mark -
 @end
 

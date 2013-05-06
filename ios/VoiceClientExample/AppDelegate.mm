@@ -530,12 +530,38 @@
 }
 
 #pragma mark VoiceClientDelegate section
--(void)call
+-(void)call: (NSString*) jid
 {
     if (xmppClientDelegate)
     {
-        [xmppClientDelegate getVoiceClientDelegate]->Call();
+        XMPPUserCoreDataStorageObject* user = [self getUserWithJid: jid];
+        NSArray* resources = [user allResources];
+        int size = resources.count;
+        if (size > 0)
+        {
+            XMPPResourceCoreDataStorageObject* resource = [resources objectAtIndex:(size - 1)];
+            NSString* fullJid = [[resource jid] full];
+            [xmppClientDelegate getVoiceClientDelegate]->Call([fullJid cStringUsingEncoding:NSUTF8StringEncoding]);
+        }
     }
+}
+
+-(XMPPUserCoreDataStorageObject*) getUserWithJid:(NSString*) jid
+{
+    NSManagedObjectContext *moc = [self managedObjectContext_roster];
+    
+    NSEntityDescription *entity = [NSEntityDescription entityForName:@"XMPPUserCoreDataStorageObject"
+                                              inManagedObjectContext:moc];
+    NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
+    [fetchRequest setEntity:entity];
+    [fetchRequest setFetchBatchSize:1];
+    [fetchRequest setPredicate:[NSPredicate predicateWithFormat:@"jidStr == %@", jid]];
+    
+    NSArray* users = [moc executeFetchRequest:fetchRequest error:nil];
+    if (users && users.count > 0) {
+        return [users objectAtIndex:0];
+    }
+    return nil;
 }
 #pragma mark -
 
