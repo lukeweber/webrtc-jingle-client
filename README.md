@@ -107,6 +107,7 @@ Index: expat.gyp
          'use_system_expat%': 0,
 ```
 * Change your .gclient file in trunk/../.gclient
+
 ```diff
 --- .gclient
 +++ .gclient
@@ -118,6 +119,7 @@ Index: expat.gyp
 ```
 * Run gclient sync again to fetch xmppframework.
 * Autogenerate an xcode project with gyp with the following command:
+
 ```
 ./build/gyp_chromium --depth=.  -DOS=ios -Dinclude_tests=0 -Denable_protobuf=0 -Denable_video=0 webrtcjingle.gyp
 ```
