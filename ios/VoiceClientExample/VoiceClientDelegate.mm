@@ -66,7 +66,7 @@ void VoiceClientDelegate::Logout(){
 }
 
 void VoiceClientDelegate::Call(){
-    voiceClient_->Call("hailegia@gmail.com");
+    voiceClient_->Call("user@gmail.com/resource");
 }
 
 void VoiceClientDelegate::OnSignalCallStateChange(int state, const char *remote_jid, int call_id) {
