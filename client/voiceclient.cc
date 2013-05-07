@@ -32,7 +32,11 @@
 #include "client/voiceclient.h"
 #include "client/logging.h"
 #include "client/xmppmessage.h"
+
+#ifdef ANDROID
 #include "client/threadpriorityhandler.h"
+#endif
+
 #include "talk/base/thread.h"
 #include "talk/base/logging.h"
 
@@ -42,9 +46,18 @@ VoiceClient::VoiceClient() {
     Init();
 }
 
+#ifdef IOS_XMPP_FRAMEWORK
+VoiceClient::VoiceClient(VoiceClientDelegate* voiceClientDelegate)
+    :voiceClientDelegate_(voiceClientDelegate)
+{
+    Init();
+}
+#endif
+
 VoiceClient::~VoiceClient() {
   LOGI("VoiceClient::~VoiceClient");
   delete client_signaling_thread_;
+  client_signaling_thread_ = NULL;
 }
 
 void VoiceClient::Init() {
@@ -52,7 +65,11 @@ void VoiceClient::Init() {
           "client_signaling_thread_@(0x%x)",
           reinterpret_cast<int>(client_signaling_thread_));
 
+#ifdef IOS_XMPP_FRAMEWORK
+  client_signaling_thread_  = new tuenti::ClientSignalingThread(voiceClientDelegate_);
+#else
   client_signaling_thread_  = new tuenti::ClientSignalingThread();
+#endif
 }
 
 void VoiceClient::Login(const std::string &username,
@@ -143,5 +160,11 @@ void VoiceClient::DeclineCall(uint32 call_id, bool busy) {
 ClientSignalingThread* VoiceClient::SignalingThread() {
 	return client_signaling_thread_;
 }
+
+#if IOS_XMPP_FRAMEWORK
+talk_base::Thread* VoiceClient::GetSignalThread() {
+    return client_signaling_thread_->GetSignalThread();
+}
+#endif
 
 }  // namespace tuenti

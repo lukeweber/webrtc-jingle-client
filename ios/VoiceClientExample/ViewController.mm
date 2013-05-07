@@ -8,6 +8,13 @@
 
 #import "ViewController.h"
 #import "VoiceClientDelegate.h"
+#import "AppDelegate.h"
+
+@interface ViewController()
+{
+    AppDelegate* appDelegate;
+}
+@end
 
 @implementation ViewController
 
@@ -16,6 +23,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    appDelegate = (AppDelegate*) [UIApplication sharedApplication].delegate;
 	// Do any additional setup after loading the view, typically from a nib.
     [self statsUpdate:@"Sender:\nunknown stats\nReceiver:\nunknown stats\n"];
 }
@@ -28,26 +36,41 @@
 
 - (IBAction)init:(id)sender{
    printf("init");
+   [appDelegate setupStream];
+#ifndef IOS_XMPP_FRAMEWORK
    VoiceClientDelegate* vc = VoiceClientDelegate::getInstance();
    (void)vc;
+#endif
 }
 
 - (IBAction)login:(id)sender{
     printf("logging in");
+    [appDelegate connect];
+#ifndef IOS_XMPP_FRAMEWORK
     VoiceClientDelegate* vc = VoiceClientDelegate::getInstance();
     vc->Login();
+#endif
 }
 
 - (IBAction)call:(id)sender{
     printf("calling");
+#ifdef IOS_XMPP_FRAMEWORK
+    [appDelegate call:@"user@gmail.com"];
+#else
     VoiceClientDelegate* vc = VoiceClientDelegate::getInstance();
     vc->Call();
+#endif
+    
 }
 
 - (IBAction)logout:(id)sender{
     printf("logout");
+#ifdef IOS_XMPP_FRAMEWORK
+    [appDelegate disconnect];
+#else
     VoiceClientDelegate* vc = VoiceClientDelegate::getInstance();
     vc->Logout();
+#endif
 }
 
 - (void)statsUpdate:(NSString *)stats {
@@ -61,12 +84,10 @@
 }
 
 - (void)dealloc {
-  [statsLabel_ release];
-  [super dealloc];
+  
 }
 
 - (void)viewDidUnload {
-  [statsLabel_ release];
   statsLabel_ = nil;
   [super viewDidUnload];
 }

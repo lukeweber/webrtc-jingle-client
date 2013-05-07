@@ -48,11 +48,10 @@ export ANDROID_NDK_HOME=$ANDROID_NDK_ROOT
 
 ### Running the project
 
-* Set your username, pass and connection setttings in android/voice-client-example/src/main/java/com/tuenti/voice/example/ui/LoginView.java.
-* Build the core(c++ code): cd trunk/android/voice-client-core && ./build.sh
+* Build, deploy to phone, and start debugger in one script: tools/badit_android.py
 * Build the apks: cd trunk/android && mvn install
 * To run a debugger: build/android/gdb_apk -p com.tuenti.voice.example -l android/voice-client-core/obj/local/${app_abi}
-* Build, deploy to phone, and start debugger in one script: tools/badit_android.py
+* For debugging the ndk build steps of maven, I sometimes prefer and use a light shell wrapper instead of maven for building only the c++ project. trunk/android/voice-client-native && ./build.sh
 
 ### Run unittests
 * Build debug code jni in debug mode: cd trunk/android/voice-client-core && ./build.sh
@@ -107,13 +106,27 @@ Index: expat.gyp
        }, {
          'use_system_expat%': 0,
 ```
+* Change your .gclient file in trunk/../.gclient
+
+```diff
+--- .gclient
++++ .gclient
+@@ -8,3 +8,4 @@
+     "safesync_url": "",
+   },
+ ]
++target_os = ['ios']
+```
+* Run gclient sync again to fetch xmppframework.
 * Autogenerate an xcode project with gyp with the following command:
 
 ```
 ./build/gyp_chromium --depth=.  -DOS=ios -Dinclude_tests=0 -Denable_protobuf=0 -Denable_video=0 webrtcjingle.gyp
 ```
 * open trunk/webrtcjingle.xcodeproj
-* Modify users/hardcoded setttings, in ios/VoiceClientExample/VoiceClientDelegate.mm
+* Modify myJID, and myPassword in AppDelegate.mm.
+* Modify user you wish to call in ios/VoiceClientExample/ViewController.mm => [appDelegate call:@"user@gmail.com"];
+* If using an xmpp server make sure to change the flag isGtalk in login in VoiceClientDelegate.mm.
 * In xcode, build and deploy
 * May experience issues about sse from audio_processing.gypi. If you push to an IOS device add -Dtarget_arch=arm. If emulator, the other command will probably work. 
 

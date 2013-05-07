@@ -50,6 +50,10 @@
 #include "talk/xmpp/constants.h"
 #include "talk/xmpp/rostermodule.h"
 
+#ifdef IOS_XMPP_FRAMEWORK
+#include "VoiceClientExample/IOSXmppClient.h"
+#endif
+
 namespace tuenti {
 
 struct RosterData : talk_base::MessageData {
@@ -122,7 +126,45 @@ struct ClientSignalingData: public talk_base::MessageData {
 ///////////////////////////////////////////////////////////////////////////////
 // ClientSignalingThread
 ///////////////////////////////////////////////////////////////////////////////
-
+#ifdef IOS_XMPP_FRAMEWORK
+ClientSignalingThread::ClientSignalingThread(VoiceClientDelegate* voiceClientDelegate)
+    : presence_out_(NULL),
+    ping_task_(NULL),
+    keepalive_task_(NULL),
+    session_manager_task_(NULL),
+    call_(NULL),
+    port_allocator_flags_(0),
+    port_allocator_filter_(0),
+    use_ssl_(false),
+    auto_accept_(true),
+    is_caller_(true),
+    xmpp_state_(buzz::XmppEngine::STATE_NONE),
+    voiceClientDelegate_(voiceClientDelegate) {
+  // int numRelayPorts = 0;
+  LOGI("ClientSignalingThread::ClientSignalingThread");
+  main_thread_.reset(new talk_base::AutoThread());
+  main_thread_.get()->Start();
+  signal_thread_ = new talk_base::Thread(&pss_);
+  signal_thread_->Start();
+#if LOGGING
+  // Set debugging to verbose in libjingle if LOGGING on android.
+  talk_base::LogMessage::LogToDebug(talk_base::LS_VERBOSE);
+#endif
+  sp_ssl_identity_.reset(NULL);
+  transport_protocol_ = cricket::ICEPROTO_HYBRID;
+#if ENABLE_SRTP
+  sdes_policy_ = cricket::SEC_ENABLED;
+  dtls_policy_ = cricket::SEC_ENABLED;
+#else
+  dtls_policy_ = cricket::SEC_DISABLED;
+  sdes_policy_ = cricket::SEC_DISABLED;
+#endif
+  sp_ssl_identity_.reset(NULL);
+  sp_network_manager_.reset(new talk_base::BasicNetworkManager());
+  my_status_.set_caps_node("http://github.com/lukeweber/webrtc-jingle");
+  my_status_.set_version("1.0-SNAPSHOT");
+}
+#else
 ClientSignalingThread::ClientSignalingThread()
     : presence_out_(NULL),
     ping_task_(NULL),
@@ -159,7 +201,8 @@ ClientSignalingThread::ClientSignalingThread()
   my_status_.set_caps_node("http://github.com/lukeweber/webrtc-jingle");
   my_status_.set_version("1.0-SNAPSHOT");
 }
-
+#endif
+    
 ClientSignalingThread::~ClientSignalingThread() {
   LOGI("ClientSignalingThread::~ClientSignalingThread");
   Disconnect();
@@ -473,9 +516,9 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
     LoginS();
     break;
   case MSG_SEND_XMPP_MESSAGE:
-      SendXmppMessageS(static_cast<XmppMessageData*>(message->pdata)->m_);
-      delete message->pdata;
-      break;
+    SendXmppMessageS(static_cast<XmppMessageData*>(message->pdata)->m_);
+    delete message->pdata;
+    break;
   case MSG_DISCONNECT:
     DisconnectS();
     break;
@@ -659,7 +702,11 @@ void ClientSignalingThread::LoginS() {
   //RosterModule depends on engine, Engine is destroyed/created in TxmppPump via client.
   sp_roster_module_.reset();
 #endif
+#ifdef IOS_XMPP_FRAMEWORK
+  sp_pump_.reset(new TXmppPump(this, voiceClientDelegate_));
+#else
   sp_pump_.reset(new TXmppPump(this));
+#endif
   sp_pump_->DoLogin(xcs_);
 }
 
@@ -866,7 +913,6 @@ void ClientSignalingThread::ReplaceTurnS(const std::string turn) {
 void ClientSignalingThread::InitPresence() {
   LOGI("ClientSignalingThread::InitPresence");
   assert(talk_base::Thread::Current() == signal_thread_);
-
   my_status_.set_jid(sp_pump_->client()->jid());
   my_status_.set_available(true);
   my_status_.set_know_capabilities(true);

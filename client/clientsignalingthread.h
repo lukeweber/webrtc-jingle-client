@@ -34,7 +34,6 @@
 #include "talk/base/constructormagic.h"
 #include "talk/base/thread.h"
 #include "talk/base/sigslot.h"
-#include "client/txmpppump.h"  // Needed for TXmppPumpNotify
 #include "talk/p2p/base/session.h"  // Needed for enum cricket::Session::State
 #include "talk/media/base/mediachannel.h"  // Needed for enum cricket::ReceiveDataParams
 #include "talk/base/basicpacketsocketfactory.h"
@@ -44,6 +43,7 @@
 #include "talk/xmpp/rostermodule.h"
 #include "talk/xmpp/xmppengine.h"
 
+#include "client/client_defines.h"
 #include "client/xmppmessage.h"
 #include "client/sendmessagetask.h"
 #include "client/receivemessagetask.h"
@@ -51,6 +51,10 @@
 #include "client/keepalivetask.h"
 #include "client/status.h"
 #include "client/txmpppump.h"  // Needed for TXmppPumpNotify
+
+#ifdef IOS_XMPP_FRAMEWORK
+#include "VoiceClientExample/VoiceClientDelegate.h"
+#endif
 
 namespace talk_base {
 class BasicNetworkManager;
@@ -74,6 +78,7 @@ class PresenceOutTask;
 
 namespace tuenti {
 
+#ifndef IOS_XMPP_FRAMEWORK
 struct StunConfig {
   std::string stun;
   std::string turn;
@@ -86,7 +91,7 @@ struct StunConfig {
     return stream.str();
   }
 };
-
+#endif
 class TXmppPump;
 class VoiceClientNotify;
 
@@ -269,7 +274,11 @@ class ClientSignalingThread
       public sigslot::has_slots<>,
       public TXmppPumpNotify {
  public:
+#ifdef IOS_XMPP_FRAMEWORK
+  ClientSignalingThread(VoiceClientDelegate* voiceClientDelegate);
+#else
   ClientSignalingThread();
+#endif
   virtual ~ClientSignalingThread();
   // Public Library Callbacks
   void OnSessionState(cricket::Call* call, cricket::Session* session,
@@ -305,8 +314,11 @@ class ClientSignalingThread
   void HoldCall(uint32 call_id, bool hold);
   void SendXmppMessage(const tuenti::XmppMessage m);
   void ReplaceTurn(const std::string &turn);
-
-
+#if IOS_XMPP_FRAMEWORK
+  talk_base::Thread* GetSignalThread() {
+    return signal_thread_;
+  }
+#endif
   // signals
   sigslot::signal3<int, const char *, int> SignalCallStateChange;
   sigslot::signal2<int, const char *> SignalCallTrackerId;
@@ -396,6 +408,9 @@ class ClientSignalingThread
   XmppEngineErrorMap xmpp_error_map_debug_;
   CallSessionMap call_session_map_debug_;
   CallSessionErrorMap call_session_error_map_debug_;
+#endif
+#ifdef IOS_XMPP_FRAMEWORK
+  VoiceClientDelegate* voiceClientDelegate_;
 #endif
   DISALLOW_COPY_AND_ASSIGN(ClientSignalingThread);
 };
