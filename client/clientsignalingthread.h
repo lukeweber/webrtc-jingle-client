@@ -37,6 +37,7 @@
 #include "talk/p2p/base/session.h"  // Needed for enum cricket::Session::State
 #include "talk/media/base/mediachannel.h"  // Needed for enum cricket::ReceiveDataParams
 #include "talk/base/basicpacketsocketfactory.h"
+#include "talk/base/criticalsection.h"
 #include "talk/base/scoped_ptr.h"
 #include "talk/base/physicalsocketserver.h"
 #include "talk/xmpp/pingtask.h"
@@ -381,7 +382,7 @@ class ClientSignalingThread
   talk_base::scoped_ptr<talk_base::SSLIdentity> sp_ssl_identity_;
 
   talk_base::Thread *signal_thread_;
-  talk_base::scoped_ptr<talk_base::Thread> main_thread_;
+  talk_base::scoped_ptr<talk_base::AutoThread> main_thread_;
   buzz::PresenceOutTask* presence_out_;
   buzz::PingTask* ping_task_;
   KeepAliveTask * keepalive_task_;
@@ -403,6 +404,7 @@ class ClientSignalingThread
   buzz::Status my_status_;
   buzz::XmppClientSettings xcs_;
   talk_base::PhysicalSocketServer pss_;
+  talk_base::CriticalSection disconnect_cs_;
 #if LOGGING
   ClientSignalingMap client_signal_map_debug_;
   XmppEngineErrorMap xmpp_error_map_debug_;

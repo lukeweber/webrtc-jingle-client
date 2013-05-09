@@ -206,16 +206,17 @@ ClientSignalingThread::ClientSignalingThread()
 ClientSignalingThread::~ClientSignalingThread() {
   LOGI("ClientSignalingThread::~ClientSignalingThread");
   Disconnect();
+  main_thread_.reset(NULL);
   delete signal_thread_;
 }
 
 void ClientSignalingThread::OnContactAdded(const std::string& jid, const std::string& nick,
-        int available, int show) {
+    int available, int show) {
   main_thread_->Post(this, MSG_ROSTER_ADD, new RosterData(jid, nick, available, show));
 }
 
 void ClientSignalingThread::OnPresenceChanged(const std::string& jid,
-        int available, int show) {
+    int available, int show) {
   main_thread_->Post(this, MSG_PRESENCE_CHANGED, new RosterData(jid, "", available, show));
 }
 
@@ -720,6 +721,7 @@ void ClientSignalingThread::SendXmppMessageS(const tuenti::XmppMessage m) {
 void ClientSignalingThread::DisconnectS() {
   LOGI("ClientSignalingThread::DisconnectS");
   assert(talk_base::Thread::Current() == signal_thread_);
+  talk_base::CritScope lock(&disconnect_cs_);
   if (call_) {
     // TODO(Luke): Gate EndAllCalls whether this has already been called.
     // On a shutdown, it should only be called once otherwise, you'll

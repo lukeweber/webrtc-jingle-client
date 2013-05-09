@@ -50,8 +50,8 @@ export ANDROID_NDK_HOME=$ANDROID_NDK_ROOT
 
 * Build, deploy to phone, and start debugger in one script: tools/badit_android.py
 * Build the apks: cd trunk/android && mvn install
-* To run a debugger: build/android/gdb_apk -p com.tuenti.voice.example -l android/voice-client-core/obj/local/${app_abi}
-* For debugging the ndk build steps of maven, I sometimes prefer and use a light shell wrapper instead of maven for building only the c++ project. trunk/android/voice-client-native && ./build.sh
+* To run a debugger: build/android/gdb_apk -p com.tuenti.voice.example -s VoiceClientService -l android/voice-client-native/obj/${build_profile}/local/${app_abi}
+* For debugging the ndk compile outside of maven, I sometimes prefer and use a light shell wrapper instead of maven for building only the c++ project. trunk/android/voice-client-native && ./build.sh
 
 ### Run unittests
 * Build debug code jni in debug mode: cd trunk/android/voice-client-core && ./build.sh
