@@ -47,6 +47,7 @@ namespace tuenti {
         client_ = new tictok::IOSXmppClient(this, voiceClientDelegate); //Will be deleted by TaskRunner
         voiceClientDelegate->SetClient(client_);
         xmpp_log_ = NULL;
+        disconnecting_ = false;
     }
 #else
     TXmppPump::TXmppPump(TXmppPumpNotify * notify){
@@ -57,6 +58,7 @@ namespace tuenti {
         socket_ = NULL;
         auth_ = NULL;
         xmpp_log_ = NULL;
+        disconnecting_ = false;
     }
 #endif
     
@@ -107,13 +109,15 @@ void TXmppPump::DoLogin(const buzz::XmppClientSettings & xcs) {
 
 void TXmppPump::DoDisconnect() {
   LOGI("TXmppPump::DoDisconnect");
-  // Maybe we don't need both conditions
-  if (client_ && !AllChildrenDone()) {
+  talk_base::CritScope lock(&disconnect_cs_);
+  if (!disconnecting_ && !AllChildrenDone()) {
+    disconnecting_ = true;
     client_->Disconnect();
 #if XMPP_LOG_STANZAS
     delete xmpp_log_;
     xmpp_log_ = NULL;
 #endif  // XMPP_LOG_STANZAS
+    client_ = NULL;
   }
   OnStateChange(buzz::XmppEngine::STATE_CLOSED);
 }
@@ -133,6 +137,11 @@ void TXmppPump::OnStateChange(buzz::XmppEngine::State state) {
 void TXmppPump::OnXmppSocketClose(int state) {
   if (notify_ != NULL) {
     notify_->OnXmppSocketClose(state);
+  }
+
+  //Extra clean up for a socket close that wasn't originated by a logout.
+  if (!disconnecting_ && state_ != buzz::XmppEngine::STATE_CLOSED) {
+    DoDisconnect();
   }
 }
 

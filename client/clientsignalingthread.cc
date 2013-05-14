@@ -202,7 +202,7 @@ ClientSignalingThread::ClientSignalingThread()
   my_status_.set_version("1.0-SNAPSHOT");
 }
 #endif
-    
+
 ClientSignalingThread::~ClientSignalingThread() {
   LOGI("ClientSignalingThread::~ClientSignalingThread");
   Disconnect();
@@ -409,8 +409,7 @@ void ClientSignalingThread::OnMediaEngineTerminate() {
 }
 
 void ClientSignalingThread::OnPingTimeout() {
-  //TODO: What do we want to do on timeout? Tear down, try again?
-  //InitPing();
+  Disconnect();
 }
 
 void ClientSignalingThread::OnCallStatsUpdate(char *stats) {
@@ -641,6 +640,9 @@ void ClientSignalingThread::ResetMedia() {
   sp_roster_module_.reset(NULL);
 #endif
   sp_media_client_.reset(NULL);
+
+  //Need to delete this after it dies, so that we kill running tasks
+  sp_pump_.reset(NULL);
 }
 
 void ClientSignalingThread::LoginS() {
@@ -758,11 +760,11 @@ void ClientSignalingThread::CallS(const std::string &remoteJid, const std::strin
   // same time, and following the first that answers, and tearing down the rest.
   // now search available presences
   for (unsigned int i = 0; i < sp_roster_module_->GetIncomingPresenceCount(); i++) {
-	  const buzz::XmppPresence *presence = sp_roster_module_->GetIncomingPresence(i);
+      const buzz::XmppPresence *presence = sp_roster_module_->GetIncomingPresence(i);
       if (presence->available() == buzz::XMPP_PRESENCE_AVAILABLE
-    		  && presence->jid().BareEquals(callto_jid)) {
+              && presence->jid().BareEquals(callto_jid)) {
           found_jid = presence->jid();
-		  found = true;
+          found = true;
           break;
       }
   }
@@ -771,7 +773,7 @@ void ClientSignalingThread::CallS(const std::string &remoteJid, const std::strin
   // If we have roster disabled, we can pass pass a full jid directly to call.
   if (!found && !callto_jid.IsBare()){
     found_jid = callto_jid;
-	found = true;
+    found = true;
   }
 
   if (found) {

@@ -28,6 +28,7 @@
 #ifndef _TXMPPPUMP_H_
 #define _TXMPPPUMP_H_
 
+#include "talk/base/criticalsection.h"
 #include "talk/base/messagequeue.h"
 #include "talk/base/taskrunner.h"
 #include "talk/base/thread.h"
@@ -95,6 +96,7 @@ class TXmppPump: public talk_base::MessageHandler,
   buzz::XmppEngine::State state_;
   buzz::XmppClientSettings xcs_;
   TXmppPumpNotify *notify_;
+  talk_base::CriticalSection disconnect_cs_;
 #ifdef IOS_XMPP_FRAMEWORK
 //  VoiceClientDelegate* voiceClientDelegate_;
 #else
@@ -102,6 +104,7 @@ class TXmppPump: public talk_base::MessageHandler,
   TXmppAuth *auth_;
 #endif
   XmppLog *xmpp_log_;
+  bool disconnecting_;
 };
 
 }  // namespace tuenti
