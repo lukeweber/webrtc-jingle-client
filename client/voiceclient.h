@@ -71,6 +71,7 @@ class VoiceClient: public sigslot::has_slots<> {
     StunConfig *stun_config, const std::string &xmpp_host,
     int xmpp_port, bool use_ssl, int port_allocator_filter, bool is_gtalk);
   void Disconnect();
+  void Ping();
   void Call(std::string remote_jid);
   void SendMessage(const std::string &remote_jid, const int &state, const std::string &msg);
   void CallWithTracker(std::string remoteJid, std::string call_tracker_id);

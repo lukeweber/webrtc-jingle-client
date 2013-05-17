@@ -306,6 +306,8 @@ void ClientSignalingThread::OnStateChange(buzz::XmppEngine::State state) {
 
 void ClientSignalingThread::OnConnected(){
   assert(talk_base::Thread::Current() == signal_thread_);
+  //We logged in, clear the LOGIN_TIMEOUT
+  signal_thread_->Clear(this, MSG_LOGIN_TIMEOUT);
   std::string client_unique = sp_pump_->client()->jid().Str();
   talk_base::InitRandom(client_unique.c_str(), client_unique.size());
 #if LOGGING
@@ -512,6 +514,9 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
   switch (message->message_id) {
 
   // ------> Events on Signaling Thread <------
+  case MSG_LOGIN_TIMEOUT:
+    DisconnectS();
+    break;
   case MSG_LOGIN:
     LoginS();
     break;
@@ -710,6 +715,7 @@ void ClientSignalingThread::LoginS() {
 #else
   sp_pump_.reset(new TXmppPump(this));
 #endif
+  signal_thread_->PostDelayed(LoginTimeout, this, MSG_LOGIN_TIMEOUT);
   sp_pump_->DoLogin(xcs_);
 }
 
@@ -742,10 +748,17 @@ void ClientSignalingThread::DisconnectS() {
   sp_socket_factory_.reset(NULL);
 }
 
+void ClientSignalingThread::Ping(){
+#if XMPP_PING_ENABLED
+  if (ping_task_ != NULL) {
+    ping_task_->PingNow();
+  }
+#endif
+}
+
 void ClientSignalingThread::CallS(const std::string &remoteJid, const std::string &call_tracker_id) {
   LOGI("ClientSignalingThread::CallS");
   assert(talk_base::Thread::Current() == signal_thread_);
-
   is_caller_ = true;
   cricket::Call* call;
   cricket::CallOptions options;

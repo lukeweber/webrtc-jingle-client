@@ -61,6 +61,7 @@ namespace tuenti{
 #endif
     
 enum XmppTimings {
+  LoginTimeout = 10000, // 10 Seconds
   PingTimeout = 10000, // 10 Seconds
   PingInterval = 360000, // 6 minutes
   XmppKeepAliveInterval = 360000, // 6 minutes

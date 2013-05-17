@@ -100,6 +100,7 @@ enum ClientSignals {
   // From Main to Worker
   // ST_MSG_WORKER_DONE is defined in SignalThread.h
   MSG_LOGIN = talk_base::SignalThread::ST_MSG_FIRST_AVAILABLE,
+  MSG_LOGIN_TIMEOUT,
   MSG_DISCONNECT,  // Logout
   MSG_CALL,
   MSG_ACCEPT_CALL,
@@ -130,6 +131,7 @@ struct ClientSignalingMap : std::map<unsigned int, std::string>
   ClientSignalingMap()
   {
   this->operator[]( MSG_LOGIN ) = "MSG_LOGIN";
+  this->operator[]( MSG_LOGIN_TIMEOUT ) = "MSG_LOGIN_TIMEOUT";
   this->operator[]( MSG_DISCONNECT ) = "MSG_DISCONNECT";
   this->operator[]( MSG_CALL ) = "MSG_CALL";
   this->operator[]( MSG_ACCEPT_CALL ) = "MSG_ACCEPT_CALL";
@@ -300,6 +302,7 @@ class ClientSignalingThread
   void OnPingTimeout();
   void OnAudioPlayout();
   void OnCallStatsUpdate(char *statsString);
+  void Ping();
   // These are signal thread entry points that will be farmed
   // out to the worker equivilent functions
   void Login(const std::string &username, const std::string &password,
