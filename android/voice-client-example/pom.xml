@@ -92,13 +92,6 @@
                     <groupId>${project.groupId}</groupId>
                     <artifactId>voice-native</artifactId>
                     <version>${project.version}</version>
-                    <classifier>mips</classifier>
-                    <type>so</type>
-                </dependency>
-                <dependency>
-                    <groupId>${project.groupId}</groupId>
-                    <artifactId>voice-native</artifactId>
-                    <version>${project.version}</version>
                     <classifier>x86</classifier>
                     <type>so</type>
                 </dependency>
@@ -152,13 +145,6 @@
                     <groupId>${project.groupId}</groupId>
                     <artifactId>voice-native</artifactId>
                     <version>${project.version}</version>
-                    <classifier>mips</classifier>
-                    <type>so</type>
-                </dependency>
-                <dependency>
-                    <groupId>${project.groupId}</groupId>
-                    <artifactId>voice-native</artifactId>
-                    <version>${project.version}</version>
                     <classifier>x86</classifier>
                     <type>so</type>
                 </dependency>
@@ -203,13 +189,6 @@
                     <artifactId>voice-native</artifactId>
                     <version>${project.version}</version>
                     <classifier>armeabi-v7a</classifier>
-                    <type>so</type>
-                </dependency>
-                <dependency>
-                    <groupId>${project.groupId}</groupId>
-                    <artifactId>voice-native</artifactId>
-                    <version>${project.version}</version>
-                    <classifier>mips</classifier>
                     <type>so</type>
                 </dependency>
                 <dependency>

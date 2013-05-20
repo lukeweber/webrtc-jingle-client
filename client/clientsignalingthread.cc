@@ -202,20 +202,21 @@ ClientSignalingThread::ClientSignalingThread()
   my_status_.set_version("1.0-SNAPSHOT");
 }
 #endif
-    
+
 ClientSignalingThread::~ClientSignalingThread() {
   LOGI("ClientSignalingThread::~ClientSignalingThread");
   Disconnect();
+  main_thread_.reset(NULL);
   delete signal_thread_;
 }
 
 void ClientSignalingThread::OnContactAdded(const std::string& jid, const std::string& nick,
-        int available, int show) {
+    int available, int show) {
   main_thread_->Post(this, MSG_ROSTER_ADD, new RosterData(jid, nick, available, show));
 }
 
 void ClientSignalingThread::OnPresenceChanged(const std::string& jid,
-        int available, int show) {
+    int available, int show) {
   main_thread_->Post(this, MSG_PRESENCE_CHANGED, new RosterData(jid, "", available, show));
 }
 
@@ -305,6 +306,8 @@ void ClientSignalingThread::OnStateChange(buzz::XmppEngine::State state) {
 
 void ClientSignalingThread::OnConnected(){
   assert(talk_base::Thread::Current() == signal_thread_);
+  //We logged in, clear the LOGIN_TIMEOUT
+  signal_thread_->Clear(this, MSG_LOGIN_TIMEOUT);
   std::string client_unique = sp_pump_->client()->jid().Str();
   talk_base::InitRandom(client_unique.c_str(), client_unique.size());
 #if LOGGING
@@ -408,8 +411,7 @@ void ClientSignalingThread::OnMediaEngineTerminate() {
 }
 
 void ClientSignalingThread::OnPingTimeout() {
-  //TODO: What do we want to do on timeout? Tear down, try again?
-  //InitPing();
+  Disconnect();
 }
 
 void ClientSignalingThread::OnCallStatsUpdate(char *stats) {
@@ -512,6 +514,9 @@ void ClientSignalingThread::OnMessage(talk_base::Message* message) {
   switch (message->message_id) {
 
   // ------> Events on Signaling Thread <------
+  case MSG_LOGIN_TIMEOUT:
+    DisconnectS();
+    break;
   case MSG_LOGIN:
     LoginS();
     break;
@@ -640,6 +645,9 @@ void ClientSignalingThread::ResetMedia() {
   sp_roster_module_.reset(NULL);
 #endif
   sp_media_client_.reset(NULL);
+
+  //Need to delete this after it dies, so that we kill running tasks
+  sp_pump_.reset(NULL);
 }
 
 void ClientSignalingThread::LoginS() {
@@ -707,6 +715,7 @@ void ClientSignalingThread::LoginS() {
 #else
   sp_pump_.reset(new TXmppPump(this));
 #endif
+  signal_thread_->PostDelayed(LoginTimeout, this, MSG_LOGIN_TIMEOUT);
   sp_pump_->DoLogin(xcs_);
 }
 
@@ -720,6 +729,7 @@ void ClientSignalingThread::SendXmppMessageS(const tuenti::XmppMessage m) {
 void ClientSignalingThread::DisconnectS() {
   LOGI("ClientSignalingThread::DisconnectS");
   assert(talk_base::Thread::Current() == signal_thread_);
+  talk_base::CritScope lock(&disconnect_cs_);
   if (call_) {
     // TODO(Luke): Gate EndAllCalls whether this has already been called.
     // On a shutdown, it should only be called once otherwise, you'll
@@ -738,10 +748,17 @@ void ClientSignalingThread::DisconnectS() {
   sp_socket_factory_.reset(NULL);
 }
 
+void ClientSignalingThread::Ping(){
+#if XMPP_PING_ENABLED
+  if (ping_task_ != NULL) {
+    ping_task_->PingNow();
+  }
+#endif
+}
+
 void ClientSignalingThread::CallS(const std::string &remoteJid, const std::string &call_tracker_id) {
   LOGI("ClientSignalingThread::CallS");
   assert(talk_base::Thread::Current() == signal_thread_);
-
   is_caller_ = true;
   cricket::Call* call;
   cricket::CallOptions options;
@@ -756,11 +773,11 @@ void ClientSignalingThread::CallS(const std::string &remoteJid, const std::strin
   // same time, and following the first that answers, and tearing down the rest.
   // now search available presences
   for (unsigned int i = 0; i < sp_roster_module_->GetIncomingPresenceCount(); i++) {
-	  const buzz::XmppPresence *presence = sp_roster_module_->GetIncomingPresence(i);
+      const buzz::XmppPresence *presence = sp_roster_module_->GetIncomingPresence(i);
       if (presence->available() == buzz::XMPP_PRESENCE_AVAILABLE
-    		  && presence->jid().BareEquals(callto_jid)) {
+              && presence->jid().BareEquals(callto_jid)) {
           found_jid = presence->jid();
-		  found = true;
+          found = true;
           break;
       }
   }
@@ -769,7 +786,7 @@ void ClientSignalingThread::CallS(const std::string &remoteJid, const std::strin
   // If we have roster disabled, we can pass pass a full jid directly to call.
   if (!found && !callto_jid.IsBare()){
     found_jid = callto_jid;
-	found = true;
+    found = true;
   }
 
   if (found) {

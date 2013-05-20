@@ -96,6 +96,13 @@ public class VoiceClient
         }
     }
 
+    public void ping() {
+        if ( loaded() )
+        {
+            nativePing();
+        }
+    }
+
     public void call( String remoteUsername )
     {
         if ( loaded() )
@@ -190,8 +197,24 @@ public class VoiceClient
     {
         if ( loaded() && initialized )
         {
-            initialized = false;
-            nativeRelease();
+            /**
+             * Release deletes the signal thread.
+             * Signal thread can not be deleted from
+             * the scope of the signal thread, which
+             * can occur if on some events from the lib
+             * you call release syncronously, causing
+             * nativeRelease to never return.
+             */
+            Thread thread = new Thread()
+            {
+                @Override
+                public void run() {
+                    initialized = false;
+                    nativeRelease();
+                }
+            };
+
+            thread.start();
         }
     }
 
@@ -441,6 +464,8 @@ public class VoiceClient
     private native void nativeMuteCall( long call_id, boolean mute );
 
     private native void nativeRelease();
+
+    private native void nativePing();
 
     private native void nativeReplaceTurn( String turn );
 }

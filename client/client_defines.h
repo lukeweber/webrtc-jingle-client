@@ -35,7 +35,7 @@
 #define XMPP_CHAT_ENABLED 1
 #define XMPP_WHITESPACE_KEEPALIVE_ENABLED 1
 #define XMPP_PING_ENABLED 1
-#define XMPP_ENABLE_ROSTER 0
+#define XMPP_ENABLE_ROSTER 1
 #define XMPP_DISABLE_INCOMING_PRESENCE 0
 #define ADD_RANDOM_RESOURCE_TO_JID 0
 #endif
@@ -61,6 +61,7 @@ namespace tuenti{
 #endif
     
 enum XmppTimings {
+  LoginTimeout = 10000, // 10 Seconds
   PingTimeout = 10000, // 10 Seconds
   PingInterval = 360000, // 6 minutes
   XmppKeepAliveInterval = 360000, // 6 minutes

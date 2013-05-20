@@ -83,6 +83,14 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeInit
 
 /*
  * Class:     com_tuenti_voice_core_VoiceClient
+ * Method:    nativePing
+ * Signature: (Ljava/lang/Object;)V
+ */
+JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativePing
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_tuenti_voice_core_VoiceClient
  * Method:    nativeLogin
  * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IZIZ)V
  */

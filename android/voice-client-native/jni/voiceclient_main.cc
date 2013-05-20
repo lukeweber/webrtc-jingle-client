@@ -191,6 +191,14 @@ JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeEndCall(
   }
 }
 
+JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativePing(
+    JNIEnv *env, jobject object) {
+  if (client_) {
+    client_->Ping();
+  }
+}
+
+
 JNIEXPORT void JNICALL Java_com_tuenti_voice_core_VoiceClient_nativeInit(
     JNIEnv *env, jobject object, jobject context){
   if (!client_) {

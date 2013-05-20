@@ -37,6 +37,7 @@
 #include "talk/p2p/base/session.h"  // Needed for enum cricket::Session::State
 #include "talk/media/base/mediachannel.h"  // Needed for enum cricket::ReceiveDataParams
 #include "talk/base/basicpacketsocketfactory.h"
+#include "talk/base/criticalsection.h"
 #include "talk/base/scoped_ptr.h"
 #include "talk/base/physicalsocketserver.h"
 #include "talk/xmpp/pingtask.h"
@@ -99,6 +100,7 @@ enum ClientSignals {
   // From Main to Worker
   // ST_MSG_WORKER_DONE is defined in SignalThread.h
   MSG_LOGIN = talk_base::SignalThread::ST_MSG_FIRST_AVAILABLE,
+  MSG_LOGIN_TIMEOUT,
   MSG_DISCONNECT,  // Logout
   MSG_CALL,
   MSG_ACCEPT_CALL,
@@ -129,6 +131,7 @@ struct ClientSignalingMap : std::map<unsigned int, std::string>
   ClientSignalingMap()
   {
   this->operator[]( MSG_LOGIN ) = "MSG_LOGIN";
+  this->operator[]( MSG_LOGIN_TIMEOUT ) = "MSG_LOGIN_TIMEOUT";
   this->operator[]( MSG_DISCONNECT ) = "MSG_DISCONNECT";
   this->operator[]( MSG_CALL ) = "MSG_CALL";
   this->operator[]( MSG_ACCEPT_CALL ) = "MSG_ACCEPT_CALL";
@@ -299,6 +302,7 @@ class ClientSignalingThread
   void OnPingTimeout();
   void OnAudioPlayout();
   void OnCallStatsUpdate(char *statsString);
+  void Ping();
   // These are signal thread entry points that will be farmed
   // out to the worker equivilent functions
   void Login(const std::string &username, const std::string &password,
@@ -381,7 +385,7 @@ class ClientSignalingThread
   talk_base::scoped_ptr<talk_base::SSLIdentity> sp_ssl_identity_;
 
   talk_base::Thread *signal_thread_;
-  talk_base::scoped_ptr<talk_base::Thread> main_thread_;
+  talk_base::scoped_ptr<talk_base::AutoThread> main_thread_;
   buzz::PresenceOutTask* presence_out_;
   buzz::PingTask* ping_task_;
   KeepAliveTask * keepalive_task_;
@@ -403,6 +407,7 @@ class ClientSignalingThread
   buzz::Status my_status_;
   buzz::XmppClientSettings xcs_;
   talk_base::PhysicalSocketServer pss_;
+  talk_base::CriticalSection disconnect_cs_;
 #if LOGGING
   ClientSignalingMap client_signal_map_debug_;
   XmppEngineErrorMap xmpp_error_map_debug_;
