@@ -9,7 +9,7 @@ deps = {
   "trunk/third_party/gtest": "https://github.com/lukeweber/googletest.git@361c8f",
   "trunk/third_party/icu": "http://git.chromium.org/chromium/deps/icu46.git@53ac6db57d9d09e43079f54feec59b735ed23670",
   "trunk/third_party/libevent": "http://src.chromium.org/svn/trunk/src/third_party/libevent@182149",
-  "trunk/third_party/libjingle": "https://github.com/lukeweber/libjingle-override.git@26fdc317802b15a0fb0b9983d3892719c7d73e7d",
+  "trunk/third_party/libjingle": "https://github.com/lukeweber/libjingle-override.git@baa2b661b0d9ee9207f639b071d525677d6e17aa",
   "trunk/third_party/libjpeg": "http://src.chromium.org/svn/trunk/src/third_party/libjpeg@182149",
   "trunk/third_party/libjpeg_turbo": "http://git.chromium.org/chromium/deps/libjpeg_turbo.git@82ce8a6d4ebe12a177c0c3597192f2b4f09e81c3",
   "trunk/third_party/libsrtp/source": "http://git.chromium.org/chromium/deps/libsrtp.git@362c71e8d0dc205a4ad9f4709d42c25864ac872a",
