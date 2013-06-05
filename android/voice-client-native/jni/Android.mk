@@ -190,9 +190,10 @@ LOCAL_SRC_FILES := \
 
 LOCAL_C_INCLUDES := \
 	$(MY_CLIENT_PATH)/../ \
-    $(MY_WEBRTC_PATH) \
 	$(MY_THIRD_PARTY_PATH) \
 	$(MY_THIRD_PARTY_PATH)/libjingle \
+	$(MY_WEBRTC_PATH) \
+	$(MY_WEBRTC_PATH)/webrtc \
 	$(MY_WEBRTC_PATH)/webrtc/system_wrappers/interface \
 	$(MY_WEBRTC_PATH)/webrtc/voice_engine/include \
 	$(MY_WEBRTC_PATH)/webrtc/modules/interface \
