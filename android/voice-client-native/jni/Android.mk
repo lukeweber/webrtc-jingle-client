@@ -18,38 +18,38 @@ MY_ANDROID_MAKE_FILES_PATH := $(MY_ROOT_PATH)/android_makefiles
 include $(MY_ROOT_PATH)/libjingle_config.mk
 include $(MY_ROOT_PATH)/android-webrtc.mk
 
-include $(MY_WEBRTC_PATH)/common_audio/resampler/Android.mk
-include $(MY_WEBRTC_PATH)/common_audio/signal_processing/Android.mk
-include $(MY_WEBRTC_PATH)/common_audio/vad/Android.mk
-include $(MY_WEBRTC_PATH)/modules/audio_coding/neteq/Android.mk
-include $(MY_WEBRTC_PATH)/modules/audio_coding/codecs/cng/Android.mk
-include $(MY_WEBRTC_PATH)/modules/audio_coding/codecs/g711/Android.mk
-include $(MY_WEBRTC_PATH)/modules/audio_coding/codecs/g722/Android.mk
-include $(MY_WEBRTC_PATH)/modules/audio_coding/codecs/pcm16b/Android.mk
-include $(MY_WEBRTC_PATH)/modules/audio_coding/codecs/ilbc/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/common_audio/resampler/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/common_audio/signal_processing/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/common_audio/vad/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/audio_coding/neteq/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/audio_coding/codecs/cng/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/audio_coding/codecs/g711/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/audio_coding/codecs/g722/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/audio_coding/codecs/pcm16b/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/audio_coding/codecs/ilbc/Android.mk
 
 #Fixed point ISAC for arm, else floating point
 ifeq ($(TARGET_ARCH),arm)
-include $(MY_WEBRTC_PATH)/modules/audio_coding/codecs/isac/fix/source/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/audio_coding/codecs/isac/fix/source/Android.mk
 else
-include $(MY_WEBRTC_PATH)/modules/audio_coding/codecs/isac/main/source/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/audio_coding/codecs/isac/main/source/Android.mk
 endif
 
-include $(MY_WEBRTC_PATH)/modules/audio_coding/main/source/Android.mk
-include $(MY_WEBRTC_PATH)/modules/utility/source/Android.mk
-include $(MY_WEBRTC_PATH)/modules/audio_conference_mixer/source/Android.mk
-include $(MY_WEBRTC_PATH)/modules/audio_device/Android.mk
-include $(MY_WEBRTC_PATH)/modules/audio_processing/aec/Android.mk
-include $(MY_WEBRTC_PATH)/modules/audio_processing/aecm/Android.mk
-include $(MY_WEBRTC_PATH)/modules/audio_processing/agc/Android.mk
-include $(MY_WEBRTC_PATH)/modules/audio_processing/ns/Android.mk
-include $(MY_WEBRTC_PATH)/modules/audio_processing/utility/Android.mk
-include $(MY_WEBRTC_PATH)/modules/audio_processing/Android.mk
-include $(MY_WEBRTC_PATH)/modules/media_file/source/Android.mk
-include $(MY_WEBRTC_PATH)/modules/rtp_rtcp/source/Android.mk
-include $(MY_WEBRTC_PATH)/system_wrappers/source/Android.mk
-include $(MY_WEBRTC_PATH)/voice_engine/Android.mk
-include $(MY_WEBRTC_PATH)/modules/pacing/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/audio_coding/main/source/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/utility/source/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/audio_conference_mixer/source/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/audio_device/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/audio_processing/aec/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/audio_processing/aecm/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/audio_processing/agc/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/audio_processing/ns/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/audio_processing/utility/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/audio_processing/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/media_file/source/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/rtp_rtcp/source/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/system_wrappers/source/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/voice_engine/Android.mk
+#include $(MY_WEBRTC_PATH)/webrtc/modules/pacing/Android.mk
 
 ifeq ($(WEBRTC_BUILD_WITH_OPUS), true)
 	include $(MY_ANDROID_MAKE_FILES_PATH)/opus.mk
@@ -71,17 +71,17 @@ LOCAL_C_INCLUDES := \
 	$(MY_ROOT_PATH)/../
 LOCAL_PATH := $(MY_THIRD_PARTY_PATH)/libvpx/source/
 include $(MY_THIRD_PARTY_PATH)/libvpx/source/libvpx/build/make/Android.mk
-include $(MY_WEBRTC_PATH)/common_video/Android.mk
-include $(MY_WEBRTC_PATH)/common_video/libyuv/Android.mk
-include $(MY_WEBRTC_PATH)/common_video/jpeg/Android.mk
-include $(MY_WEBRTC_PATH)/modules/video_capture/Android.mk
-include $(MY_WEBRTC_PATH)/modules/video_coding/main/source/Android.mk
-include $(MY_WEBRTC_PATH)/modules/video_coding/codecs/vp8/Android.mk
-include $(MY_WEBRTC_PATH)/modules/video_coding/codecs/i420/main/source/Android.mk
-include $(MY_WEBRTC_PATH)/modules/video_processing/main/source/Android.mk
-include $(MY_WEBRTC_PATH)/modules/video_render/Android.mk
-include $(MY_WEBRTC_PATH)/modules/bitrate_controller/Android.mk
-include $(MY_WEBRTC_PATH)/video_engine/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/common_video/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/common_video/libyuv/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/common_video/jpeg/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/video_capture/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/video_coding/main/source/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/video_coding/codecs/vp8/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/video_coding/codecs/i420/main/source/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/video_processing/main/source/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/video_render/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/modules/bitrate_controller/Android.mk
+include $(MY_WEBRTC_PATH)/webrtc/video_engine/Android.mk
 include $(MY_ANDROID_MAKE_FILES_PATH)/libyuv.mk
 include $(MY_ANDROID_MAKE_FILES_PATH)/libjpeg_turbo.mk
 
@@ -193,13 +193,13 @@ LOCAL_C_INCLUDES := \
     $(MY_WEBRTC_PATH) \
 	$(MY_THIRD_PARTY_PATH) \
 	$(MY_THIRD_PARTY_PATH)/libjingle \
-	$(MY_THIRD_PARTY_PATH)/webrtc/system_wrappers/interface \
-	$(MY_THIRD_PARTY_PATH)/webrtc/voice_engine/include \
-	$(MY_THIRD_PARTY_PATH)/webrtc/modules/interface \
-	$(MY_THIRD_PARTY_PATH)/webrtc/modules/utility/interface \
-	$(MY_THIRD_PARTY_PATH)/webrtc/modules/audio_device/main/interface \
-	$(MY_THIRD_PARTY_PATH)/webrtc/modules/audio_processing/include \
-	$(MY_THIRD_PARTY_PATH)/webrtc/voice_engine
+	$(MY_WEBRTC_PATH)/webrtc/system_wrappers/interface \
+	$(MY_WEBRTC_PATH)/webrtc/voice_engine/include \
+	$(MY_WEBRTC_PATH)/webrtc/modules/interface \
+	$(MY_WEBRTC_PATH)/webrtc/modules/utility/interface \
+	$(MY_WEBRTC_PATH)/webrtc/modules/audio_device/main/interface \
+	$(MY_WEBRTC_PATH)/webrtc/modules/audio_processing/include \
+	$(MY_WEBRTC_PATH)/webrtc/voice_engine
 
 LOCAL_CFLAGS := \
 	$(LIBJINGLE_CPPFLAGS) \
