@@ -130,14 +130,14 @@ endif
 LOCAL_WHOLE_STATIC_LIBRARIES += \
 	libwebrtc_spl \
 	libwebrtc_resampler \
-	libwebrtc_apm \
-	libwebrtc_apm_utility \
 	libwebrtc_vad \
 	libwebrtc_ns \
 	libwebrtc_agc \
 	libwebrtc_aec \
 	libwebrtc_aecm \
 	libwebrtc_system_wrappers
+	#libwebrtc_apm \
+	#libwebrtc_apm_utility \
 
 
 LOCAL_LDLIBS := -lgcc -llog
