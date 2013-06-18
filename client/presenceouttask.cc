@@ -28,6 +28,7 @@
 #include <time.h>
 #include <string>
 #include <sstream>
+#include "client/client_defines.h"
 #include "client/presenceouttask.h"
 #include "client/client_defines.h"
 #include "talk/base/stringencode.h"
