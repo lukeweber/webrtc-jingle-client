@@ -1,10 +1,10 @@
 #ifndef _CLIENT_CLIENT_DEFINES_H_
 #define _CLIENT_CLIENT_DEFINES_H_
 
-#ifdef IOS
-//TODO: figure out why srtp & dtls do not work on ios devices
-//NOTE: SRTP does work on the simulator
-#define ENABLE_SRTP 0
+#ifdef __APPLE__
+//TODO: Why doesn't srtp(openssl incorrectly compiled issue) work on iOS(arm).
+#include "TargetConditionals.h"
+#define ENABLE_SRTP TARGET_IPHONE_SIMULATOR
 #else
 #define ENABLE_SRTP 1
 #endif

@@ -537,12 +537,12 @@
         XMPPUserCoreDataStorageObject* user = [self getUserWithJid: jid];
         NSArray* resources = [user allResources];
         int size = resources.count;
-        if (size > 0)
-        {
-            XMPPResourceCoreDataStorageObject* resource = [resources objectAtIndex:(size - 1)];
-            NSString* fullJid = [[resource jid] full];
-            [xmppClientDelegate getVoiceClientDelegate]->Call([fullJid cStringUsingEncoding:NSUTF8StringEncoding]);
-        }
+        for (int i = 0; i < size; i++)
+         {
+           XMPPResourceCoreDataStorageObject* resource = [resources objectAtIndex:i];
+           NSString* fullJid = [[resource jid] full];
+           [xmppClientDelegate getVoiceClientDelegate]->Call([fullJid cStringUsingEncoding:NSUTF8StringEncoding]);
+         }
     }
 }
 

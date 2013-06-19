@@ -152,6 +152,7 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientDelegate* voiceClientDel
 #endif
   sp_ssl_identity_.reset(NULL);
   transport_protocol_ = cricket::ICEPROTO_HYBRID;
+
 #if ENABLE_SRTP
   sdes_policy_ = cricket::SEC_ENABLED;
   dtls_policy_ = cricket::SEC_ENABLED;
@@ -159,7 +160,6 @@ ClientSignalingThread::ClientSignalingThread(VoiceClientDelegate* voiceClientDel
   dtls_policy_ = cricket::SEC_DISABLED;
   sdes_policy_ = cricket::SEC_DISABLED;
 #endif
-  sp_ssl_identity_.reset(NULL);
   sp_network_manager_.reset(new talk_base::BasicNetworkManager());
   my_status_.set_caps_node("http://github.com/lukeweber/webrtc-jingle");
   my_status_.set_version("1.0-SNAPSHOT");
@@ -196,7 +196,6 @@ ClientSignalingThread::ClientSignalingThread()
   dtls_policy_ = cricket::SEC_DISABLED;
   sdes_policy_ = cricket::SEC_DISABLED;
 #endif
-  sp_ssl_identity_.reset(NULL);
   sp_network_manager_.reset(new talk_base::BasicNetworkManager());
   my_status_.set_caps_node("http://github.com/lukeweber/webrtc-jingle");
   my_status_.set_version("1.0-SNAPSHOT");
@@ -667,8 +666,11 @@ void ClientSignalingThread::LoginS() {
     port_allocator_flags_ |= cricket::PORTALLOCATOR_DISABLE_STUN;
   }
 
-  // TODO(Luke): Add option to force relay, ie DISABLE_UDP,DISABLE_TCP,
-  // DISABLE_STUN
+  //ICEPROTO_RFC5245 - Requires that all ports share the same passwords
+  if (transport_protocol_ == cricket::ICEPROTO_RFC5245){
+    port_allocator_flags_ |= cricket::PORTALLOCATOR_ENABLE_SHARED_UFRAG;
+  }
+
   sp_socket_factory_.reset(new talk_base::BasicPacketSocketFactory(signal_thread_));
   sp_port_allocator_.reset(
           new cricket::BasicPortAllocator(sp_network_manager_.get(),
