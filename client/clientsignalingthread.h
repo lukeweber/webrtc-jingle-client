@@ -36,7 +36,7 @@
 #include "talk/base/sigslot.h"
 #include "talk/p2p/base/session.h"  // Needed for enum cricket::Session::State
 #include "talk/media/base/mediachannel.h"  // Needed for enum cricket::ReceiveDataParams
-#include "talk/base/basicpacketsocketfactory.h"
+#include "talk/p2p/base/basicpacketsocketfactory.h"
 #include "talk/base/criticalsection.h"
 #include "talk/base/scoped_ptr.h"
 #include "talk/base/physicalsocketserver.h"
