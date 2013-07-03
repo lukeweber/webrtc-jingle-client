@@ -128,45 +128,13 @@ struct ClientSignalingData: public talk_base::MessageData {
 ///////////////////////////////////////////////////////////////////////////////
 #ifdef IOS_XMPP_FRAMEWORK
 ClientSignalingThread::ClientSignalingThread(VoiceClientDelegate* voiceClientDelegate)
-    : presence_out_(NULL),
-    ping_task_(NULL),
-    keepalive_task_(NULL),
-    session_manager_task_(NULL),
-    call_(NULL),
-    port_allocator_flags_(0),
-    port_allocator_filter_(0),
-    use_ssl_(false),
+    : voiceClientDelegate_(voiceClientDelegate),
     auto_accept_(true),
-    is_caller_(true),
-    xmpp_state_(buzz::XmppEngine::STATE_NONE),
-    voiceClientDelegate_(voiceClientDelegate) {
-  // int numRelayPorts = 0;
-  LOGI("ClientSignalingThread::ClientSignalingThread");
-  main_thread_.reset(new talk_base::AutoThread());
-  main_thread_.get()->Start();
-  signal_thread_ = new talk_base::Thread(&pss_);
-  signal_thread_->Start();
-#if LOGGING
-  // Set debugging to verbose in libjingle if LOGGING on android.
-  talk_base::LogMessage::LogToDebug(talk_base::LS_VERBOSE);
-#endif
-  sp_ssl_identity_.reset(NULL);
-  transport_protocol_ = cricket::ICEPROTO_HYBRID;
-
-#if ENABLE_SRTP
-  sdes_policy_ = cricket::SEC_ENABLED;
-  dtls_policy_ = cricket::SEC_ENABLED;
-#else
-  dtls_policy_ = cricket::SEC_DISABLED;
-  sdes_policy_ = cricket::SEC_DISABLED;
-#endif
-  sp_network_manager_.reset(new talk_base::BasicNetworkManager());
-  my_status_.set_caps_node("http://github.com/lukeweber/webrtc-jingle");
-  my_status_.set_version("1.0-SNAPSHOT");
-}
 #else
 ClientSignalingThread::ClientSignalingThread()
-    : presence_out_(NULL),
+    : auto_accept_(false),
+#endif
+    presence_out_(NULL),
     ping_task_(NULL),
     keepalive_task_(NULL),
     session_manager_task_(NULL),
@@ -174,7 +142,6 @@ ClientSignalingThread::ClientSignalingThread()
     port_allocator_flags_(0),
     port_allocator_filter_(0),
     use_ssl_(false),
-    auto_accept_(false),
     is_caller_(true),
     xmpp_state_(buzz::XmppEngine::STATE_NONE) {
   // int numRelayPorts = 0;
@@ -200,7 +167,6 @@ ClientSignalingThread::ClientSignalingThread()
   my_status_.set_caps_node("http://github.com/lukeweber/webrtc-jingle");
   my_status_.set_version("1.0-SNAPSHOT");
 }
-#endif
 
 ClientSignalingThread::~ClientSignalingThread() {
   LOGI("ClientSignalingThread::~ClientSignalingThread");
