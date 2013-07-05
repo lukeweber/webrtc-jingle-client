@@ -386,6 +386,10 @@ class ClientSignalingThread
 
   talk_base::Thread *signal_thread_;
   talk_base::scoped_ptr<talk_base::AutoThread> main_thread_;
+#ifdef IOS_XMPP_FRAMEWORK
+  VoiceClientDelegate* voiceClientDelegate_;
+#endif
+  bool auto_accept_;
   buzz::PresenceOutTask* presence_out_;
   buzz::PingTask* ping_task_;
   KeepAliveTask * keepalive_task_;
@@ -398,7 +402,6 @@ class ClientSignalingThread
   uint32 port_allocator_flags_;
   uint32 port_allocator_filter_;
   bool use_ssl_;
-  bool auto_accept_;
   bool is_caller_;
   buzz::XmppEngine::State xmpp_state_;
   StunConfig *stun_config_;
@@ -413,9 +416,6 @@ class ClientSignalingThread
   XmppEngineErrorMap xmpp_error_map_debug_;
   CallSessionMap call_session_map_debug_;
   CallSessionErrorMap call_session_error_map_debug_;
-#endif
-#ifdef IOS_XMPP_FRAMEWORK
-  VoiceClientDelegate* voiceClientDelegate_;
 #endif
   DISALLOW_COPY_AND_ASSIGN(ClientSignalingThread);
 };
