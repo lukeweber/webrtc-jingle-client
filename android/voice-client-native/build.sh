@@ -4,8 +4,10 @@ CURRENT_APP_DIR="$( cd "$( dirname "$0" )" && pwd )"
 function usage {
     echo "usage:    build [filename|dr|dd|tr|td]"
     echo ""
+    echo "          df - default final version"
     echo "          dr - default release version"
     echo "          dd - default debug version"
+    echo "          tf - tuenti final version"
     echo "          tr - tuenti release version"
     echo "          td - tuenti debug version"
     echo "          or specify exact .mk file"
@@ -31,9 +33,6 @@ if [ $# -gt 0 ]; then
     else
         while [ "$1" != "" ]; do
             case $1 in
-                tf )                filename='tuenti_final.mk'
-                                    version='final';
-                                    ;;
                 df )                filename='default_final.mk'
                                     version='final';
                                     ;;
@@ -42,6 +41,9 @@ if [ $# -gt 0 ]; then
                                     ;;
                 dd )                filename='default_debug.mk'
                                     version='debug';
+                                    ;;
+                tf )                filename='tuenti_final.mk'
+                                    version='final';
                                     ;;
                 tr )                filename='tuenti_release.mk'
                                     version='release';

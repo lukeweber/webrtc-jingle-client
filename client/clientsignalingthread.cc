@@ -155,7 +155,9 @@ ClientSignalingThread::ClientSignalingThread()
   talk_base::LogMessage::LogToDebug(talk_base::LS_VERBOSE);
 #endif
   sp_ssl_identity_.reset(NULL);
-  transport_protocol_ = cricket::ICEPROTO_HYBRID;
+  transport_protocol_ = cricket::ICEPROTO_RFC5245;
+  //transport_protocol_ = cricket::ICEPROTO_HYBRID;
+
 #if ENABLE_SRTP
   sdes_policy_ = cricket::SEC_ENABLED;
   dtls_policy_ = cricket::SEC_ENABLED;
@@ -399,6 +401,9 @@ void ClientSignalingThread::Login(const std::string &username,
   pass.password() = password;
 #if ENABLE_SRTP
   sp_ssl_identity_.reset(talk_base::SSLIdentity::Generate(jid.Str()));
+  if (sp_ssl_identity_.get() == NULL) {
+    LOGE("Unable to generate identity for dtls");
+  }
 #else
   sp_ssl_identity_.reset(NULL);
 #endif

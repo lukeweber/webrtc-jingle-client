@@ -14,7 +14,7 @@ APP_CPPFLAGS += \
 
 APP_CFLAGS += \
 	-DENABLE_DEBUG=0 \
-	-DLOGGING=0 \
+	-DLOGGING=1 \
 	-fvisibility=hidden \
 	-ffunction-sections  \
 	-fdata-sections
