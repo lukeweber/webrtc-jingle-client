@@ -219,7 +219,21 @@
                     <groupId>${project.groupId}</groupId>
                     <artifactId>voice-native</artifactId>
                     <version>${project.version}</version>
-                    <classifier>${android.ndk.architecture}</classifier>
+                    <classifier>armeabi</classifier>
+                    <type>so</type>
+                </dependency>
+                <dependency>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>voice-native</artifactId>
+                    <version>${project.version}</version>
+                    <classifier>armeabi-v7a</classifier>
+                    <type>so</type>
+                </dependency>
+                <dependency>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>voice-native</artifactId>
+                    <version>${project.version}</version>
+                    <classifier>x86</classifier>
                     <type>so</type>
                 </dependency>
             </dependencies>

@@ -92,8 +92,8 @@
 		return YES;
 	}
     
-	NSString *myJID = @"";
-	NSString *myPassword = @"";
+	NSString *myJID = @"1058@xmpp1.tuenti.com";
+	NSString *myPassword = @"IgQAAAIAAACuAeRArBnYyN3NB_2gG36Ig7lpZirg0lE";
 
 	//
 	// If you don't want to use the Settings view to set the JID,
@@ -106,14 +106,14 @@
 		return NO;
 	}
 
-    self.myJid = [XMPPJID jidWithString:myJID];
+  self.myJid = [XMPPJID jidWithString:myJID];
 	self.password = myPassword;
 
-    [self.xmppStream setMyJID:self.myJid];
+  [self.xmppStream setMyJID:self.myJid];
 
-    xmppClientDelegate = [[XmppClientDelegate alloc] init];
-    [xmppClientDelegate activate:self.xmppStream];
-    [xmppClientDelegate getVoiceClientDelegate]->Login();
+  xmppClientDelegate = [[XmppClientDelegate alloc] init];
+  [xmppClientDelegate activate:self.xmppStream];
+  [xmppClientDelegate getVoiceClientDelegate]->Login();
     
 	NSError *error = nil;
 	if (![self.xmppStream connect:&error])
@@ -272,7 +272,7 @@
 	//
 	// If you don't specify a hostPort, then the default (5222) will be used.
 
-    [self.xmppStream setHostName:@"talk.google.com"];
+    [self.xmppStream setHostName:@"xmpp1.tuenti.com"];
 //    [self.xmppStream setHostPort:5222];
 
 

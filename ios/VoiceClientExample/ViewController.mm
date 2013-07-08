@@ -55,7 +55,12 @@
 - (IBAction)call:(id)sender{
     printf("calling");
 #ifdef IOS_XMPP_FRAMEWORK
-    [appDelegate call:@"user@gmail.com"];
+    //Nick
+    //[appDelegate call:@"59989700@xmpp1.tuenti.com"];
+    //Maria
+    [appDelegate call:@"6718@xmpp1.tuenti.com"];
+    //[appDelegate call:@"77677382@xmpp1.tuenti.com"];
+    //[appDelegate call:@"78615644@xmpp1.tuenti.com"];
 #else
     VoiceClientDelegate* vc = VoiceClientDelegate::getInstance();
     vc->Call();

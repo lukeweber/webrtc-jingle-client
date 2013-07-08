@@ -117,7 +117,7 @@ void VoiceClient::Disconnect() {
 void VoiceClient::Call(std::string remoteJid) {
   LOGI("VoiceClient::Call");
   if (client_signaling_thread_) {
-    client_signaling_thread_->Call(remoteJid, "");
+    client_signaling_thread_->Call(remoteJid, "1");
   }
 }
 
