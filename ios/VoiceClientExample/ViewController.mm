@@ -26,6 +26,9 @@
     appDelegate = (AppDelegate*) [UIApplication sharedApplication].delegate;
 	// Do any additional setup after loading the view, typically from a nib.
     [self statsUpdate:@"Sender:\nunknown stats\nReceiver:\nunknown stats\n"];
+    initialized_ = false;
+    loggedIn_ = false;
+
 }
 
 - (void)didReceiveMemoryWarning
@@ -35,32 +38,37 @@
 }
 
 - (IBAction)init:(id)sender{
-   printf("init");
-   [appDelegate setupStream];
+  if(!initialized_) {
+    printf("init\n");
+    [appDelegate setupStream];
 #ifndef IOS_XMPP_FRAMEWORK
-   VoiceClientDelegate* vc = VoiceClientDelegate::getInstance();
-   (void)vc;
+    VoiceClientDelegate* vc = VoiceClientDelegate::getInstance();
+    (void)vc;
 #endif
+    initialized_ = true;
+  } else {
+    printf("ERROR already initialized skipping\n");
+  }
 }
 
 - (IBAction)login:(id)sender{
-    printf("logging in");
+  if(!loggedIn_) {
+    printf("logging in\n");
     [appDelegate connect];
 #ifndef IOS_XMPP_FRAMEWORK
     VoiceClientDelegate* vc = VoiceClientDelegate::getInstance();
     vc->Login();
 #endif
+    loggedIn_ = true;
+  } else {
+    printf("ERROR already loggedIn skipping\n");
+  }
 }
 
 - (IBAction)call:(id)sender{
     printf("calling");
 #ifdef IOS_XMPP_FRAMEWORK
-    //Nick
-    //[appDelegate call:@"59989700@xmpp1.tuenti.com"];
-    //Maria
-    [appDelegate call:@"6718@xmpp1.tuenti.com"];
-    //[appDelegate call:@"77677382@xmpp1.tuenti.com"];
-    //[appDelegate call:@"78615644@xmpp1.tuenti.com"];
+    [appDelegate call:@"user@gmail.com"];
 #else
     VoiceClientDelegate* vc = VoiceClientDelegate::getInstance();
     vc->Call();

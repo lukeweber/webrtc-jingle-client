@@ -12,6 +12,8 @@
 @interface ViewController : UIViewController {
 //    UIButton *loginButton_;
   IBOutlet UILabel *statsLabel_;
+  bool initialized_;
+  bool loggedIn_;
 }
 
 //@property (nonatomic, retain) UIButton *loginButton;
