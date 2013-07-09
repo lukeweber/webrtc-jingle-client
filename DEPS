@@ -68,8 +68,8 @@ deps = {
   "trunk/third_party/expat":
     Var("chromium_trunk") + "/src/third_party/expat@" + Var("chromium_revision"),
 
-  "trunk/third_party/libsrtp/source":
-    Var("chromium_git_url") + "/chromium/deps/libsrtp.git@362c71e8d0dc205a4ad9f4709d42c25864ac872a",
+  "trunk/third_party/libsrtp/":
+    Var("chromium_git_url") + "/chromium/deps/libsrtp.git@e151e5175dd9067c64365884b36e85f9832ae36d",
 
   "trunk/third_party/libjingle":
     "https://github.com/lukeweber/libjingle-override.git",

@@ -22,6 +22,7 @@ local_src_files := \
 	openssl/ssl/s2_meth.c \
 	openssl/ssl/s2_pkt.c \
 	openssl/ssl/s2_srvr.c \
+	openssl/ssl/s3_cbc.c \
 	openssl/ssl/s3_both.c \
 	openssl/ssl/s3_clnt.c \
 	openssl/ssl/s3_enc.c \
@@ -291,8 +292,6 @@ local_src_files := \
 	openssl/crypto/engine/eng_lib.c \
 	openssl/crypto/engine/eng_list.c \
 	openssl/crypto/engine/eng_pkey.c \
-	openssl/crypto/engine/eng_rsax.c \
-	openssl/crypto/engine/eng_rdrand.c \
 	openssl/crypto/engine/eng_table.c \
 	openssl/crypto/engine/tb_asnmth.c \
 	openssl/crypto/engine/tb_cipher.c \
@@ -330,6 +329,7 @@ local_src_files := \
 	openssl/crypto/evp/e_xcbc_d.c \
 	openssl/crypto/evp/encode.c \
 	openssl/crypto/evp/evp_acnf.c \
+	openssl/crypto/evp/evp_cnf.c \
 	openssl/crypto/evp/evp_enc.c \
 	openssl/crypto/evp/evp_err.c \
 	openssl/crypto/evp/evp_key.c \
@@ -372,7 +372,6 @@ local_src_files := \
 	openssl/crypto/md5/md5_dgst.c \
 	openssl/crypto/md5/md5_one.c \
 	openssl/crypto/mem.c \
-	openssl/crypto/mem_clr.c \
 	openssl/crypto/mem_dbg.c \
 	openssl/crypto/modes/cbc128.c \
 	openssl/crypto/modes/ccm128.c \
@@ -545,26 +544,42 @@ local_src_files := \
 	openssl/crypto/x509v3/v3err.c
 
 ifeq ($(TARGET_ARCH),x86)
-	local_src_files += \
-		openssl/crypto/aes/asm/aes-586.S \
-		openssl/crypto/aes/asm/aesni-x86.S \
-		openssl/crypto/aes/asm/vpaes-x86.S \
-		openssl/crypto/bf/asm/bf-586.S \
-		openssl/crypto/bn/asm/bn-586.S \
-		openssl/crypto/bn/asm/co-586.S \
-		openssl/crypto/bn/asm/x86-gf2m.S \
-		openssl/crypto/bn/asm/x86-mont.S \
-		openssl/crypto/des/asm/crypt586.S \
-		openssl/crypto/des/asm/des-586.S \
-		openssl/crypto/md5/asm/md5-586.S \
-		openssl/crypto/modes/asm/ghash-x86.S \
-		openssl/crypto/sha/asm/sha1-586.S \
-		openssl/crypto/sha/asm/sha256-586.S \
-		openssl/crypto/sha/asm/sha512-586.S
+local_src_files += \
+	openssl/crypto/aes/asm/aes-586.S \
+	openssl/crypto/aes/asm/aesni-x86.S \
+	openssl/crypto/aes/asm/vpaes-x86.S \
+	openssl/crypto/bf/asm/bf-586.S \
+	openssl/crypto/bn/asm/bn-586.S \
+	openssl/crypto/bn/asm/co-586.S \
+	openssl/crypto/bn/asm/x86-gf2m.S \
+	openssl/crypto/bn/asm/x86-mont.S \
+	openssl/crypto/des/asm/crypt586.S \
+	openssl/crypto/des/asm/des-586.S \
+	openssl/crypto/md5/asm/md5-586.S \
+	openssl/crypto/modes/asm/ghash-x86.S \
+	openssl/crypto/sha/asm/sha1-586.S \
+	openssl/crypto/sha/asm/sha256-586.S \
+	openssl/crypto/sha/asm/sha512-586.S \
+	openssl/crypto/x86cpuid.S
+
+local_c_flags += \
+	  -DOPENSSL_BN_ASM_GF2m \
+	  -DOPENSSL_BN_ASM_MONT \
+	  -DOPENSSL_BN_ASM_PART_WORDS \
+	  -DAES_ASM \
+	  -DGHASH_ASM \
+	  -DSHA1_ASM \
+	  -DSHA256_ASM \
+	  -DSHA512_ASM \
+	  -DMD5_ASM \
+	  -DDES_PTR \
+	  -DDES_RISC1 \
+	  -DDES_UNROLL \
+	  -DOPENSSL_CPUID_OBJ
 endif
 
 ifeq ($(TARGET_ARCH),arm)
-	local_src_files += \
+local_src_files += \
 	openssl/crypto/aes/asm/aes-armv4.S \
 	openssl/crypto/bn/asm/armv4-gf2m.S \
 	openssl/crypto/bn/asm/armv4-mont.S \
@@ -576,11 +591,21 @@ ifeq ($(TARGET_ARCH),arm)
 	openssl/crypto/des/des_enc.c \
 	openssl/crypto/des/fcrypt_b.c \
 	openssl/crypto/bf/bf_enc.c \
-	openssl/crypto/bn/bn_asm.c
+	openssl/crypto/bn/bn_asm.c \
+	openssl/crypto/mem_clr.c
+
+local_c_flags += \
+	 -DOPENSSL_BN_ASM_GF2m \
+	 -DOPENSSL_BN_ASM_MONT \
+	 -DGHASH_ASM \
+	 -DAES_ASM \
+	 -DSHA1_ASM \
+	 -DSHA256_ASM \
+	 -DSHA512_ASM 
 endif
 
 ifeq ($(TARGET_ARCH),mips)
-	local_src_files += \
+local_src_files += \
 	openssl/crypto/aes/asm/aes-mips.S \
 	openssl/crypto/bn/asm/bn-mips.S \
 	openssl/crypto/bn/asm/mips-mont.S \
@@ -598,43 +623,44 @@ local_c_includes := \
 	$(LOCAL_PATH)/openssl/crypto/asn1 \
 	$(LOCAL_PATH)/openssl/crypto/evp \
 	$(LOCAL_PATH)/openssl/crypto/modes \
-	$(LOCAL_PATH)/config/android \
 	$(LOCAL_PATH)/openssl/include
 
 # From GYP file
 local_c_flags += \
 	-DNO_WINDOWS_BRAINDEATH \
-	-DL_ENDIAN \
-	-DOPENSSL_THREADS \
 	-DPURIFY \
-	-DTERMIO \
-	-D_REENTRANT \
-	-DOPENSSL_NO_HW \
-	-DOPENSSL_NO_GOST \
-	-DOPENSSL_NO_DTLS1
+	-DMONOLITH
 
-# From opensslconf.h for android
-local_c_flags += \
-	-DOPENSSL_NO_CAST \
-	-DOPENSSL_NO_GMP \
-	-DOPENSSL_NO_IDEA \
-	-DOPENSSL_NO_JPAKE \
-	-DOPENSSL_NO_KRB5 \
-	-DOPENSSL_NO_MD2 \
-	-DOPENSSL_NO_RC5 \
-	-DOPENSSL_NO_RFC3779 \
-	-DOPENSSL_NO_SEED \
-	-DOPENSSL_NO_SHA0 \
-	-DOPENSSL_NO_STORE \
-	-DOPENSSL_NO_WHRLPOOL \
-	-DOPENSSL_NO_DYNAMIC_ENGINE
-
+#-DL_ENDIAN \
+#	-DOPENSSL_THREADS \
+#	-DPURIFY \
+#	-DTERMIO \
+#	-D_REENTRANT \
+#	-DOPENSSL_NO_HW \
+#	-DOPENSSL_NO_GOST
+#
+## From opensslconf.h for android
+#local_c_flags += \
+#	-DOPENSSL_NO_CAST \
+#	-DOPENSSL_NO_GMP \
+#	-DOPENSSL_NO_IDEA \
+#	-DOPENSSL_NO_JPAKE \
+#	-DOPENSSL_NO_KRB5 \
+#	-DOPENSSL_NO_MD2 \
+#	-DOPENSSL_NO_RC5 \
+#	-DOPENSSL_NO_RFC3779 \
+#	-DOPENSSL_NO_SEED \
+#	-DOPENSSL_NO_SHA0 \
+#	-DOPENSSL_NO_STORE \
+#	-DOPENSSL_NO_WHRLPOOL \
+#	-DOPENSSL_NO_DYNAMIC_ENGINE
+#
 ########################################
 # host static library, which is used by some SDK tools.
 include $(CLEAR_VARS)
 include $(MY_ROOT_PATH)/android-webrtc.mk
 LOCAL_SRC_FILES += $(local_src_files)
-LOCAL_CFLAGS += $(local_c_flags) -DPURIFY -w
+LOCAL_CFLAGS += $(local_c_flags) -w
 LOCAL_C_INCLUDES += $(local_c_includes)
 LOCAL_LDLIBS += -ldl -lz
 LOCAL_MODULE_TAGS := optional
