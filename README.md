@@ -17,6 +17,10 @@ Discussion: [webrtc-jingle](https://groups.google.com/forum/?fromgroups#!forum/w
 * Download and install [depot_tools](http://dev.chromium.org/developers/how-tos/install-depot-tools)
 
 ```
+# IMPORTANT:- gclient command from [depot_tools](http://dev.chromium.org/developers/how-tos/install-depot-tools) 
+# has to be used to checkout the project else the third_party dependencies don't get pulled 
+# 
+
 # mkdir webrtcjingleproject
 # cd webrtcjingleproject
 # gclient config https://github.com/lukeweber/webrtc-jingle-client.git --name trunk
